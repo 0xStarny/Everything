@@ -3,12 +3,22 @@
    Every user-facing string is a ["English", "Français"] pair. */
 
 let LANG = 'en';
-try { LANG = (localStorage.getItem('ev-lang') === 'fr') ? 'fr' : 'en'; } catch (e) {}
+let LEVEL = 'plain';   // 'plain' = plain language only · 'full' = plain + the technical layer
+try { LANG  = (localStorage.getItem('ev-lang')  === 'fr')  ? 'fr'  : 'en'; } catch (e) {}
+try { LEVEL = (localStorage.getItem('ev-level') === 'full') ? 'full' : 'plain'; } catch (e) {}
 const T = x => Array.isArray(x) ? (LANG === 'fr' ? x[1] : x[0]) : x;
 
 const UI = {
   kicker: ['Guide', 'Guide'],
-  crumb: ['Reading the whitepaper · <b>9 views</b>', 'Lecture du whitepaper · <b>9 vues</b>'],
+  crumb: ['Reading the whitepaper · <b>10 views</b>', 'Lecture du whitepaper · <b>10 vues</b>'],
+  inPlain: ['In plain words', 'En clair'],
+  lvPlain: ['Plain', 'Simple'],
+  lvFull: ['Full', 'Complet'],
+  lvHint: ['Reading level', 'Niveau de lecture'],
+  nextView: ['Next', 'Suivant'],
+  prevView: ['Previous', 'Précédent'],
+  meet: ['Meet', 'Voici'],
+  glossary: ['Glossary', 'Glossaire'],
   gMech: ['Mechanics', 'Mécanique'],
   gProf: ['Profiles', 'Profils'],
   gHood: ['Under the hood', 'Sous le capot'],
@@ -62,7 +72,436 @@ const CALL = (id, x, y, w, h, ttl, lines, kind = 'b') => {
   ${lines.map((l, i) => `<text class="${i === 0 ? 'big' : 'sm'}" x="${x + 14}" y="${y + (i === 0 ? 43 : 43 + i * 15)}" fill="${c[2]}">${T(l)}</text>`).join('')}</g>`;
 };
 
+/* ── glossary ──────────────────────────────────────────────────────
+   Terms get an underline and a definition the first time they appear in a
+   panel. Matching runs over text nodes only, so markup is never touched.
+   `m` holds the words to match, EN first then FR. */
+const GLOSS = [
+  { m: [['AMM'], ['AMM']], t: ['AMM', 'AMM'],
+    d: ['An "automated market maker": a pool of two tokens that quotes a price from a formula instead of matching buyers with sellers. You always trade against the pool.',
+        "Un « automated market maker » : une réserve de deux tokens qui cote un prix à partir d'une formule au lieu d'apparier acheteurs et vendeurs. On échange toujours contre la réserve."] },
+  { m: [['swap', 'swaps'], ['swap', 'swaps']], t: ['Swap', 'Swap'],
+    d: ['Trading one token for the other, right now, at whatever price the pool quotes.',
+        "Échanger un token contre l'autre, tout de suite, au prix que la réserve cote à cet instant."] },
+  { m: [['taker', 'takers'], ['taker', 'takers']], t: ['Taker', 'Taker'],
+    d: ['Whoever takes the price on offer and trades immediately. The opposite of a maker, who posts a price and waits.',
+        "Celui qui prend le prix affiché et échange immédiatement. Le contraire d'un maker, qui affiche un prix et attend."] },
+  { m: [['maker', 'makers'], ['maker', 'makers']], t: ['Maker', 'Maker'],
+    d: ['Whoever posts a price and waits for someone else to come to it. A limit order is a maker order.',
+        "Celui qui affiche un prix et attend que quelqu'un vienne le chercher. Un ordre limite est un ordre maker."] },
+  { m: [['spot'], ['spot']], t: ['Spot price', 'Prix spot'],
+    d: ['The price right now, for a trade small enough not to move it.',
+        "Le prix à l'instant présent, pour un échange assez petit pour ne pas le déplacer."] },
+  { m: [['slippage'], ['slippage']], t: ['Slippage', 'Slippage'],
+    d: ['The gap between the price you saw and the price you actually got, because your own trade moved the market.',
+        "L'écart entre le prix affiché et le prix réellement obtenu, parce que votre propre échange a déplacé le marché."] },
+  { m: [['escrow'], ['escrow']], t: ['Escrow', 'Escrow'],
+    d: ['Money the contract is holding on your behalf. It is yours, it is set aside, and it is never mixed into the pool that prices swaps.',
+        "De l'argent que le contrat détient pour vous. Il vous appartient, il est mis de côté, et il n'est jamais mélangé à la réserve qui cote les swaps."] },
+  { m: [['tick', 'ticks'], ['tick', 'ticks']], t: ['Tick', 'Tick'],
+    d: ['One rung of the price ladder the protocol uses. Rungs sit exactly 1 % apart, so every order and every loan lands on a known rung instead of an arbitrary number.',
+        "Un barreau de l'échelle de prix qu'utilise le protocole. Les barreaux sont espacés d'exactement 1 %, donc chaque ordre et chaque prêt tombe sur un barreau connu plutôt que sur un chiffre arbitraire."] },
+  { m: [['wall', 'walls'], ['wall', 'walls']], t: ['Wall', 'Wall'],
+    d: ['All the limit orders resting on the same rung, added together. The pool treats them as one block.',
+        "Tous les ordres limites posés sur le même barreau, additionnés. Le pool les traite comme un seul bloc."] },
+  { m: [['fill', 'filled', 'fills'], ['fill', 'rempli', 'remplis']], t: ['Fill', 'Fill'],
+    d: ['The moment a resting order actually gets executed, because the price reached it.',
+        "Le moment où un ordre en attente est réellement exécuté, parce que le prix l'a atteint."] },
+  { m: [['rebate'], ['rebate']], t: ['Rebate', 'Rebate'],
+    d: ['A slice of the trading fee handed back to the person whose resting order got filled, as a reward for having provided the depth.',
+        "Une part de la fee d'échange reversée à celui dont l'ordre en attente a été rempli, en récompense de la profondeur fournie."] },
+  { m: [['liquidity provider', 'liquidity providers', 'LPs', 'LP'], ['liquidity provider', 'liquidity providers', 'LPs', 'LP']], t: ['Liquidity provider (LP)', 'Liquidity provider (LP)'],
+    d: ['Someone who deposits both tokens into the pool so other people can trade, lend and borrow against them. They earn the fees, and they absorb the losses.',
+        "Quelqu'un qui dépose les deux tokens dans la réserve pour que les autres puissent échanger, prêter et emprunter dessus. Il touche les fees, et il absorbe les pertes."] },
+  { m: [['collateral'], ['collateral']], t: ['Collateral', 'Collateral'],
+    d: ['What you lock up to guarantee a loan. If the loan goes bad, this is what gets taken.',
+        "Ce que vous bloquez pour garantir un prêt. Si le prêt tourne mal, c'est ce qui est saisi."] },
+  { m: [['liquidation', 'liquidated'], ['liquidation', 'liquidé']], t: ['Liquidation', 'Liquidation'],
+    d: ['The forced closing of a loan when the price reaches the level at which the collateral no longer safely covers the debt.',
+        "La fermeture forcée d'un prêt quand le prix atteint le niveau où le collateral ne couvre plus la dette en sécurité."] },
+  { m: [['leverage', 'leveraged'], ['levier']], t: ['Leverage', 'Levier'],
+    d: ['Borrowing in order to hold a bigger position than your own money would allow. It multiplies the gain and the loss by the same amount.',
+        "Emprunter pour tenir une position plus grosse que ce que permet son propre argent. Cela multiplie le gain et la perte d'autant."] },
+  { m: [['flash loan', 'flash-borrow', 'flash'], ['flash loan', 'flash']], t: ['Flash loan', 'Flash loan'],
+    d: ['A loan you take and repay inside a single transaction. Because it cannot survive the transaction, it needs no collateral at all.',
+        "Un prêt pris et remboursé dans une seule et même transaction. Comme il ne peut pas survivre à la transaction, il ne demande aucun collateral."] },
+  { m: [['oracle', 'oracles'], ['oracle', 'oracles']], t: ['Oracle', 'Oracle'],
+    d: ['An outside source that tells a protocol what a price is. Most lending protocols need one. Manipulating it is a classic attack, which is why this one has none.',
+        "Une source extérieure qui indique un prix au protocole. La plupart des protocoles de prêt en ont besoin. Le manipuler est une attaque classique, et c'est pour ça que celui-ci n'en a pas."] },
+  { m: [['band'], ['band']], t: ['Price band', 'Price band'],
+    d: ['The protocol\'s own internal price for credit decisions: two markers that bracket the live price and slide back toward it over a few minutes. It replaces the oracle.',
+        "Le prix interne du protocole pour les décisions de crédit : deux repères qui encadrent le prix live et glissent vers lui en quelques minutes. Il remplace l'oracle."] },
+  { m: [['utilisation', 'utilization'], ['utilisation']], t: ['Utilisation', 'Utilisation'],
+    d: ['How much of the lendable money is currently borrowed. Low means the pool is relaxed; high means it is stretched, and everything gets more expensive.',
+        "La part de l'argent prêtable qui est actuellement empruntée. Bas, le pool est détendu ; haut, il est tendu, et tout devient plus cher."] },
+  { m: [['kink', 'kinked'], ['kink', 'kinké', 'kinkée']], t: ['Kink', 'Kink'],
+    d: ['The elbow in the interest-rate curve. Below it, borrowing is cheap. Above it, the rate climbs steeply, which pays people to repay and to deposit.',
+        "Le coude de la courbe de taux. En dessous, emprunter est bon marché. Au-dessus, le taux grimpe fort, ce qui paie les gens pour rembourser et pour déposer."] },
+  { m: [['junior tranche', 'junior'], ['tranche junior', 'junior']], t: ['Junior tranche', 'Tranche junior'],
+    d: ['The class of money that gets paid last and takes the losses first. Here, it is the liquidity providers.',
+        "La classe d'argent payée en dernier et qui encaisse les pertes en premier. Ici, ce sont les liquidity providers."] },
+  { m: [['front', 'fronts'], ['front', 'fronts']], t: ['Front (advance)', 'Front (avance)'],
+    d: ['When you withdraw and the interest you are owed has not physically arrived yet, the pool advances it from its own cash and settles up later. That advance is a front.',
+        "Quand vous retirez et que les intérêts qui vous sont dus ne sont pas encore physiquement arrivés, le pool vous les avance sur sa propre trésorerie et régularise ensuite. Cette avance est un front."] },
+  { m: [['bad debt'], ['bad debt']], t: ['Bad debt', 'Bad debt'],
+    d: ['A loan whose collateral, once sold, does not cover what was owed. The shortfall has to land on someone.',
+        "Un prêt dont le collateral, une fois vendu, ne couvre pas ce qui était dû. Le manque doit bien retomber sur quelqu'un."] },
+  { m: [['repeg', 'repegs'], ['repeg']], t: ['Repeg', 'Repeg'],
+    d: ['The pool re-centering its concentrated liquidity on the new market price, so its depth stays where the trading actually happens.',
+        "La réserve qui recentre sa liquidité concentrée sur le nouveau prix de marché, pour que sa profondeur reste là où le trading a réellement lieu."] }
+];
+
 const V = [];
+
+/* ══════════════ START HERE · the whole thing in two minutes ══════════════ */
+const CAST = [
+  { k:'B', id:'trader', n:'Bob',   r:[['Taker','Taker']],
+    g:['wants 50,000 USDC turned into EV, right now, and does not care how',
+       'veut transformer 50 000 USDC en EV, tout de suite, et se fiche de comment'] },
+  { k:'A', id:'maker',  n:'Alice', r:[['Maker','Maker']],
+    g:['is happy to wait, but only wants to buy EV 5 % lower than today',
+       "accepte d'attendre, mais ne veut acheter de l'EV que 5 % moins cher qu'aujourd'hui"] },
+  { k:'N', id:'lent',   n:'Nadia', r:[['Lent maker & supplier','Maker lent & supplier']],
+    g:['wants the same thing as Alice, but refuses to let the money sleep while it waits',
+       "veut la même chose qu'Alice, mais refuse de laisser l'argent dormir pendant l'attente"] },
+  { k:'D', id:'borrow', n:'David', r:[['Borrower','Emprunteur']],
+    g:['holds EV, needs cash, and will not sell a single token to get it',
+       "détient de l'EV, a besoin de liquide, et ne vendra pas un seul token pour l'obtenir"] },
+  { k:'E', id:'lev',    n:'Elena', r:[['Leveraged trader','Trader à levier']],
+    g:['is convinced EV goes up and wants to bet more than she has',
+       'est convaincue que EV monte et veut parier plus que ce dont elle dispose'] },
+  { k:'F', id:'lp',     n:'Farid', r:[['Liquidity provider','Liquidity provider']],
+    g:['puts up the money that makes all five of the above possible',
+       'met l\'argent qui rend les cinq précédents possibles'] }
+];
+
+V.push({
+  id: 'start',
+  eyebrow: ['Start here', 'Commencez ici'],
+  title: ['The whole idea in two minutes', "Toute l'idée en deux minutes"],
+  sub: ['No formulas on this page. One everyday comparison, the single idea the protocol is built on, and the six people you are about to follow through the rest of the guide.',
+        "Aucune formule sur cette page. Une comparaison du quotidien, la seule idée sur laquelle le protocole est bâti, et les six personnes que vous allez suivre dans tout le guide."],
+  id_card: [
+    [['Reading time', 'Temps de lecture'], ['2 min', '2 min'], 'b'],
+    [['Prerequisites', 'Prérequis'], ['none', 'aucun'], 'g'],
+    [['Views after this', 'Vues ensuite'], ['9', '9'], 'n']],
+  stage: {
+    title: ['Three shops, or one counter', 'Trois boutiques, ou un seul comptoir'],
+    tag: ['the core idea', "l'idée centrale"],
+    vb: '0 0 900 460',
+    svg: () => MK('st') + `
+      <text class="cap" x="50" y="40">${T(['THE USUAL WAY','LA MÉTHODE HABITUELLE'])}</text>
+      <text class="cap" x="490" y="40" fill="var(--accent-text)">EVERYTHING</text>
+      ${[[0,58,['CURRENCY EXCHANGE','BUREAU DE CHANGE'],['quotes you a price and swaps your tokens',"vous cote un prix et échange vos tokens"]],
+         [1,176,['PAWNBROKER','PRÊTEUR SUR GAGE'],['lends you cash against tokens you leave behind',"vous prête du liquide contre des tokens laissés en gage"]],
+         [2,294,['ORDER BOOK','CARNET D\'ORDRES'],['holds your "buy if it drops to X" instruction','garde votre consigne « achète si ça tombe à X »']]]
+        .map(([i,y,t,s])=>`<g id="st-l${i+1}" class="anim">
+          <rect x="50" y="${y}" width="360" height="104" rx="11" fill="var(--surface)" stroke="var(--border)"/>
+          <text class="lbl" x="66" y="${y+28}">${T(t)}</text>
+          <text class="sm" x="66" y="${y+48}">${T(s)}</text>
+          <rect x="66" y="${y+62}" width="328" height="13" rx="6.5" fill="var(--subtle)"/>
+          <rect x="66" y="${y+62}" width="112" height="13" rx="6.5" fill="var(--strong)"/>
+          <text class="cap" x="394" y="${y+92}" text-anchor="end">${T(['ITS OWN CASH · MOSTLY ASLEEP','SA PROPRE CAISSE · SURTOUT ENDORMIE'])}</text></g>`).join('')}
+      <text id="st-lnote" class="anim sm" x="50" y="428">${T(['Three floats. Your money can only ever be in one of them at a time.',
+        'Trois caisses. Votre argent ne peut être que dans une seule à la fois.'])}</text>
+      <g id="st-arrow" class="anim">
+        <path d="M 424,228 H 470" fill="none" stroke="var(--accent-line)" stroke-width="2.4" marker-end="url(#st-b)"/></g>
+      <g id="st-res" class="anim">
+        <rect x="490" y="58" width="360" height="104" rx="11" fill="var(--accent-soft)" stroke="var(--accent-line)" stroke-width="1.3"/>
+        <text class="lbl" x="506" y="86">${T(['ONE COUNTER, ONE TILL','UN COMPTOIR, UNE SEULE CAISSE'])}</text>
+        <text class="sm" x="506" y="106" fill="var(--accent-text)">${T(['everything anyone deposits lands here',"tout ce que les gens déposent atterrit ici"])}</text>
+        <rect x="506" y="120" width="328" height="13" rx="6.5" fill="var(--subtle)"/>
+        <rect x="506" y="120" width="328" height="13" rx="6.5" fill="var(--ok)"/>
+        <text class="cap" x="834" y="150" text-anchor="end" fill="var(--ok-text)">${T(['FULLY USED, ALL THE TIME','UTILISÉE EN ENTIER, TOUT LE TEMPS'])}</text></g>
+      ${[[0,546],[1,670],[2,794]].map(([i,x])=>`<path id="st-a${i+1}" class="anim" d="M ${x},168 V 194" fill="none" stroke="var(--accent-line)" stroke-width="1.8" marker-end="url(#st-b)"/>`).join('')}
+      ${[[0,490,['SWAPS','SWAPS'],['trade now','échanger']],
+         [1,614,['CREDIT','CRÉDIT'],['borrow','emprunter']],
+         [2,738,['ORDERS','ORDRES'],['wait for a price','attendre un prix']]]
+        .map(([i,x,t,s])=>`<g id="st-s${i+1}" class="anim">
+          <rect x="${x}" y="198" width="112" height="86" rx="10" fill="var(--elevated)" stroke="var(--border)"/>
+          <text class="cap" x="${+x+56}" y="228" text-anchor="middle">${T(t)}</text>
+          <text class="sm" x="${+x+56}" y="252" text-anchor="middle">${T(s)}</text>
+          <text class="cap" x="${+x+56}" y="272" text-anchor="middle" fill="var(--ok-text)">${T(['SAME TILL','MÊME CAISSE'])}</text></g>`).join('')}
+      <g id="st-key" class="anim">
+        <rect x="490" y="300" width="360" height="98" rx="11" fill="var(--ok-bg)" stroke="var(--ok-line)" stroke-width="1.3"/>
+        <text class="cap" x="506" y="324" fill="var(--ok-text)">${T(['AND THE PART THAT REALLY MATTERS',"ET LA PARTIE QUI COMPTE VRAIMENT"])}</text>
+        <text class="sm" x="506" y="348" fill="var(--ok-text)">${T(['The counter that sets the exchange rate is the same',"Le comptoir qui fixe le taux de change est le même"])}</text>
+        <text class="sm" x="506" y="366" fill="var(--ok-text)">${T(['counter that is holding the pawn. So it knows exactly',"que celui qui détient le gage. Il sait donc exactement"])}</text>
+        <text class="sm" x="506" y="384" fill="var(--ok-text)">${T(['what it could sell that pawn for, today.',"à combien il pourrait revendre ce gage, aujourd'hui."])}</text></g>
+      <text id="st-rnote" class="anim sm" x="490" y="428" fill="var(--accent-text)">${T(['One till. Your money is in all three at once.',
+        "Une seule caisse. Votre argent est dans les trois à la fois."])}</text>`,
+    base: {'#st-l1':{o:1},'#st-l2':{o:1},'#st-l3':{o:1},'#st-lnote':{o:0},'#st-arrow':{o:0},
+      '#st-res':{o:.08},'#st-a1':{o:0},'#st-a2':{o:0},'#st-a3':{o:0},
+      '#st-s1':{o:.08},'#st-s2':{o:.08},'#st-s3':{o:.08},'#st-key':{o:0},'#st-rnote':{o:0}},
+    steps: [
+      {t: ['Today you need three shops', "Aujourd'hui, il faut trois boutiques"],
+       plain: ['To trade a token you go to one place, to borrow against it you go to another, and to leave a standing "buy it if it drops" instruction you go to a third. Each of those places needs its own pile of cash sitting there, ready. Your money can only be in one pile at a time.',
+               "Pour échanger un token vous allez à un endroit, pour emprunter contre lui à un autre, et pour laisser une consigne « achète-le s'il baisse » à un troisième. Chacun de ces endroits a besoin de son propre tas d'argent posé là, prêt à servir. Votre argent ne peut être que dans un tas à la fois."],
+       d: ['In DeFi terms: an AMM prices the asset, a money market lends it, an order book layer holds resting orders. Each protocol holds its own capital, and every boundary between them is paid for twice — once in idle liquidity, once in the risk of gluing them together.',
+           "En termes DeFi : un AMM price l'actif, un money market le prête, une couche de carnet d'ordres garde les ordres au repos. Chaque protocole détient son propre capital, et chaque frontière entre eux se paie deux fois : une fois en liquidité inutilisée, une fois en risque de composition."],
+       set: {'#st-lnote':{o:1}}},
+      {t: ['Everything puts them under one roof', 'Everything les met sous un seul toit'],
+       plain: ['One contract per pair of tokens. One single till inside it. Everything anyone deposits — to trade against, to lend out, to wait at a price — lands in the same place.',
+               "Un seul contrat par paire de tokens. Une seule caisse à l'intérieur. Tout ce que les gens déposent, pour servir d'échange, pour être prêté, ou pour attendre un prix, atterrit au même endroit."],
+       d: ['One contract per pair, holding one pricing reserve. The whitepaper calls this "one reserve, three markets", and the whole document is really the accounting problem that follows from it.',
+           "Un seul contrat par paire, détenant une seule pricing reserve. Le whitepaper appelle ça « une réserve, trois marchés », et tout le document n'est en réalité que le problème comptable qui en découle."],
+       set: {'#st-lnote':{o:1},'#st-arrow':{o:1},'#st-res':{o:1}}},
+      {t: ['The same money does all three jobs', 'Le même argent fait les trois métiers'],
+       plain: ['This is the trick. The very tokens that give a trader a good price are, at the same second, the stock a borrower can borrow. And the money you left waiting at your target price can be lent out until that price arrives. Nothing sits idle.',
+               "C'est là l'astuce. Les tokens qui donnent un bon prix à celui qui échange sont, à la même seconde, le stock que l'emprunteur peut emprunter. Et l'argent que vous avez laissé en attente à votre prix cible peut être prêté jusqu'à ce que ce prix arrive. Rien ne dort."],
+       d: ['The capital-efficiency identity: the tokens that price a swap are simultaneously the credit book\'s inventory, and the escrow waiting at a limit price is simultaneously lendable supply. One deposit, three uses, one solvency ledger.',
+           "L'identité d'efficience du capital : les tokens qui price un swap sont simultanément l'inventaire du carnet de crédit, et l'escrow qui attend à un prix limite est simultanément de la supply prêtable. Un dépôt, trois usages, un seul ledger de solvabilité."],
+       set: {'#st-lnote':{o:1},'#st-arrow':{o:1},'#st-res':{o:1},'#st-a1':{o:1},'#st-a2':{o:1},'#st-a3':{o:1},'#st-s1':{o:1},'#st-s2':{o:1},'#st-s3':{o:1}}},
+      {t: ['But the real reason is not tidiness', 'Mais la vraie raison ne tient pas au rangement'],
+       plain: ['A pawnbroker who does not set exchange rates has a problem: on the day they have to sell your pawn, they have no idea what it will actually fetch. So they only accept things that are easy to sell, and refuse everything else. Here, the counter setting the rate is the counter holding the pawn. It can look at its own shelf and see exactly what it could get for it today — so it can accept pawns the others turn away.',
+               "Un prêteur sur gage qui ne fixe pas les taux de change a un problème : le jour où il doit revendre votre gage, il ignore ce qu'il en tirera vraiment. Il n'accepte donc que des choses faciles à revendre, et refuse tout le reste. Ici, le comptoir qui fixe le taux est celui qui détient le gage. Il peut regarder son propre rayon et voir exactement ce qu'il en obtiendrait aujourd'hui, donc il peut accepter des gages que les autres refusent."],
+       d: ['This is the introduction\'s thesis. When the pool that lends is the pool that prices, borrowable capacity can be derived, price level by price level, from the depth that will actually absorb a liquidation. The collateral\'s exit liquidity becomes a protocol variable instead of an assumption about a third party — which is what makes lending against small and mid-cap tokens possible at all.',
+           "C'est la thèse de l'introduction. Quand le pool qui prête est le pool qui price, la capacité d'emprunt peut être dérivée, niveau de prix par niveau de prix, de la profondeur qui absorbera réellement une liquidation. La liquidité de sortie du collateral devient une variable du protocole au lieu d'une hypothèse sur un tiers, et c'est ce qui rend possible le prêt contre des tokens small et mid-cap."],
+       tone: 'good',
+       set: {'#st-lnote':{o:1},'#st-arrow':{o:1},'#st-res':{o:1},'#st-a1':{o:1},'#st-a2':{o:1},'#st-a3':{o:1},'#st-s1':{o:1},'#st-s2':{o:1},'#st-s3':{o:1},'#st-key':{o:1}}},
+      {t: ['Everything else follows from that', 'Tout le reste découle de là'],
+       plain: ['Once one pile of money owes things to five different kinds of people at once, you need very clear rules about who gets paid first, who waits, and who absorbs a loss. That is what the other nine views are about — and each one follows one person through one concrete situation.',
+               "Dès qu'un seul tas d'argent doit quelque chose à cinq sortes de gens en même temps, il faut des règles très claires sur qui est payé en premier, qui attend, et qui absorbe une perte. C'est le sujet des neuf autres vues, et chacune suit une personne dans une situation concrète."],
+       d: ['The paper is candid that this is where the difficulty concentrates: one reserve must simultaneously honour a pricing curve, a credit book, an order escrow and a queue of claims, under adversarial sequencing, with no oracle to arbitrate.',
+           "Le papier est franc : c'est là que se concentre la difficulté. Une seule réserve doit honorer simultanément une courbe de pricing, un carnet de crédit, un escrow d'ordres et une file de créances, sous séquencement adversarial, sans oracle pour arbitrer."],
+       set: {'#st-lnote':{o:1},'#st-arrow':{o:1},'#st-res':{o:1},'#st-a1':{o:1},'#st-a2':{o:1},'#st-a3':{o:1},'#st-s1':{o:1},'#st-s2':{o:1},'#st-s3':{o:1},'#st-key':{o:1},'#st-rnote':{o:1}}}
+    ]
+  },
+  pnl: null,
+  extra: () => `
+  <h3 class="sec">${T(['The six people you will follow', 'Les six personnes que vous allez suivre'])}</h3>
+  <p class="seclead">${T(['Every view after this one follows one of them through one concrete situation, step by step, with real numbers. Click a card to jump straight there.',
+    "Chaque vue après celle-ci suit l'un d'eux dans une situation concrète, pas à pas, avec de vrais chiffres. Cliquez sur une carte pour y aller directement."])}</p>
+  <div class="cast">${CAST.map(c => `
+    <button class="castcard" type="button" data-goto="${c.id}">
+      <span class="av">${c.k}</span>
+      <span class="cc">
+        <span class="nm">${c.n}</span>
+        <span class="rl">${T(c.r[0])}</span>
+        <span class="gl2">${T(c.g)}</span>
+      </span>
+    </button>`).join('')}</div>
+
+  <h3 class="sec">${T(['How to read this guide', 'Comment lire ce guide'])}</h3>
+  <div class="minis">
+    <div class="mini"><h4>${T(['Go in order','Dans l\'ordre'])}</h4><div class="role">${T(['page by page','page par page'])}</div>
+      <p>${T(['The views build on each other. Each one ends with a button to the next, so you can read the whole thing front to back without going back to the tabs.',
+        "Les vues s'appuient les unes sur les autres. Chacune se termine par un bouton vers la suivante, pour lire l'ensemble d'une traite sans repasser par les onglets."])}</p></div>
+    <div class="mini"><h4>${T(['Two reading levels','Deux niveaux de lecture'])}</h4><div class="role">${T(['top right','en haut à droite'])}</div>
+      <p>${T(['<strong>Plain</strong> gives you every step in ordinary language, with no formulas and no jargon. <strong>Full</strong> adds the technical layer underneath, with the whitepaper\'s own terms and section references. Switch at any time — you keep your place.',
+        "<strong>Simple</strong> vous donne chaque étape en langage ordinaire, sans formule et sans jargon. <strong>Complet</strong> ajoute la couche technique en dessous, avec les termes et les renvois de section du whitepaper. Changez quand vous voulez, vous gardez votre place."])}</p></div>
+    <div class="mini"><h4>${T(['Underlined words','Les mots soulignés'])}</h4><div class="role">${T(['click them','cliquez dessus'])}</div>
+      <p>${T(['Any term that might not be obvious is underlined the first time it appears. Click or hover it for a one-sentence definition in ordinary language. The full list is at the bottom of this page.',
+        "Tout terme qui pourrait ne pas être évident est souligné à sa première apparition. Cliquez ou survolez pour une définition en une phrase, en langage ordinaire. La liste complète est en bas de cette page."])}</p></div>
+  </div>
+
+  <h3 class="sec">${T(['Glossary', 'Glossaire'])}</h3>
+  <p class="seclead">${T(['Every term the guide uses, in one sentence each. Nothing here assumes you have read the whitepaper.',
+    "Tous les termes qu'utilise le guide, en une phrase chacun. Rien ici ne suppose que vous avez lu le whitepaper."])}</p>
+  <div class="tablewrap"><table><tbody>${GLOSS.map(g =>
+    `<tr><td style="white-space:nowrap"><b>${T(g.t)}</b></td><td>${T(g.d)}</td></tr>`).join('')}
+  </tbody></table></div>`
+});
+
+/* ══════════════ PLAIN-LANGUAGE LAYER ══════════════
+   WHO  — the person each view follows, shown as a card under the title.
+   PLAIN — one plain-language paragraph per step, keyed by view id and step
+   index. Kept out of the view files so those stay readable, and so the plain
+   layer can be written and reviewed as one continuous piece of prose. */
+
+const WHO = {
+  trader: { k:'B', n:'Bob',   r:[['Taker','Taker'],],
+    l:['Bob has 50,000 USDC and wants EV. He is not patient, he is not clever, and he is not going to read any of this. He just presses swap.',
+       "Bob a 50 000 USDC et veut de l'EV. Il n'est pas patient, il n'est pas malin, et il ne lira rien de tout ceci. Il appuie sur swap."] },
+  maker: { k:'A', n:'Alice',
+    l:['Alice thinks EV is 5 % too expensive today. She is willing to wait weeks for her price, and she wants to be able to change her mind at any moment.',
+       "Alice trouve l'EV 5 % trop cher aujourd'hui. Elle accepte d'attendre des semaines son prix, et elle veut pouvoir changer d'avis à tout instant."] },
+  lent: { k:'N', n:'Nadia',
+    l:['Nadia wants exactly what Alice wants, with one extra demand: while her money waits for that price, it should be earning something.',
+       "Nadia veut exactement la même chose qu'Alice, avec une exigence en plus : pendant que son argent attend ce prix, il doit rapporter quelque chose."] },
+  borrow: { k:'D', n:'David',
+    l:['David holds 10,000 EV and needs 6,000 USDC in cash. Selling is out of the question, so he borrows against what he owns.',
+       "David détient 10 000 EV et a besoin de 6 000 USDC en liquide. Vendre est hors de question, donc il emprunte contre ce qu'il possède."] },
+  lev: { k:'E', n:'Elena',
+    l:['Elena has 5,000 USDC and a conviction: EV is going up. She wants a position several times bigger than her money allows.',
+       "Elena a 5 000 USDC et une conviction : EV va monter. Elle veut une position plusieurs fois plus grosse que ce que son argent permet."] },
+  lp: { k:'F', n:'Farid',
+    l:['Farid supplies the money the other five are using. He earns from all of their activity, and he is the one who pays if a loan goes bad.',
+       "Farid fournit l'argent que les cinq autres utilisent. Il gagne sur toute leur activité, et c'est lui qui paie si un prêt tourne mal."] }
+};
+
+const PLAIN = {
+
+overview: [
+ ['Somebody has to put the money in first. Farid deposits both tokens. From that moment his money is doing three jobs at once, whether he thinks about it or not — and it is also the money that will absorb a loss if one happens.',
+  "Il faut bien que quelqu'un mette l'argent en premier. Farid dépose les deux tokens. Dès cet instant son argent fait trois métiers à la fois, qu'il y pense ou non, et c'est aussi l'argent qui absorbera une perte s'il y en a une."],
+ ['Job one: quoting a price. When Bob wants to swap, the pool works out the price from how much of each token it is holding. More of one, less of the other, and the price moves. Nobody sets it by hand.',
+  "Métier un : coter un prix. Quand Bob veut échanger, la réserve calcule le prix à partir de la quantité qu'elle détient de chaque token. Plus de l'un, moins de l'autre, et le prix bouge. Personne ne le fixe à la main."],
+ ['Job two: lending. The exact same tokens are what David borrows. Nothing is moved or copied — borrowing does not change the price at all, the pool just notes down who owes what.',
+  "Métier deux : prêter. Ces mêmes tokens sont ce que David emprunte. Rien n'est déplacé ni copié : emprunter ne change pas le prix, la réserve note simplement qui doit quoi."],
+ ['Job three: holding standing orders. Alice cannot pick just any price — she picks a rung on a fixed ladder, where each rung is 1 % from the next. That sounds like a limitation, but it is what lets the pool settle a thousand orders at once instead of one at a time.',
+  "Métier trois : garder les ordres en attente. Alice ne peut pas choisir n'importe quel prix : elle choisit un barreau sur une échelle fixe, chaque barreau à 1 % du suivant. Cela ressemble à une contrainte, mais c'est ce qui permet à la réserve de régler mille ordres d'un coup au lieu d'un par un."],
+ ['And here is the loop nobody had closed before. Nadia\'s money is sitting there waiting for a price. Why should it sleep? She ticks a box, and it gets lent to David while it waits. When her price finally arrives, the amount that trades is bigger than what she put in.',
+  "Et voici la boucle que personne n'avait fermée avant. L'argent de Nadia est là, à attendre un prix. Pourquoi dormirait-il ? Elle coche une case, et il est prêté à David pendant l'attente. Quand son prix finit par arriver, le montant qui s'échange est plus gros que ce qu'elle avait mis."],
+ ['One contract holds all of it. It never asks anything outside itself for a price, and nobody has to be paid to keep it running. Its only inputs are what people deposit, what people trade, and the passage of time.',
+  "Un seul contrat détient l'ensemble. Il ne demande jamais un prix à l'extérieur, et personne n'a besoin d'être payé pour le faire tourner. Ses seules entrées sont ce que les gens déposent, ce qu'ils échangent, et le temps qui passe."]
+],
+
+trader: [
+ ['Before Bob arrives, three people have already left standing orders on the price ladder, each saying "sell me EV if the price gets here". One of them is stale: the price already went past it during an earlier swing, so that order is sitting there offering a bargain nobody has taken yet.',
+  "Avant que Bob n'arrive, trois personnes ont déjà laissé des ordres en attente sur l'échelle de prix, chacun disant « vends-moi de l'EV si le prix arrive ici ». L'un d'eux est périmé : le prix l'a déjà dépassé lors d'un mouvement antérieur, donc cet ordre est posé là à offrir une affaire que personne n'a encore prise."],
+ ['Bob presses swap with 50,000 USDC. He has no idea any of those orders exist, and he does not need to. He will not choose anything from here on.',
+  "Bob appuie sur swap avec 50 000 USDC. Il ignore totalement que ces ordres existent, et il n'a pas besoin de le savoir. Il ne choisira plus rien à partir d'ici."],
+ ['The fee is taken first, off the whole amount, before anything else happens. This matters more than it sounds: because the fee is fixed before the pool decides where Bob\'s money goes, the pool has no way to earn more by ignoring somebody\'s order. It cannot cheat the people waiting.',
+  "La fee est prélevée en premier, sur la totalité, avant que quoi que ce soit d'autre n'arrive. C'est plus important qu'il n'y paraît : comme la fee est fixée avant que la réserve ne décide où va l'argent de Bob, la réserve n'a aucun moyen de gagner plus en ignorant l'ordre de quelqu'un. Elle ne peut pas léser ceux qui attendent."],
+ ['The stale order gets served first, because it is the best price on the table. Bob gets 5,050 EV for 5,000 USDC — better than the pool would have given him — and the price does not budge, because this trade happened between him and that order directly.',
+  "L'ordre périmé est servi en premier, parce que c'est le meilleur prix sur la table. Bob obtient 5 050 EV pour 5 000 USDC, mieux que ce que la réserve lui aurait donné, et le prix ne bouge pas d'un pouce, parce que cet échange s'est fait directement entre lui et cet ordre."],
+ ['Now Bob\'s remaining money starts pushing the price up, and it walks into the next order on the ladder. That person gets exactly the price they asked for. Not approximately: exactly. They wrote 1.000, they get 1.000.',
+  "Maintenant l'argent restant de Bob commence à pousser le prix vers le haut, et il tombe sur l'ordre suivant de l'échelle. Cette personne obtient exactement le prix qu'elle avait demandé. Pas approximativement : exactement. Elle avait écrit 1.000, elle obtient 1.000."],
+ ['Same again one rung up. And notice what these people did not pay: no fee, and no slippage. Bob already covered the fee at the start, and their price was fixed in advance. Waiting turns out to be well paid here.',
+  "Rebelote un barreau plus haut. Et remarquez ce que ces gens n'ont pas payé : ni fee, ni slippage. Bob a déjà couvert la fee au départ, et leur prix était fixé d'avance. Attendre se révèle bien payé ici."],
+ ['Whatever is left after all the waiting orders are used up finally goes to the pool itself, in one go. This last chunk is the only part of Bob\'s trade that actually moves the pool\'s tokens around.',
+  "Ce qui reste une fois tous les ordres en attente épuisés va enfin à la réserve elle-même, d'un seul coup. Ce dernier morceau est la seule partie de l'échange de Bob qui déplace réellement les tokens de la réserve."],
+ ['Add it up: Bob got about 1.3 % more EV than he would have from the pool alone, purely because other people were patiently waiting at good prices. He did nothing clever. The rule is simple — the more orders are waiting, the better the price everyone gets.',
+  "Faisons le total : Bob a obtenu environ 1,3 % d'EV en plus que ce que la réserve seule lui aurait donné, uniquement parce que d'autres gens attendaient patiemment à de bons prix. Il n'a rien fait d'astucieux. La règle est simple : plus il y a d'ordres en attente, meilleur est le prix pour tout le monde."],
+ ['One catch, and it only bites a certain kind of trader. If Bob had jumped in seconds after a big crash, hoping to scoop the dip, the pool would have charged him a premium for it. Wait a few minutes and that premium is gone. The system is built to reward patience and to make sniping unprofitable.',
+  "Un piège, et il ne mord qu'un certain type de trader. Si Bob avait sauté quelques secondes après un gros krach, en espérant ramasser la baisse, la réserve lui aurait facturé une prime pour ça. Attendez quelques minutes et cette prime disparaît. Le système est fait pour récompenser la patience et rendre le sniping non rentable."]
+],
+
+maker: [
+ ['Alice puts 10,000 USDC on the rung marked 0.950, roughly 5 % below today\'s price. The contract holds that money for her. It is not mixed into the pool, it is not lent to anyone, it is just parked with her name on it.',
+  "Alice pose 10 000 USDC sur le barreau marqué 0.950, environ 5 % sous le prix du jour. Le contrat garde cet argent pour elle. Il n'est pas mélangé à la réserve, il n'est prêté à personne, il est simplement garé à son nom."],
+ ['And this is her real advantage: she can take it back whenever she likes. Instantly, no conditions, no queue, whatever state the pool is in. Because her money was never lent to anybody, nobody has to give it back first.',
+  "Et c'est là son vrai avantage : elle peut le reprendre quand elle veut. Instantanément, sans condition, sans file d'attente, quel que soit l'état de la réserve. Comme son argent n'a jamais été prêté à personne, personne n'a besoin de le rendre d'abord."],
+ ['Weeks pass. The price wanders around, then breaks downward toward her rung. Alice does nothing at all — and importantly, nobody has to be found to take the other side of her trade. She is not waiting for a buyer, she is waiting for a price.',
+  "Des semaines passent. Le prix vagabonde, puis casse vers le bas en direction de son barreau. Alice ne fait absolument rien, et surtout, personne n'a besoin d'être trouvé pour prendre l'autre côté de son échange. Elle n'attend pas un acheteur, elle attend un prix."],
+ ['Someone sells through her level, and she is filled at exactly 0.950. She gets 10,526 EV. The pool does not go through her order one by one — it settles the whole rung in a single operation, so a rung holding ten thousand orders costs the same as a rung holding one.',
+  "Quelqu'un vend à travers son niveau, et elle est remplie à exactement 0.950. Elle reçoit 10 526 EV. La réserve ne parcourt pas les ordres un par un : elle règle le barreau entier en une seule opération, donc un barreau qui porte dix mille ordres coûte autant qu'un barreau qui en porte un."],
+ ['She also gets a small kickback from the trading fee Bob paid, as a thank-you for having provided the depth. And her EV is set aside for her the instant the trade happens. Whatever else goes wrong in this pool afterwards, that money is untouchable and she can always collect it.',
+  "Elle touche aussi une petite ristourne sur la fee qu'a payée Bob, en remerciement de la profondeur fournie. Et son EV est mis de côté pour elle à l'instant même de l'échange. Quoi qu'il arrive de travers dans cette réserve ensuite, cet argent est intouchable et elle pourra toujours le récupérer."],
+ ['Now the uncomfortable part. The price does not stop at 0.950 — it keeps falling to 0.90. Alice bought at 5 % above where the market ended up. This is the market maker\'s permanent problem: you get filled precisely when the market is walking away from you. Her little kickback does not come close to covering it.',
+  "Maintenant la partie désagréable. Le prix ne s'arrête pas à 0.950, il continue jusqu'à 0.90. Alice a acheté 5 % au-dessus de là où le marché a fini. C'est le problème permanent du market maker : on est rempli précisément quand le marché s'éloigne. Sa petite ristourne est loin de compenser ça."],
+ ['But look at what actually happened to her: she lost money on the market, not to the protocol. She could have cancelled for free right up to the last second, and what she received is hers no matter what. That distinction matters — of everyone in this guide, Alice is the only one nothing can hold up.',
+  "Mais regardez ce qui lui est vraiment arrivé : elle a perdu de l'argent sur le marché, pas à cause du protocole. Elle pouvait annuler gratuitement jusqu'à la dernière seconde, et ce qu'elle a reçu lui appartient quoi qu'il arrive. Cette distinction compte : de tous les gens de ce guide, Alice est la seule que rien ne peut bloquer."]
+],
+
+lent: [
+ ['Nadia places the identical order as Alice — 10,000 USDC waiting at 0.950 — and ticks one extra box: lend it while it waits. That box can never be un-ticked for this order.',
+  "Nadia pose exactement le même ordre qu'Alice, 10 000 USDC en attente à 0.950, et coche une case en plus : prête-le pendant l'attente. Cette case ne pourra jamais être décochée pour cet ordre."],
+ ['There are limits on how much waiting money can be lent, so her order has to fit. If it does not fit in full, the whole thing is refused outright. It will never quietly lend half and leave the rest — you get what you asked for or nothing, so you always know which one you have.',
+  "Il y a des limites à la quantité d'argent en attente qui peut être prêtée, donc son ordre doit rentrer. S'il ne rentre pas en entier, tout est refusé net. Jamais la moitié prêtée en douce et le reste non : vous obtenez ce que vous avez demandé, ou rien, donc vous savez toujours où vous en êtes."],
+ ['Her money joins the pot that David borrows from. The share of that pot currently out on loan goes from 41 % to 63 %. Notice what just happened: the pool can now lend more, and no liquidity provider had to put in another cent.',
+  "Son argent rejoint le pot dans lequel David emprunte. La part de ce pot actuellement prêtée passe de 41 à 63 %. Remarquez ce qui vient de se produire : la réserve peut prêter davantage, et aucun liquidity provider n'a eu à mettre un centime de plus."],
+ ['Eight months later her order is worth 10,640 USDC instead of 10,000. This is not interest sitting in a separate account — it is the order itself that grew. When her price finally arrives, 10,640 USDC will be exchanged, not 10,000.',
+  "Huit mois plus tard son ordre vaut 10 640 USDC au lieu de 10 000. Ce ne sont pas des intérêts posés sur un compte à côté : c'est l'ordre lui-même qui a grossi. Quand son prix arrivera enfin, ce sont 10 640 USDC qui seront échangés, pas 10 000."],
+ ['Then Nadia changes her mind and wants her money back. Meanwhile, a lot of trading has drained the pool, and more is currently lent out than there is comfortably available. The protocol allows this state on purpose — it fixes it by raising rates rather than by forbidding it.',
+  "Puis Nadia change d'avis et veut récupérer son argent. Sauf qu'entre-temps, beaucoup d'échanges ont vidé la réserve, et il y a actuellement plus d'argent prêté que confortablement disponible. Le protocole autorise cet état exprès : il le corrige en montant les taux plutôt qu'en l'interdisant."],
+ ['So her cancellation is refused. Not delayed in a queue, not partially paid, not swapped for an IOU — the transaction simply does not go through, and she has to try again later. This is the whole price of the extra yield, and it is worth being blunt about it: nobody can tell her when it will clear.',
+  "Son annulation est donc refusée. Ni mise en file d'attente, ni payée en partie, ni échangée contre une reconnaissance de dette : la transaction ne passe simplement pas, et elle devra réessayer plus tard. C'est tout le prix du rendement supplémentaire, et autant être direct : personne ne peut lui dire quand ça passera."],
+ ['What is working in her favour is money, not promises. Borrowing now costs 47 %, which pays people very well to repay their loans and to deposit fresh funds. Anyone can unblock the pool by lending into it — including Nadia herself, if she wants out badly enough.',
+  "Ce qui joue en sa faveur, c'est de l'argent, pas des promesses. Emprunter coûte maintenant 47 %, ce qui paie très bien les gens pour rembourser leurs prêts et déposer des fonds frais. N'importe qui peut débloquer la réserve en y prêtant, Nadia comprise, si elle veut sortir suffisamment fort."],
+ ['Repayments arrive, the pressure drops, and she withdraws all 10,640 USDC in actual tokens. She was never at risk of losing money here — she was at risk of not being able to leave when she wanted to. Those are two very different things, and it is worth knowing which one you are signing up for.',
+  "Les remboursements arrivent, la pression retombe, et elle retire ses 10 640 USDC en vrais tokens. Elle n'a jamais risqué de perdre de l'argent ici : elle a risqué de ne pas pouvoir partir quand elle le voulait. Ce sont deux choses très différentes, et il vaut mieux savoir laquelle on signe."]
+],
+
+borrow: [
+ ['David owns 10,000 EV and needs 6,000 USDC. He does not want to sell, because he thinks EV is going up. So he does what people have always done with something valuable: he pawns it.',
+  "David possède 10 000 EV et a besoin de 6 000 USDC. Il ne veut pas vendre, parce qu'il pense que EV va monter. Il fait donc ce qu'on a toujours fait avec un objet de valeur : il le met en gage."],
+ ['Here is the unusual part: David chooses the price at which he agrees to be wiped out. He picks 0.78, about 22 % below today. Because he picked a low, safe-feeling level, the pool asks him for a lot of collateral: 8,308 of his 10,000 EV. He keeps the rest.',
+  "Voici la partie inhabituelle : David choisit le prix auquel il accepte d'être liquidé. Il prend 0.78, environ 22 % sous le prix du jour. Comme il a choisi un niveau bas et rassurant, la réserve lui demande beaucoup de collateral : 8 308 de ses 10 000 EV. Il garde le reste."],
+ ['Four checks run before the loan opens. The important one to understand: the pool refuses to lend on terms cheaper than simply swapping. If borrowing and walking away were ever cheaper than trading, people would do exactly that, and the pool would be robbed one loan at a time.',
+  "Quatre contrôles tournent avant l'ouverture du prêt. Celui qu'il faut comprendre : la réserve refuse de prêter à des conditions moins chères que simplement échanger. Si emprunter puis disparaître était moins cher qu'échanger, les gens feraient exactement ça, et la réserve serait dévalisée prêt après prêt."],
+ ['EV rises 21 %. David is delighted and does nothing. No margin call, no notification, no oracle to worry about. His loan just sits there — and he can even sell the whole position to someone else, or have a third party service it, without handing over his keys.',
+  "EV monte de 21 %. David est ravi et ne fait rien. Aucun appel de marge, aucune notification, aucun oracle à surveiller. Son prêt reste simplement là, et il peut même vendre la position entière à quelqu'un d'autre, ou la faire gérer par un tiers, sans céder ses clés."],
+ ['Now the part almost nobody expects. His liquidation price is not fixed. Interest is piling up on his debt, and instead of billing him for it, the protocol quietly raises the level at which he gets wiped out. After eighteen months his 0.78 has become 0.92. The market did nothing. His safety margin went from 22 % to 8 % on its own.',
+  "Maintenant la partie que presque personne n'anticipe. Son prix de liquidation n'est pas fixe. Les intérêts s'accumulent sur sa dette, et au lieu de les lui facturer, le protocole remonte discrètement le niveau auquel il est liquidé. Après dix-huit mois, son 0.78 est devenu 0.92. Le marché n'a rien fait. Sa marge de sécurité est passée de 22 % à 8 % toute seule."],
+ ['Then EV falls back. On the day he opened, this move would have left him completely safe with room to spare. Today it does not, and nothing told him that. The number he was watching never changed — the line came up to meet him.',
+  "Puis EV redescend. Le jour où il a ouvert, ce mouvement l'aurait laissé totalement en sécurité, avec de la marge. Aujourd'hui non, et rien ne l'en a averti. Le chiffre qu'il surveillait n'a jamais changé : c'est la ligne qui est montée à sa rencontre."],
+ ['At 0.90 the two lines touch and his loan is underwater. The pool does not check loans one by one to find out — every loan sitting at or below the current price is underwater by definition, so it finds all of them instantly, however many there are.',
+  "À 0.90 les deux lignes se touchent et son prêt est sous l'eau. La réserve ne vérifie pas les prêts un par un pour le découvrir : tout prêt situé au niveau du prix courant ou en dessous est sous l'eau par définition, donc elle les trouve tous instantanément, quel que soit leur nombre."],
+ ['His collateral is taken. All of it. There is no auction, no negotiation, and nothing handed back — the pool keeps the 8,308 EV and the debt is gone. Everyone else sitting on that same rung is closed in the very same operation.',
+  "Son collateral est saisi. En totalité. Pas d'enchère, pas de négociation, et rien qui lui revienne : la réserve garde les 8 308 EV et la dette disparaît. Tous ceux qui étaient sur le même barreau sont fermés dans la même opération."],
+ ['The scoreboard: EV dropped 10 %, and David is 16 % worse off than if he had simply sat on his tokens and done nothing. And there was no way to automate an escape — this protocol attaches no stop-loss and no take-profit to a loan. A borrowing position here is something you have to actually watch.',
+  "Le compte final : EV a baissé de 10 %, et David est 16 % plus pauvre que s'il était resté assis sur ses tokens sans rien faire. Et il n'existait aucun moyen d'automatiser une sortie : ce protocole n'attache ni stop-loss ni take-profit à un prêt. Une position d'emprunt ici, il faut la surveiller pour de vrai."]
+],
+
+lev: [
+ ['Elena has 5,000 USDC and thinks EV is going up. She wants a position worth several times that. There is no leverage slider anywhere — she is going to build it out of ordinary borrowing, in one transaction.',
+  "Elena a 5 000 USDC et pense que EV va monter. Elle veut une position qui vaut plusieurs fois ça. Il n'y a de curseur de levier nulle part : elle va la construire à partir d'emprunts ordinaires, en une seule transaction."],
+ ['The trick that makes it possible: she can borrow the pool\'s cash for free, as long as she gives it back before her transaction ends. Since the loan cannot outlive the transaction, it needs no collateral. She uses it as scaffolding, and it is gone by the time anyone could notice.',
+  "L'astuce qui rend ça possible : elle peut emprunter la trésorerie de la réserve gratuitement, à condition de la rendre avant la fin de sa transaction. Comme le prêt ne peut pas survivre à la transaction, il ne demande aucun collateral. Elle s'en sert d'échafaudage, et il a disparu avant que quiconque ait pu le remarquer."],
+ ['One turn of the loop: borrow USDC, swap it into EV, put that EV up as collateral, borrow again against it. Her exposure goes from 5,000 to 8,400. Then she does it again.',
+  "Un tour de boucle : emprunter des USDC, les échanger contre de l'EV, poser cet EV en collateral, réemprunter contre lui. Son exposition passe de 5 000 à 8 400. Puis elle recommence."],
+ ['Each turn adds less than the one before, because each turn has costs: the pool asks for more collateral than the loan is worth, and she pays a bit of slippage swapping. So the loop runs out of steam by itself after a handful of turns. Nothing stops it — it just stops being worth doing.',
+  "Chaque tour ajoute moins que le précédent, parce que chaque tour a un coût : la réserve demande plus de collateral que ne vaut le prêt, et elle paie un peu de slippage à chaque échange. La boucle s'essouffle donc d'elle-même après une poignée de tours. Rien ne l'arrête : elle cesse simplement d'être rentable."],
+ ['She lands at 17,000 of exposure on 5,000 of her own money — about 3.4 times. Nobody set that limit. It fell out of the fees and the collateral rules. Which also means: your maximum leverage is written nowhere on screen, and you have to work it out.',
+  "Elle atterrit à 17 000 d'exposition pour 5 000 d'argent à elle, soit environ 3,4 fois. Personne n'a fixé cette limite. Elle est tombée toute seule des fees et des règles de collateral. Ce qui veut aussi dire : votre levier maximum n'est écrit nulle part à l'écran, et il faut le calculer."],
+ ['On a normal leverage venue you pay a funding rate to hold your position. Here there is no such thing — you simply pay interest on what you borrowed. When everyone piles in on the same side, borrowing gets expensive by itself, which does the same job without anyone designing it.',
+  "Sur une plateforme de levier classique, on paie un funding rate pour tenir sa position. Ici ça n'existe pas : on paie simplement les intérêts de ce qu'on a emprunté. Quand tout le monde se rue du même côté, emprunter devient cher tout seul, ce qui fait le même travail sans que personne ne l'ait conçu."],
+ ['If EV rises 20 %, Elena makes 68 % on her money. If it falls to her chosen level, everything she posted is taken — not the part that covers the debt, all of it. And the same silent drift that caught David is working on her too, three times faster relative to her stake. Nothing closes this position for her.',
+  "Si EV monte de 20 %, Elena gagne 68 % sur son argent. S'il tombe à son niveau choisi, tout ce qu'elle a posé est saisi : pas la part qui couvre la dette, la totalité. Et la même dérive silencieuse qui a rattrapé David travaille aussi contre elle, trois fois plus vite en proportion de sa mise. Rien ne referme cette position à sa place."]
+],
+
+lp: [
+ ['Farid deposits 50,000 of each token. In return he gets shares of the pool. He does not get to choose whether his money is lent out — that is not a setting, it is what the pool is. His tokens are the price on the screen and the loan book, at the same time.',
+  "Farid dépose 50 000 de chaque token. En retour il reçoit des parts de la réserve. Il ne choisit pas si son argent est prêté : ce n'est pas un réglage, c'est ce qu'est la réserve. Ses tokens sont le prix affiché à l'écran et le carnet de prêts, en même temps."],
+ ['Income one: every time Bob swaps, Farid earns a cut. The cut is not fixed — trades that push the pool further out of balance pay more, trades that bring it back pay less. He is being paid for the inconvenience.',
+  "Revenu un : chaque fois que Bob échange, Farid touche une part. Cette part n'est pas fixe : les échanges qui déséquilibrent davantage la réserve paient plus, ceux qui la rééquilibrent paient moins. Il est payé pour le dérangement."],
+ ['Income two: every time David pays interest, Farid gets a slice of that too. This is the headline of the whole protocol. Anywhere else he would have to choose — provide liquidity on an exchange, or lend on a lending platform. Here one deposit does both, and gets paid twice.',
+  "Revenu deux : chaque fois que David paie des intérêts, Farid en touche une part aussi. C'est l'argument phare de tout le protocole. Partout ailleurs il devrait choisir : fournir de la liquidité sur un exchange, ou prêter sur une plateforme de prêt. Ici un seul dépôt fait les deux, et est payé deux fois."],
+ ['There are quieter earnings on top. When a borrower like David gets wiped out and his collateral had been lent, the interest that collateral had earned goes to Farid rather than back to the borrower. Small, but it adds up.',
+  "Il y a des revenus plus discrets par-dessus. Quand un emprunteur comme David est liquidé et que son collateral avait été prêté, les intérêts que ce collateral avait gagnés reviennent à Farid plutôt qu'à l'emprunteur. C'est petit, mais ça s'accumule."],
+ ['Now the other side of the deal, and it is the single most important thing on this page. When the pool owes money to several kinds of people at once, there is a strict order of who gets paid. Farid is last on that list.',
+  "Maintenant l'autre côté du marché, et c'est la chose la plus importante de cette page. Quand la réserve doit de l'argent à plusieurs sortes de gens en même temps, il y a un ordre strict de qui est payé. Farid est le dernier de cette liste."],
+ ['A big borrower goes underwater in a fast crash. The pool takes their collateral, but by the time it can actually sell it, it is worth less than the debt. Somebody has to eat that gap.',
+  "Un gros emprunteur passe sous l'eau dans un krach rapide. La réserve saisit son collateral, mais le temps qu'elle puisse vraiment le revendre, il vaut moins que la dette. Quelqu'un doit avaler cet écart."],
+ ['Not Alice — her filled order was set aside for her the second it happened. Not the people who never lent anything — that money was never touched. Not Nadia — her balance is guaranteed never to be cut, only delayed. The loss passes all of them and arrives at Farid.',
+  "Pas Alice : son ordre rempli a été mis de côté pour elle à la seconde où c'est arrivé. Pas ceux qui n'ont jamais rien prêté : cet argent n'a jamais été touché. Pas Nadia : son solde a la garantie de ne jamais être coupé, seulement retardé. La perte les traverse tous et arrive chez Farid."],
+ ['His shares are simply written down. This is not a bug or an oversight — it is the design. Somebody has to be the buffer, and the whole reason the other three can be promised "at worst you wait" is that Farid is standing underneath them.',
+  "Ses parts sont simplement dévaluées. Ce n'est ni un bug ni un oubli : c'est le design. Il faut bien que quelqu'un soit le tampon, et si on peut promettre aux trois autres « au pire vous attendez », c'est précisément parce que Farid se tient en dessous."],
+ ['And while any of this is unresolved, he cannot leave — nor can anyone else join. That feels harsh, and it is also what stops a bank run that would guarantee everyone loses. Meanwhile the ordinary business of the pool keeps running, and it is that activity which slowly repairs it.',
+  "Et tant que tout ça n'est pas réglé, il ne peut pas partir, et personne d'autre ne peut entrer. Ça paraît dur, et c'est aussi ce qui empêche la ruée qui garantirait que tout le monde perde. Pendant ce temps l'activité ordinaire de la réserve continue, et c'est elle qui la répare peu à peu."],
+ ['So the yield is real, and so is what it pays for. Farid is not just a depositor earning a rate — he is the buffer that makes everyone else\'s guarantees possible. That is the trade, stated plainly, and it is worth understanding before deciding whether the rate is generous or thin.',
+  "Le rendement est donc réel, et ce qu'il paie l'est tout autant. Farid n'est pas un simple déposant qui touche un taux : c'est le tampon qui rend possibles les garanties de tous les autres. Voilà le marché, dit simplement, et il vaut mieux le comprendre avant de juger si le taux est généreux ou maigre."]
+],
+
+band: [
+ ['A lending protocol needs to know what things are worth. Almost all of them ask an outside service, which is exactly what attackers go after. This one asks nobody. Instead it keeps two markers of its own, one above and one below the live price, and slides them back toward it over a few minutes.',
+  "Un protocole de prêt a besoin de savoir ce que valent les choses. Presque tous demandent à un service extérieur, ce qui est exactement ce que visent les attaquants. Celui-ci ne demande à personne. Il garde deux repères à lui, un au-dessus et un en dessous du prix live, et les fait glisser vers lui en quelques minutes."],
+ ['An attacker borrows a huge amount, dumps it into the pool, and shoves the price up 25 % in a single instant. On a protocol that trusts an outside price feed, this is the moment they steal something.',
+  "Un attaquant emprunte une somme énorme, la déverse dans la réserve, et pousse le prix de 25 % en un instant. Sur un protocole qui fait confiance à un prix extérieur, c'est le moment où il vole quelque chose."],
+ ['Nothing happens. The two markers only move once per block, and they already moved for this one, using the price from before the attack. So the trading price jumped, but the price used for loans did not move a millimetre. The attack cannot pay for itself in the same instant it happens.',
+  "Rien ne se passe. Les deux repères ne bougent qu'une fois par bloc, et ils ont déjà bougé pour celui-ci, en utilisant le prix d'avant l'attaque. Le prix d'échange a donc bondi, mais le prix utilisé pour les prêts n'a pas bougé d'un millimètre. L'attaque ne peut pas se payer dans l'instant même où elle a lieu."],
+ ['A moment later, the upper marker does jump up to meet the new price. But the lower one does not — it only ever drifts slowly. Deliberately, the two markers do not move symmetrically.',
+  "Un instant plus tard, le repère du haut saute bien jusqu'au nouveau prix. Mais celui du bas, non : il ne fait que dériver lentement. Délibérément, les deux repères ne bougent pas de façon symétrique."],
+ ['So the attacker sells back to close the trade and pocket the difference, paying a second round of costs to do it. The price comes back down, and now the lower marker snaps down with it.',
+  "L'attaquant revend donc pour boucler l'opération et empocher la différence, en payant une seconde série de coûts au passage. Le prix redescend, et cette fois le repère du bas claque vers le bas avec lui."],
+ ['Look at where the two markers ended up: far apart. And whenever the protocol needs a price, it always picks whichever of the two is least favourable to whoever is asking. The attacker paid twice, moved the price twice, and the only thing they achieved was making the protocol more cautious with them. Whichever direction you attack from, the same thing happens.',
+  "Regardez où les deux repères ont fini : très écartés. Et chaque fois que le protocole a besoin d'un prix, il prend toujours celui des deux qui est le moins favorable au demandeur. L'attaquant a payé deux fois, déplacé le prix deux fois, et la seule chose qu'il a obtenue est de rendre le protocole plus méfiant avec lui. Quelle que soit la direction d'attaque, il se passe la même chose."],
+ ['There is a side effect that catches ordinary traders too. For a few minutes after any big move, buying the dip costs a premium. Not to punish anyone — it is the same mechanism, seen from the trading side. Wait for the markers to settle and it costs nothing.',
+  "Il y a un effet de bord qui rattrape aussi les traders ordinaires. Pendant quelques minutes après un gros mouvement, acheter la baisse coûte une prime. Ce n'est pas pour punir qui que ce soit : c'est le même mécanisme, vu du côté échange. Attendez que les repères se referment et ça ne coûte rien."],
+ ['And here is the honest cost, which the whitepaper states itself. Because the credit price is deliberately slow, real liquidations are slow too. A loan that should have been closed sits open a little longer while the markers catch up. That is the price of making manipulation worthless, and it is a price somebody pays.',
+  "Et voici le coût honnête, que le whitepaper énonce lui-même. Comme le prix de crédit est délibérément lent, les vraies liquidations le sont aussi. Un prêt qui aurait dû être fermé reste ouvert un peu plus longtemps le temps que les repères rattrapent. C'est le prix à payer pour rendre la manipulation sans valeur, et c'est un prix que quelqu'un paie."]
+],
+
+liq: [
+ ['Loans here are not filed by who took them or when. They are filed by the price at which they die. Every loan sitting on the same rung is stored together as a single lump.',
+  "Ici les prêts ne sont pas classés par emprunteur ni par date. Ils sont classés par le prix auquel ils meurent. Tous les prêts posés sur le même barreau sont stockés ensemble, en un seul bloc."],
+ ['Nobody has to trigger the cleanup, and nobody is paid to. Every single action anyone takes on this pool — a swap, a deposit, a repayment — runs the cleanup first, then does what was asked. So it is always up to date, because it cannot not be.',
+  "Personne n'a besoin de déclencher le nettoyage, et personne n'est payé pour le faire. Chaque action que quelqu'un effectue sur cette réserve, un échange, un dépôt, un remboursement, lance d'abord le nettoyage, puis fait ce qui était demandé. C'est donc toujours à jour, parce que ça ne peut pas ne pas l'être."],
+ ['The price falls hard. Because loans are filed by the price at which they die, finding the dead ones is not a search — everything at or below the current price is underwater, by definition. Five whole rungs, found instantly, with no list to go through.',
+  "Le prix chute fort. Comme les prêts sont classés par le prix auquel ils meurent, trouver les morts n'est pas une recherche : tout ce qui est au niveau du prix courant ou en dessous est sous l'eau, par définition. Cinq barreaux entiers, trouvés instantanément, sans aucune liste à parcourir."],
+ ['They are closed one rung at a time, and here is why that matters: closing a rung costs the same whether it holds one loan or ten thousand. This is why the system does not fall over in a crash, which is exactly when other designs get overwhelmed and grind to a halt.',
+  "Ils sont fermés un barreau à la fois, et voici pourquoi c'est important : fermer un barreau coûte la même chose qu'il porte un prêt ou dix mille. C'est pour ça que le système ne s'effondre pas pendant un krach, précisément au moment où d'autres designs sont submergés et se bloquent."],
+ ['One rung is too big to handle: closing it would cost more than the liquidity providers can absorb. So it is not closed. It is not written down as a loss either, and it is not quietly spread across everyone\'s balance. It is simply left pending, and retried on every transaction from now on.',
+  "Un barreau est trop gros pour être traité : le fermer coûterait plus que ce que les liquidity providers peuvent absorber. Il n'est donc pas fermé. Il n'est pas non plus inscrit en perte, ni discrètement étalé sur le solde de tout le monde. Il est simplement laissé en attente, et réessayé à chaque transaction à partir de maintenant."],
+ ['This is the part that separates a good design from a dangerous one. If the cleanup could ever fail outright, the entire pool would be frozen forever, because every action runs the cleanup first. So it never fails — it skips what it cannot handle. Trading, repaying and withdrawing all keep working, and that ordinary activity is what refills the pool.',
+  "C'est la partie qui sépare un bon design d'un design dangereux. Si le nettoyage pouvait échouer franchement, toute la réserve serait gelée à jamais, puisque chaque action lance d'abord le nettoyage. Il n'échoue donc jamais : il saute ce qu'il ne peut pas traiter. Échanger, rembourser et retirer continuent de fonctionner, et c'est cette activité ordinaire qui remplit à nouveau la réserve."],
+ ['And the stuck collateral puts itself on sale. After a crash the pool offers it at a discount that gets a little better every block, until somebody finds it worth buying. Nobody organises this auction and nobody is paid to run it. The pool either trades its way out, or it waits.',
+  "Et le collateral bloqué se met lui-même en vente. Après un krach, la réserve le propose avec une décote qui s'améliore un peu à chaque bloc, jusqu'à ce que quelqu'un trouve ça intéressant. Personne n'organise cette enchère et personne n'est payé pour la tenir. La réserve s'en sort par ses propres échanges, ou elle attend."]
+]
+
+};
 
 /* ══════════════ 00 · THE PROTOCOL ══════════════ */
 V.push({
@@ -1229,27 +1668,32 @@ V.push({
 
 /* ══════════════ ENGINE ══════════════ */
 const TABLABEL = {
+  start:    ['Start here', 'Commencez ici'],
   overview: ['The protocol', 'Le protocole'],
-  trader:   ['Taker', 'Taker'],
-  maker:    ['Maker', 'Maker'],
-  lent:     ['Lent maker & Supplier', 'Maker lent & Supplier'],
-  borrow:   ['Borrower', 'Borrower'],
-  lev:      ['Leverage', 'Levier'],
-  lp:       ['LP', 'LP'],
+  trader:   ['Bob · Taker', 'Bob · Taker'],
+  maker:    ['Alice · Maker', 'Alice · Maker'],
+  lent:     ['Nadia · Lent maker', 'Nadia · Maker lent'],
+  borrow:   ['David · Borrower', 'David · Emprunteur'],
+  lev:      ['Elena · Leverage', 'Elena · Levier'],
+  lp:       ['Farid · LP', 'Farid · LP'],
   band:     ['The band', 'Le band'],
   liq:      ['Liquidation', 'Liquidation']
 };
 const GROUPS = [
-  { label: UI.gMech, ids: ['overview'] },
-  { label: UI.gProf, ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
-  { label: UI.gHood, ids: ['band', 'liq'] }
+  { label: [' ', ' '], ids: ['start'] },
+  { label: ['Mechanics', 'Mécanique'], ids: ['overview'] },
+  { label: ['The six', 'Les six'], ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
+  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] }
 ];
+const ORDER = GROUPS.flatMap(g => g.ids);
 
-const STATE = { tab: 'overview', step: {} };
+const STATE = { tab: 'start', step: {} };
 const CTRL = {};
 const MAIN = document.getElementById('main');
 const TABBAR = document.getElementById('tabs');
+let POP = null;
 
+/* ── step painting ─────────────────────────────────────────────── */
 function applyMap(root, map) {
   for (const sel in map) {
     const v = map[sel];
@@ -1267,6 +1711,68 @@ function applyMap(root, map) {
   }
 }
 
+/* ── glossary decoration ───────────────────────────────────────── */
+const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function decorateNode(node, terms, used) {
+  const txt = node.nodeValue;
+  let best = null;
+  for (const t of terms) {
+    if (used.has(t.i)) continue;
+    for (const w of t.words) {
+      let m = null;
+      try { m = new RegExp('(?<![\\p{L}\\p{N}_-])' + esc(w) + '(?![\\p{L}\\p{N}_-])', 'iu').exec(txt); } catch (e) { m = null; }
+      if (m && (best === null || m.index < best.idx)) best = { idx: m.index, len: m[0].length, i: t.i };
+    }
+  }
+  if (!best) return null;
+  used.add(best.i);
+  const after = node.splitText(best.idx + best.len);
+  const mid   = node.splitText(best.idx);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'gl';
+  btn.dataset.g = best.i;
+  btn.setAttribute('aria-label', T(UI.glossary) + ': ' + T(GLOSS[best.i].t));
+  btn.textContent = mid.nodeValue;
+  mid.parentNode.replaceChild(btn, mid);
+  return after;
+}
+function decorate(root) {
+  const used = new Set();
+  const terms = GLOSS.map((g, i) => ({ i, words: g.m[LANG === 'fr' ? 1 : 0] }));
+  root.querySelectorAll('.cptext, .cd, .pnlcard li, .mini p, .note, .seclead, .persona p').forEach(el => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(node => {
+      if (!node.parentElement || node.parentElement.closest('.gl, code, b, strong')) return;
+      let cur = node;
+      while (cur) cur = decorateNode(cur, terms, used);
+    });
+  });
+}
+function closePop() { if (POP) { POP.remove(); POP = null; } }
+document.addEventListener('click', e => {
+  const b = e.target.closest('.gl');
+  if (!b) { if (!e.target.closest('.glpop')) closePop(); return; }
+  closePop();
+  const g = GLOSS[+b.dataset.g];
+  POP = document.createElement('div');
+  POP.className = 'glpop';
+  POP.innerHTML = `<b>${T(g.t)}</b><p>${T(g.d)}</p>`;
+  document.body.appendChild(POP);
+  const r = b.getBoundingClientRect();
+  const w = Math.min(320, window.innerWidth - 24);
+  POP.style.width = w + 'px';
+  POP.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + 'px';
+  const below = r.bottom + 8 + POP.offsetHeight < window.innerHeight;
+  POP.style.top = (below ? r.bottom + 8 : r.top - POP.offsetHeight - 8) + window.scrollY + 'px';
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePop(); });
+window.addEventListener('scroll', closePop, { passive: true });
+
+/* ── view rendering ────────────────────────────────────────────── */
 function renderView(v) {
   const p = document.createElement('section');
   p.className = 'panel';
@@ -1275,6 +1781,10 @@ function renderView(v) {
   p.setAttribute('aria-labelledby', 't-' + v.id);
   p.tabIndex = 0;
   const st = v.stage;
+  const who = WHO[v.id];
+  const i = ORDER.indexOf(v.id);
+  const prev = i > 0 ? ORDER[i - 1] : null;
+  const next = i < ORDER.length - 1 ? ORDER[i + 1] : null;
   p.innerHTML = `
     <div class="rolehead">
       <div class="lead">
@@ -1285,11 +1795,17 @@ function renderView(v) {
       <div class="idcard">${v.id_card.map(([k, val, c]) =>
         `<div class="stat"><div class="k">${T(k)}</div><div class="v ${c}">${T(val)}</div></div>`).join('')}</div>
     </div>
+    ${who ? `<div class="persona"><span class="av">${who.k}</span><div>
+        <span class="nm">${T(UI.meet)} ${who.n}</span><p>${T(who.l)}</p></div></div>` : ''}
     <div class="work">
       <div class="card">
         <div class="hd"><h3>${T(st.title)}</h3><span class="tag">${T(st.tag)}</span></div>
         <div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div>
-        <div class="caption" data-cap><div class="ct"></div><div class="cd"></div></div>
+        <div class="caption" data-cap aria-live="polite">
+          <div class="ct"></div>
+          <div class="cp"><span class="cplabel">${T(UI.inPlain)}</span><span class="cptext"></span></div>
+          <div class="cd"></div>
+        </div>
         <div class="ctrl">
           <button class="btn" data-prev type="button">${T(UI.prev)}</button>
           <button class="btn primary" data-play type="button">${T(UI.play)}</button>
@@ -1304,13 +1820,18 @@ function renderView(v) {
       <div class="pnlcard lose"><h4>${T(UI.lose)}</h4><ul>${v.pnl.lose.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
       <div class="pnlcard trap"><h4>${T(UI.trap)}</h4><ul>${v.pnl.trap.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
     </div>` : ''}
-    ${v.extra ? v.extra() : ''}`;
+    ${v.extra ? v.extra() : ''}
+    <nav class="viewnav">
+      ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
+      ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
+    </nav>`;
   return p;
 }
 
 function wire(p, v) {
   const svg   = p.querySelector('svg.stage');
   const steps = v.stage.steps;
+  const plain = PLAIN[v.id] || [];
   svg.querySelectorAll('.rev').forEach(el => {
     let L = 0;
     try { L = el.getTotalLength(); } catch (e) { L = 0; }
@@ -1330,7 +1851,7 @@ function wire(p, v) {
     `<button class="dot" type="button" data-i="${i}" aria-label="${T(UI.step)} ${i + 1}/${steps.length}"></button>`).join('');
 
   let i = 0, timer = null;
-  function render(n) {
+  function render(n, silent) {
     i = Math.max(0, Math.min(steps.length - 1, n));
     STATE.step[v.id] = i;
     applyMap(svg, v.stage.base);
@@ -1338,7 +1859,11 @@ function wire(p, v) {
     const s = steps[i];
     cap.className = 'caption' + (s.tone ? ' ' + s.tone : '');
     cap.querySelector('.ct').textContent = String(i + 1).padStart(2, '0') + ' · ' + T(s.t);
+    const pt = s.plain ? T(s.plain) : (plain[i] ? T(plain[i]) : '');
+    cap.querySelector('.cp').hidden = !pt;
+    cap.querySelector('.cptext').innerHTML = pt;
     cap.querySelector('.cd').innerHTML = T(s.d);
+    decorate(cap);
     rail.querySelectorAll('.step').forEach((b, k) => {
       b.setAttribute('aria-current', k === i ? 'true' : 'false');
       b.classList.toggle('done', k < i);
@@ -1349,13 +1874,14 @@ function wire(p, v) {
     });
     bPrev.disabled = i === 0;
     bNext.disabled = i === steps.length - 1;
+    if (!silent && STATE.tab === v.id) writeHash();
   }
   function stop() { if (timer) { clearInterval(timer); timer = null; bPlay.innerHTML = T(UI.play); } }
   function play() {
     if (timer) { stop(); return; }
     if (i === steps.length - 1) render(0);
     bPlay.innerHTML = T(UI.pause);
-    timer = setInterval(() => { if (i >= steps.length - 1) { stop(); return; } render(i + 1); }, 3800);
+    timer = setInterval(() => { if (i >= steps.length - 1) { stop(); return; } render(i + 1); }, 4600);
   }
   bPrev.addEventListener('click', () => { stop(); render(i - 1); });
   bNext.addEventListener('click', () => { stop(); render(i + 1); });
@@ -1363,73 +1889,125 @@ function wire(p, v) {
   rail.addEventListener('click', e => { const b = e.target.closest('.step'); if (b) { stop(); render(+b.dataset.i); } });
   dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if (b) { stop(); render(+b.dataset.i); } });
   p.addEventListener('keydown', e => {
-    if (e.target.closest('.tabs')) return;
+    if (e.target.closest('.tabs') || e.target.closest('.gl')) return;
     if (e.key === 'ArrowRight') { stop(); render(i + 1); }
     if (e.key === 'ArrowLeft')  { stop(); render(i - 1); }
   });
-  render(STATE.step[v.id] || 0);
+  render(STATE.step[v.id] || 0, true);
+  decorate(p);
   return { stop, render };
 }
 
+/* ── chrome ────────────────────────────────────────────────────── */
 function buildTabs() {
   let n = 0;
   TABBAR.innerHTML = GROUPS.map((g, gi) =>
     (gi ? '<div class="tabsep"></div>' : '') +
-    `<span class="tabgroup">${T(g.label)}</span>` +
+    (T(g.label).trim() ? `<span class="tabgroup">${T(g.label)}</span>` : '') +
     g.ids.map(id => `<button class="tab" role="tab" id="t-${id}" aria-controls="p-${id}" aria-selected="false"><span class="idx">${String(n++).padStart(2, '0')}</span>${T(TABLABEL[id])}</button>`).join('')
   ).join('');
-  TABBAR.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => show(t.id.slice(2)));
-  });
+  TABBAR.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => show(t.id.slice(2))));
 }
 
-function show(id) {
+function show(id, keepScroll) {
+  if (!ORDER.includes(id)) id = 'start';
   STATE.tab = id;
+  closePop();
   TABBAR.querySelectorAll('.tab').forEach(t => {
     const on = t.id === 't-' + id;
     t.setAttribute('aria-selected', on ? 'true' : 'false');
     t.tabIndex = on ? 0 : -1;
+    if (on) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   });
   V.forEach(v => {
     const panel = document.getElementById('p-' + v.id);
     if (panel) panel.hidden = (v.id !== id);
   });
   Object.keys(CTRL).forEach(k => { if (k !== id) CTRL[k].stop(); });
+  if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  writeHash();
 }
 
+/* jump buttons: cast cards and the prev/next view nav */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-goto]');
+  if (b) show(b.dataset.goto);
+});
+
+/* ── deep links: #/view/step ───────────────────────────────────── */
+let hashLock = false;
+function writeHash() {
+  const s = (STATE.step[STATE.tab] || 0) + 1;
+  const h = '#/' + STATE.tab + (s > 1 ? '/' + s : '');
+  if (location.hash === h) return;
+  hashLock = true;
+  history.replaceState(null, '', h);
+  setTimeout(() => { hashLock = false; }, 0);
+}
+function readHash() {
+  const m = /^#\/([a-z]+)(?:\/(\d+))?$/.exec(location.hash);
+  if (!m || !ORDER.includes(m[1])) return false;
+  STATE.tab = m[1];
+  if (m[2]) STATE.step[m[1]] = Math.max(0, +m[2] - 1);
+  return true;
+}
+window.addEventListener('hashchange', () => {
+  if (hashLock) return;
+  if (!readHash()) return;
+  const c = CTRL[STATE.tab];
+  if (c) c.render(STATE.step[STATE.tab] || 0, true);
+  show(STATE.tab, true);
+});
+
+/* ── build ─────────────────────────────────────────────────────── */
 function build() {
   Object.keys(CTRL).forEach(k => { CTRL[k].stop(); delete CTRL[k]; });
+  closePop();
   MAIN.innerHTML = '';
   buildTabs();
-  V.forEach(v => { MAIN.appendChild(renderView(v)); });
+  V.forEach(v => MAIN.appendChild(renderView(v)));
   V.forEach(v => { CTRL[v.id] = wire(document.getElementById('p-' + v.id), v); });
-  show(STATE.tab);
+  show(STATE.tab, true);
   document.getElementById('kicker').textContent = T(UI.kicker);
   document.getElementById('crumb').innerHTML = T(UI.crumb);
   document.getElementById('foot').innerHTML = T(UI.foot);
-  document.title = LANG === 'fr' ? 'Everything, profil par profil' : 'Everything, profile by profile';
+  document.title = LANG === 'fr' ? 'Everything, le guide' : 'Everything, the guide';
 }
 
-/* language toggle */
+/* ── toggles ───────────────────────────────────────────────────── */
 function setLang(l) {
   LANG = (l === 'fr') ? 'fr' : 'en';
   try { localStorage.setItem('ev-lang', LANG); } catch (e) {}
   document.documentElement.lang = LANG;
-  document.querySelectorAll('[data-lang]').forEach(b =>
-    b.setAttribute('aria-pressed', b.dataset.lang === LANG ? 'true' : 'false'));
+  syncToggles();
   build();
 }
-document.querySelectorAll('[data-lang]').forEach(b =>
+function setLevel(l) {
+  LEVEL = (l === 'full') ? 'full' : 'plain';
+  try { localStorage.setItem('ev-level', LEVEL); } catch (e) {}
+  document.documentElement.setAttribute('data-read', LEVEL);
+  syncToggles();
+}
+function syncToggles() {
+  document.querySelectorAll('.seg button[data-lang]').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.lang === LANG ? 'true' : 'false'));
+  document.querySelectorAll('.seg button[data-level]').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.level === LEVEL ? 'true' : 'false');
+    b.textContent = T(b.dataset.level === 'full' ? UI.lvFull : UI.lvPlain);
+  });
+  const lh = document.getElementById('levelhint');
+  if (lh) lh.setAttribute('aria-label', T(UI.lvHint));
+}
+document.querySelectorAll('.seg button[data-lang]').forEach(b =>
   b.addEventListener('click', () => { if (b.dataset.lang !== LANG) setLang(b.dataset.lang); }));
-
-/* theme toggle */
+document.querySelectorAll('.seg button[data-level]').forEach(b =>
+  b.addEventListener('click', () => { if (b.dataset.level !== LEVEL) setLevel(b.dataset.level); }));
 document.getElementById('theme').addEventListener('click', () => {
   const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('ev-theme', next); } catch (e) {}
 });
 
-/* tablist keyboard nav */
 TABBAR.addEventListener('keydown', e => {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
   e.preventDefault();
@@ -1440,6 +2018,7 @@ TABBAR.addEventListener('keydown', e => {
   tabs[nxt].focus();
 });
 
-document.querySelectorAll('[data-lang]').forEach(b =>
-  b.setAttribute('aria-pressed', b.dataset.lang === LANG ? 'true' : 'false'));
+document.documentElement.setAttribute('data-read', LEVEL);
+readHash();
+syncToggles();
 build();

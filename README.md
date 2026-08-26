@@ -1,12 +1,22 @@
-# Everything, profile by profile
+# Everything, the guide
 
-An animated, bilingual, step-by-step reading of the [EVERYTHING Protocol](https://everything.inc/) whitepaper.
+The [EVERYTHING Protocol](https://everything.inc/) explained without the whitepaper.
 
-Nine views. One explains the protocol as a whole; six walk through a user profile — taker, maker, lent maker & supplier, borrower, leveraged trader, liquidity provider — and two open up the mechanics that make the rest possible: the internal price band that replaces the oracle, and the liquidation cascade with its loss waterfall.
+It opens with one everyday comparison and no formulas at all: today you need three shops, one to swap your tokens, one to lend against them and one to hold your standing orders, and each of the three needs its own pile of cash sitting idle. Everything puts all three behind a single counter with a single till. The part that actually matters is that the counter setting the exchange rate is the same counter holding your pawn, so it knows exactly what it could sell that pawn for today. That is why it can lend against tokens other venues refuse.
 
-Every view is a scenario you step through. Each step animates the diagram and explains what just happened, with concrete numbers: a swap sweeping the tick grid, an order filling at its exact price, a lent exit hitting the capacity gate, a liquidation threshold drifting against a borrower until it catches them, a loss falling through the seniority waterfall onto the junior LP tranche.
+After that, ten views. One builds the protocol brick by brick. Six follow a named person through one concrete situation with real numbers: **Bob** just wants to swap, **Alice** waits patiently for a better price, **Nadia** wants the same thing but refuses to let her money sleep while it waits, **David** needs cash without selling, **Elena** wants leverage, and **Farid** puts up the money that makes the other five possible. Two more open the mechanics underneath: the internal price band that replaces the oracle, and the liquidation cascade with its loss waterfall.
 
-The question each profile answers is the same: **what do they do, why, and exactly how do they make or lose money.**
+Every view is a scenario you step through. Each step animates the diagram and explains what just happened, and every profile closes on the same question: **what do they do, why, and exactly how do they make or lose money.**
+
+## Two reading levels
+
+Everything is written twice. **Plain** gives you every step in ordinary language, with no formulas, no jargon and no section references. **Full** keeps that and adds the technical layer underneath, in the whitepaper's own terms. The toggle is in the top bar and you keep your place when you switch.
+
+Any term that might not be obvious is underlined the first time it appears in a panel; click it for a one-sentence definition. The full glossary is at the bottom of the first view.
+
+## Deep links
+
+The URL tracks where you are: `#/borrow/5` opens David's view at step 5. Paste one at someone and they land exactly where you did.
 
 ## Stack
 
@@ -17,9 +27,11 @@ index.html          shell, design tokens, chrome
 app.js              generated — do not edit by hand
 build.mjs           concatenates src/*.js into app.js
 src/
-  00-core.js        i18n helper + SVG building blocks
+  00-core.js        i18n helper, glossary data, SVG building blocks
+  05-start.js       the two-minute opening view
+  06-guide.js       the plain-language layer and the six personas
   10..18-*.js       one file per view
-  90-engine.js      step engine, tabs, language and theme toggles
+  90-engine.js      step engine, tabs, glossary, deep links, toggles
 vercel.json         static deploy config
 ```
 

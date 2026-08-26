@@ -3,12 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Everything, profile by profile</title>
-<meta name="description" content="An animated, step-by-step reading of the EVERYTHING Protocol whitepaper: twelve user profiles, what they do, why, and exactly how each one makes or loses money.">
+<title>Everything, the guide</title>
+<meta name="description" content="The EVERYTHING Protocol explained without the whitepaper. One everyday comparison, six people followed step by step, and a plain-language layer over every diagram. EN / FR.">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="Everything, profile by profile">
-<meta property="og:description" content="Twelve user profiles of the EVERYTHING Protocol, animated step by step.">
+<meta property="og:title" content="Everything, the guide">
+<meta property="og:description" content="One reserve, three markets. Six people followed step by step, in plain language. An animated reading of the EVERYTHING Protocol whitepaper.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/og.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 20'%3E%3Cpath d='M11.7 0.1L0.14 4.32C0.06 4.36 0 4.44 0 4.53v3.9c0 .16.15.26.29.21L11.87 4.43c.08-.03.14-.11.14-.21V.32c0-.15-.15-.26-.29-.21z' fill='%230f5ff7'/%3E%3Cpath d='M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13c.08-.03.14-.11.14-.21z' fill='%23387efc'/%3E%3Cpath d='M11.87 15.25L0 10.93v4.22c0 .09.06.17.14.2l11.57 4.22c.14.05.29-.06.29-.21v-3.91c0-.09-.06-.17-.14-.2z' fill='%230f5ff7'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -183,6 +188,56 @@ td b{color:var(--primary);font-weight:600}
 
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--hairline);font-size:12px;color:var(--muted);max-width:84ch}
 
+
+/* persona card */
+.persona{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;margin-bottom:16px;
+  border:1px solid var(--accent-line);border-radius:var(--r-lg);
+  background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.persona .av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-family:var(--mono);font-size:16px;font-weight:600}
+.persona .nm{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--accent-text);margin-bottom:3px}
+.persona p{font-size:14px;color:var(--primary);max-width:82ch}
+
+/* cast grid on the start view */
+.cast{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:12px}
+.castcard{display:flex;gap:12px;align-items:flex-start;text-align:left;cursor:pointer;font-family:inherit;
+  padding:13px 14px;border:1px solid var(--hairline);border-radius:var(--r-lg);background:var(--surface);
+  transition:border-color .15s,background .15s}
+.castcard:hover{border-color:var(--accent-line);background:var(--elevated)}
+.castcard .av{flex:none;width:32px;height:32px;border-radius:50%;background:var(--accent-soft);
+  color:var(--accent-text);display:grid;place-items:center;font-family:var(--mono);font-size:14px;font-weight:600}
+.castcard .cc{display:flex;flex-direction:column;gap:2px;min-width:0}
+.castcard .nm{font-size:14px;font-weight:700;color:var(--primary)}
+.castcard .rl{font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-text)}
+.castcard .gl2{font-size:12.5px;color:var(--secondary);line-height:1.4}
+
+/* plain-language layer */
+.caption .cp{display:flex;flex-direction:column;gap:4px}
+.caption .cptext{font-size:15px;line-height:1.6;color:var(--primary);max-width:76ch}
+.caption .cplabel{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-text)}
+.caption .cd{margin-top:12px;padding-top:11px;border-top:1px dashed var(--border)}
+:root[data-read="plain"] .caption .cd,
+:root[data-read="plain"] .caption .cplabel,
+:root[data-read="plain"] .hd .tag{display:none}
+:root[data-read="plain"] .caption .cd + *{margin-top:0}
+
+/* glossary */
+.gl{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;
+  border-bottom:1.5px dotted var(--accent-line);transition:background .15s}
+.gl:hover{background:color-mix(in srgb,var(--accent-line) 16%,transparent)}
+.glpop{position:absolute;z-index:200;background:var(--elevated);color:var(--primary);
+  border:1px solid var(--accent-line);border-radius:var(--r-lg);padding:11px 13px;
+  box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.glpop b{display:block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--accent-text);margin-bottom:5px}
+.glpop p{font-size:13px;line-height:1.5;color:var(--secondary)}
+
+/* view-to-view navigation */
+.viewnav{display:flex;justify-content:space-between;gap:12px;margin-top:32px;
+  padding-top:18px;border-top:1px solid var(--hairline);flex-wrap:wrap}
+.viewnav .btn{font-size:13px;padding:9px 15px}
+
 @media (max-width:700px){
   /* the stages are wide diagrams: let them scroll inside their own card
      instead of shrinking the labels into illegibility */
@@ -190,6 +245,9 @@ td b{color:var(--primary);font-weight:600}
   svg.stage{min-width:620px}
   .rolehead h2{font-size:24px}
   .rail{position:static}
+  .persona{flex-direction:column;gap:10px}
+  .viewnav{flex-direction:column}
+  .viewnav .btn{justify-content:center}
 }
 @media (prefers-reduced-motion: reduce){
   .anim{transition-duration:.01ms !important}
@@ -228,6 +286,10 @@ td b{color:var(--primary);font-weight:600}
   <span class="pill-beta" id="kicker">Guide</span>
   <span class="spacer"></span>
   <span class="crumb" id="crumb"></span>
+  <div class="seg" role="group" id="levelhint" aria-label="Reading level">
+    <button type="button" data-level="plain" aria-pressed="true">Plain</button>
+    <button type="button" data-level="full" aria-pressed="false">Full</button>
+  </div>
   <div class="seg" role="group" aria-label="Language">
     <button type="button" data-lang="en" aria-pressed="true">EN</button>
     <button type="button" data-lang="fr" aria-pressed="false">FR</button>

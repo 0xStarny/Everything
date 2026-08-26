@@ -111,12 +111,19 @@ a:hover{text-decoration:underline}
 .hd .tag{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--hairline);border-radius:var(--r-sm);padding:1px 6px;white-space:nowrap}
 .stagebox{padding:14px}
 svg.stage{display:block;width:100%;height:auto;max-height:64vh;overflow:visible}
-svg.stage text{font-family:var(--sans);fill:var(--primary)}
+/* CSS beats an SVG presentation attribute, so these defaults must stand aside
+   whenever the markup states a fill of its own — otherwise every semantic
+   colour in the diagrams silently renders as the default. */
+svg.stage text{font-family:var(--sans)}
+svg.stage text:not([fill]){fill:var(--primary)}
 svg.stage .lbl{font-size:12px;font-weight:600}
-svg.stage .sm{font-size:10.5px;fill:var(--muted);font-weight:500}
-svg.stage .num{font-family:var(--mono);font-size:11.5px;font-weight:600;fill:var(--secondary)}
+svg.stage .sm{font-size:10.5px;font-weight:500}
+svg.stage .sm:not([fill]){fill:var(--muted)}
+svg.stage .num{font-family:var(--mono);font-size:11.5px;font-weight:600}
+svg.stage .num:not([fill]){fill:var(--secondary)}
 svg.stage .big{font-family:var(--mono);font-size:15px;font-weight:600}
-svg.stage .cap{font-size:9.5px;font-weight:700;letter-spacing:.07em;fill:var(--muted)}
+svg.stage .cap{font-size:9.5px;font-weight:700;letter-spacing:.07em}
+svg.stage .cap:not([fill]){fill:var(--muted)}
 .anim{transition:opacity .45s var(--ease),transform .6s var(--ease),fill .4s linear,stroke .4s linear,stroke-dashoffset .9s var(--ease)}
 .barY{transform-box:fill-box;transform-origin:50% 100%}
 .barX{transform-box:fill-box;transform-origin:0% 50%}

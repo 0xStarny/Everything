@@ -108,7 +108,7 @@ V.push({
        d: ['The price fell 10 %. They lost <b>16.4 % against simply doing nothing</b>. And there was no way to automate the exit: the protocol <b>attaches no stop-loss and no take-profit to a loan</b>. The only upside exit is a manual close, or a separately placed limit order they must remember to collect.',
            "Le prix a baissé de 10 %. Lui a perdu <b>16,4 % contre le simple fait de ne rien faire</b>. Et il n'existait aucun moyen d'automatiser la sortie : le protocole <b>n'attache ni stop-loss ni take-profit à un prêt</b>. La seule sortie haussière est une fermeture manuelle, ou un ordre limite posé séparément qu'il faut penser à collecter."],
        tone: 'danger',
-       set: {...A, ...B, '#bo-s1':{do:0}, ...D, '#bo-s2':{do:0}, '#bo-hit':{o:1}, '#bo-s3':{do:0}, '#bo-bal':{o:1}}}
+       set: {...A, ...B, '#bo-s1':{do:0}, ...D, '#bo-s2':{do:0}, '#bo-hit':{o:1}, '#bo-s3':{do:0}, '#bo-bal':{o:1}, '#bo-l1t':{o:0}}}
     ]; })()
   },
   pnl: {

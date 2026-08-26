@@ -55,8 +55,15 @@ V.push({
       ${WF('lp-w1',100,54,'1',['FILL CLAIMS','FILL CLAIMS'],['reserved at fill time · never gated, in any state','réservés au fill · jamais gatés, dans aucun état'],'g')}
       ${WF('lp-w2',162,54,'2',['NON-LENT ESCROW','ESCROW NON-LENT'],['pure custody · untouchable by construction','pure custody · intouchable par construction'],'g')}
       ${WF('lp-w3',224,54,'3',['LENT SUPPLIERS','LENT SUPPLIERS'],['shares at index L · L is NEVER haircut',"parts à l'index L · L n'est JAMAIS haircut"],'b')}
-      ${WF('lp-w4',286,102,'4',['LP RESERVE TRANCHE · JUNIOR','LP RESERVE TRANCHE · JUNIOR'],['absorbs bad debt, written-off fronts, seizure slippage','absorbe la bad debt, les fronts écrits off, le slippage de saisie'],'r')}
-      <g id="lp-loss" class="anim"><rect x="470" y="26" width="370" height="42" rx="8" fill="var(--bad)" opacity=".9"/>
+      <g id="lp-w4" class="anim">
+        <rect x="470" y="286" width="370" height="102" rx="8" fill="var(--bad-bg)" stroke="var(--bad-line)" stroke-width="1.2"/>
+        <text class="cap" x="486" y="352" fill="var(--bad-text)">4 · ${T(['LP RESERVE TRANCHE · JUNIOR','LP RESERVE TRANCHE · JUNIOR'])}</text>
+        <text class="sm" x="486" y="370" fill="var(--bad-text)">${T(['absorbs bad debt, written-off fronts, seizure slippage','absorbe la bad debt, les fronts écrits off, le slippage de saisie'])}</text></g>
+      <g id="lp-burn" class="anim">
+        <rect x="470" y="286" width="370" height="46" rx="8" fill="var(--bad)" opacity=".38"/>
+        <line x1="472" y1="332" x2="838" y2="332" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <text class="cap" x="655" y="314" text-anchor="middle" fill="var(--bad-text)">${T(['THIS PART IS GONE','CETTE PART EST PARTIE'])}</text></g>
+      <g id="lp-loss" class="anim"><rect x="470" y="26" width="370" height="42" rx="8" fill="#b3261e"/>
         <text class="cap" x="486" y="43" fill="#fff">${T(['LIQUIDATION LOSS · 8 % OF THE RESERVE','PERTE DE LIQUIDATION · 8 % DE LA RÉSERVE'])}</text>
         <text class="sm" x="486" y="60" fill="#fff">${T(['seizure marked at the band, not at realisable value','saisie valorisée au band, pas au réalisable'])}</text></g>
       <text id="lp-burnt" class="anim cap" x="840" y="404" text-anchor="end" fill="var(--bad-text)">${T(['SHARES BURNED · kept = min(shares, ⌈(R̃ + I_sup)/L⌉)','PARTS BRÛLÉES · kept = min(shares, ⌈(R̃ + I_sup)/L⌉)'])}</text>
@@ -64,13 +71,13 @@ V.push({
         <text class="cap" x="655" y="429" text-anchor="middle" fill="var(--bad-text)">MINT · BURN · BORROW · LEVERAGE → REVERT</text></g>`,
     base: {'#lp-src1':{o:0},'#lp-src2':{o:0},'#lp-f1':{o:0},'#lp-f2':{o:0},'#lp-apr':{o:0},
       '#lp-bonus':{o:0},'#lp-bonus2':{o:0},'#lp-calc':{o:0},
-      '#lp-w1':{o:0},'#lp-w2':{o:0},'#lp-w3':{o:0},'#lp-w4':{o:0,sc:[1,1]},
+      '#lp-w1':{o:0},'#lp-w2':{o:0},'#lp-w3':{o:0},'#lp-w4':{o:0},'#lp-burn':{o:0},
       '#lp-loss':{o:0,t:[0,0]},'#lp-burnt':{o:0},'#lp-gate':{o:0}},
     steps: (() => {
       const S1={'#lp-src1':{o:1},'#lp-f1':{o:1}}, S2={'#lp-src2':{o:1},'#lp-f2':{o:1},'#lp-apr':{o:1}};
       const BON={'#lp-bonus':{o:1},'#lp-bonus2':{o:1}};
       const WFA={'#lp-w1':{o:1},'#lp-w2':{o:1},'#lp-w3':{o:1},'#lp-w4':{o:1}};
-      const BURN={'#lp-w4':{o:1,sc:[1,.62]},'#lp-burnt':{o:1}};
+      const BURN={'#lp-w4':{o:1},'#lp-burn':{o:1},'#lp-burnt':{o:1}};
       return [
       {t: ['They deposit both tokens', 'Il dépose les deux tokens'],
        d: ['They receive pool shares, and the pair is itself the LP token. What they do not choose: <b>their reserve is lent by construction</b>. There is no lend flag for an LP, because the reserve that prices the swaps <b>is</b> the credit book\'s first inventory.',
@@ -102,12 +109,12 @@ V.push({
        d: ['Fill claims were set aside at fill time: no event can re-spend them. Non-lent escrow is pure custody. And <b>the index <code>L</code> is never reduced</b>: lent suppliers and filled makers never pay for bad debt through their index, ever. The loss only stops at the fourth floor.',
            "Les fill claims ont été mis de côté au moment du fill : aucun évènement ne peut les redépenser. L'escrow non-lent est de la pure custody. Et <b>l'index <code>L</code> n'est jamais réduit</b> : les lent suppliers et les makers remplis ne paient jamais la bad debt par leur index, jamais. La perte ne s'arrête qu'au quatrième étage."],
        tone: 'alert',
-       set: {...S1, ...S2, ...BON, ...WFA, '#lp-loss':{o:1,t:[0,242]}}},
+       set: {...S1, ...S2, ...BON, ...WFA, '#lp-loss':{o:1,t:[0,260]}}},
       {t: ['Their shares are written down', 'Ses parts sont écrites down'],
        d: ["The borrowed side's reserve claim is re-based to what physically backs it, and the burned difference <b>is their loss</b>. Fronts still outstanding at liquidation time are junior too: the advance the pool made against unrealised yield is written off at their expense, tranche-neutrally for everyone above.",
            "La créance du côté emprunté est re-basée sur ce qui la couvre physiquement, et la différence brûlée <b>est sa perte</b>. Les fronts encore en cours au moment de la liquidation sont juniors aussi : l'avance que le pool avait faite contre du rendement non réalisé est passée en perte à ses frais, de façon neutre pour tout le monde au-dessus."],
        tone: 'danger',
-       set: {...S1, ...S2, ...BON, '#lp-w1':{o:1},'#lp-w2':{o:1},'#lp-w3':{o:1}, '#lp-loss':{o:0,t:[0,242]}, ...BURN}},
+       set: {...S1, ...S2, ...BON, '#lp-w1':{o:1},'#lp-w2':{o:1},'#lp-w3':{o:1}, '#lp-loss':{o:0,t:[0,260]}, ...BURN}},
       {t: ['And the door shuts behind them', 'Et la porte se ferme derrière lui'],
        d: ['While any tick is pending, <b>mint, burn, borrow, leverage and new lent deposits revert</b> with a typed error: nobody may enter or exit the junior tranche against an unsettled book. It is coherent, it is even what prevents the run that would guarantee the seniors\' loss. But said plainly: <b>the LP cannot flee ahead of the losses</b>. Meanwhile swaps, repayments, cancels and fill collection keep working, and their inflow is what rebuilds the reserve.',
            "Tant que des ticks restent en attente, <b>mint, burn, borrow, leverage et nouveaux dépôts lents revert</b> avec une erreur typée : personne ne peut entrer ni sortir de la tranche junior contre un carnet non réglé. C'est cohérent, c'est même ce qui empêche la ruée qui garantirait la perte des seniors. Mais dit autrement : <b>le LP ne peut pas fuir avant les pertes</b>. Pendant ce temps, swaps, remboursements, cancels et collectes continuent, et c'est leur flux qui reconstitue la réserve."],

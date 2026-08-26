@@ -16,8 +16,8 @@ V.push({
     vb: '0 0 900 400',
     svg: () => MK('mk') + AXES(90, 840, 340, [[82,'1.04'],[147,'1.00'],[211,'0.96'],[276,'0.92'],[340,'0.88']]) + `
       <g id="mk-band" class="anim">
-        <rect x="90" y="223" width="750" height="8" rx="4" fill="var(--accent-line)" opacity=".38"/>
-        <line x1="90" y1="227" x2="840" y2="227" stroke="var(--accent-line)" stroke-width="1.6" stroke-dasharray="7 5"/>
+        <rect x="90" y="223" width="422" height="8" rx="4" fill="var(--accent-line)" opacity=".38"/>
+        <line x1="90" y1="227" x2="512" y2="227" stroke="var(--accent-line)" stroke-width="1.6" stroke-dasharray="7 5"/>
         <rect x="96" y="196" width="240" height="22" rx="5" fill="var(--accent-soft)" stroke="var(--accent-line)"/>
         <text class="cap" x="108" y="210.5" fill="var(--accent-text)">${T(['WALL · 10,000 USDC @ TICK 0.950','WALL · 10 000 USDC @ TICK 0.950'])}</text>
       </g>
@@ -28,14 +28,14 @@ V.push({
         <rect x="96" y="48" width="290" height="34" rx="8" fill="var(--elevated)" stroke="var(--border)"/>
         <text class="sm" x="110" y="69" fill="var(--secondary)">${T(['Cancel is immediate and unconditional, at any instant',"Cancel immédiat et inconditionnel, à tout instant"])}</text>
       </g>
-      ${CALL('mk-fill', 520, 44, 320, 84, ['FILLED AT EXACTLY Bᵢ','FILL À EXACTEMENT Bᵢ'], [
+      ${CALL('mk-fill', 534, 44, 306, 84, ['FILLED AT EXACTLY Bᵢ','FILL À EXACTEMENT Bᵢ'], [
         ['10,526.3 EV','10 526,3 EV'],
         ['zero slippage, zero fee for the maker','zéro slippage, zéro fee pour le maker'],
         ['the taker had already paid theirs up front',"le taker avait déjà payé la sienne en tête"]], 'g')}
-      ${CALL('mk-reb', 520, 138, 320, 66, ['+ MAKER REBATE','+ MAKER REBATE'], [
+      ${CALL('mk-reb', 534, 138, 306, 66, ['+ MAKER REBATE','+ MAKER REBATE'], [
         ['≈ 19 USDC','≈ 19 USDC'],
         ["majority share of the fill's LP fee",'part majoritaire du LP fee du fill']], 'b')}
-      ${CALL('mk-adv', 520, 208, 320, 66, ['ADVERSE SELECTION','ADVERSE SELECTION'], [
+      ${CALL('mk-adv', 534, 208, 306, 66, ['ADVERSE SELECTION','ADVERSE SELECTION'], [
         ['− 526 USDC mark-to-market','− 526 USDC en mark-to-market'],
         ['the price kept going, down to 0.90',"le prix a continué jusqu'à 0.90"]], 'r')}`,
     base: {'#mk-band':{o:0},'#mk-p1':{o:1,do:1},'#mk-p2':{o:1,do:1},'#mk-hit':{o:0},

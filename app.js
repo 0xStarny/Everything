@@ -26,8 +26,8 @@ const UI = {
   trap: ['The catch', 'Le piège à connaître'],
   step: ['Step', 'Étape'],
   foot: [
-    'Rebuilt from the <a href="https://everything.inc/" target="_blank" rel="noopener">everything.inc</a> whitepaper (sections 1 to 12, published 21 August 2026). Visual identity borrowed from <a href="https://app.everything.inc/" target="_blank" rel="noopener">app.everything.inc</a>. Every number in these scenarios is a teaching example built on the paper\'s own formulas, not market data. The parameters (<span class="mono">π</span>, <span class="mono">τ</span>, <span class="mono">λ</span>, <span class="mono">β</span>, <span class="mono">u*</span>, <span class="mono">φ</span>) are given no values anywhere in the whitepaper: they are per-pair governance levers. This is an independent explainer, not affiliated with the protocol, and not financial advice.',
-    'Reconstruit à partir du whitepaper <a href="https://everything.inc/" target="_blank" rel="noopener">everything.inc</a> (sections 1 à 12, publié le 21 août 2026). Habillage repris de <a href="https://app.everything.inc/" target="_blank" rel="noopener">app.everything.inc</a>. Tous les chiffres de ces scénarios sont des exemples pédagogiques construits sur les formules du papier, pas des données de marché. Les paramètres (<span class="mono">π</span>, <span class="mono">τ</span>, <span class="mono">λ</span>, <span class="mono">β</span>, <span class="mono">u*</span>, <span class="mono">φ</span>) ne sont chiffrés nulle part dans le whitepaper : ce sont des leviers de gouvernance réglés par paire. Explication indépendante, sans lien avec le protocole, et qui ne constitue pas un conseil financier.'
+    'Rebuilt from the <a href="https://everything.inc/" target="_blank" rel="noopener">everything.inc</a> whitepaper (sections 1 to 12, published 21 August 2026). Visual identity borrowed from <a href="https://app.everything.inc/" target="_blank" rel="noopener">app.everything.inc</a>. Every number in these scenarios is a teaching example built on the paper\'s own formulas, not market data. The paper does put numbers on what is structural: the curve parameters are bounded to <span class="mono">A ∈ [0.1, 1000]</span> and <span class="mono">γ ∈ [10⁻⁸, 0.06]</span>, re-tunable only along a ramp of at most tenfold and never shorter than a day; the tick grid is fully specified as <span class="mono">P(i) = 1.01<sup>i</sup></span> over <span class="mono">i ∈ [−3702, 13598]</span>; a repeg step covers at least a fifth of the gap, and a single block can inject at most <span class="mono">2p<sub>s</sub></span> into the oracle. What is left unvalued is the economic policy: <span class="mono">π</span>, <span class="mono">τ</span>, <span class="mono">λ</span>, <span class="mono">β</span>, <span class="mono">u*</span>, <span class="mono">φ</span>, <span class="mono">σ</span>, <span class="mono">ε</span> are per-pair governance levers, tuned by simulation. This is an independent explainer, not affiliated with the protocol, and not financial advice.',
+    'Reconstruit à partir du whitepaper <a href="https://everything.inc/" target="_blank" rel="noopener">everything.inc</a> (sections 1 à 12, publié le 21 août 2026). Habillage repris de <a href="https://app.everything.inc/" target="_blank" rel="noopener">app.everything.inc</a>. Tous les chiffres de ces scénarios sont des exemples pédagogiques construits sur les formules du papier, pas des données de marché. Le papier chiffre bien ce qui est structurel : les paramètres de courbe sont bornés à <span class="mono">A ∈ [0,1 ; 1000]</span> et <span class="mono">γ ∈ [10⁻⁸ ; 0,06]</span>, re-réglables seulement le long d’une rampe d’un facteur dix maximum et jamais plus courte qu’un jour ; la grille de ticks est entièrement spécifiée, <span class="mono">P(i) = 1,01<sup>i</sup></span> sur <span class="mono">i ∈ [−3702, 13598]</span> ; un pas de repeg couvre au moins un cinquième de l’écart, et un seul bloc ne peut injecter au plus que <span class="mono">2p<sub>s</sub></span> dans l’oracle. Ce qui reste non chiffré, c’est la politique économique : <span class="mono">π</span>, <span class="mono">τ</span>, <span class="mono">λ</span>, <span class="mono">β</span>, <span class="mono">u*</span>, <span class="mono">φ</span>, <span class="mono">σ</span>, <span class="mono">ε</span> sont des leviers de gouvernance par paire, réglés par simulation. Explication indépendante, sans lien avec le protocole, et qui ne constitue pas un conseil financier.'
   ]
 };
 
@@ -654,6 +654,11 @@ V.push({
       <line x1="90" y1="340" x2="835" y2="340" stroke="var(--border)" stroke-width="1.4"/>
       ${[190,240,340,390,490,540,640,690,740,790].map(x=>`<line x1="${x}" y1="336" x2="${x}" y2="344" stroke="var(--grid)" stroke-width="1"/>`).join('')}
       <text class="cap" x="835" y="362" text-anchor="end">${T(['PRICE (USDC PER EV) →','PRIX (USDC PAR EV) →'])}</text>
+      <g id="tr-spot" class="anim">
+        <line x1="290" y1="150" x2="290" y2="368" stroke="var(--primary)" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <rect x="262" y="370" width="56" height="19" rx="4" fill="var(--primary)"/>
+        <text class="cap" x="290" y="383.5" text-anchor="middle" fill="var(--canvas)">SPOT</text>
+      </g>
       ${wall(1, 140, 62, ['5,000 USDC','5 000 USDC'], '0.990')}
       ${wall(2, 290, 96, ['10,000 USDC','10 000 USDC'], '1.000')}
       ${wall(3, 440, 128, ['15,000 USDC','15 000 USDC'], '1.010')}
@@ -661,13 +666,7 @@ V.push({
         <path d="M 560,340 L 560,300 Q 675,258 790,240 L 790,340 Z" fill="var(--accent-soft)" opacity=".55"/>
         <path d="M 560,300 Q 675,258 790,240" fill="none" stroke="var(--accent-line)" stroke-width="1.8"/>
         <text class="num" x="675" y="322" text-anchor="middle">${T(['19,850 USDC → 19,481 EV','19 850 USDC → 19 481 EV'])}</text>
-        <text class="sm" x="675" y="290" text-anchor="middle">${T(['residual on the curve · 1.010 → 1.028','résidu sur la courbe · 1.010 → 1.028'])}</text>
-        <text class="num" x="675" y="362" text-anchor="middle" fill="var(--muted)">1.010 → 1.028</text>
-      </g>
-      <g id="tr-spot" class="anim">
-        <line x1="290" y1="150" x2="290" y2="352" stroke="var(--primary)" stroke-width="1.4" stroke-dasharray="4 4"/>
-        <rect x="262" y="130" width="56" height="19" rx="4" fill="var(--primary)"/>
-        <text class="cap" x="290" y="143.5" text-anchor="middle" fill="var(--canvas)">SPOT</text>
+        <text class="sm" x="675" y="290" text-anchor="middle" fill="var(--accent-text)">${T(['residual on the curve · 1.010 → 1.028','résidu sur la courbe · 1.010 → 1.028'])}</text>
       </g>
       <g id="tr-in" class="anim">
         <rect x="90" y="30" width="196" height="42" rx="8" fill="var(--elevated)" stroke="var(--border)"/>
@@ -688,7 +687,7 @@ V.push({
       </g>
       <g id="tr-br" class="anim">
         <path d="M 560,222 Q 675,186 790,166" fill="none" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="6 4"/>
-        <text class="sm" x="790" y="158" text-anchor="end" fill="var(--bad-text)">${T(['displaced b⁺ anchor: what a back-run would pay','ancre b⁺ déplacée : ce que paierait un back-run'])}</text>
+        <text class="sm" x="672" y="158" text-anchor="end" fill="var(--bad-text)">${T(['displaced b⁺ anchor: what a back-run would pay','ancre b⁺ déplacée : ce que paierait un back-run'])}</text>
       </g>`,
     base: {'#tr-in':{o:0},'#tr-fee':{o:0},'#tr-cv':{o:0},'#tr-out':{o:0},'#tr-br':{o:0},
       '#tr-spot':{o:1,t:[0,0]},
@@ -780,8 +779,8 @@ V.push({
     vb: '0 0 900 400',
     svg: () => MK('mk') + AXES(90, 840, 340, [[82,'1.04'],[147,'1.00'],[211,'0.96'],[276,'0.92'],[340,'0.88']]) + `
       <g id="mk-band" class="anim">
-        <rect x="90" y="223" width="750" height="8" rx="4" fill="var(--accent-line)" opacity=".38"/>
-        <line x1="90" y1="227" x2="840" y2="227" stroke="var(--accent-line)" stroke-width="1.6" stroke-dasharray="7 5"/>
+        <rect x="90" y="223" width="422" height="8" rx="4" fill="var(--accent-line)" opacity=".38"/>
+        <line x1="90" y1="227" x2="512" y2="227" stroke="var(--accent-line)" stroke-width="1.6" stroke-dasharray="7 5"/>
         <rect x="96" y="196" width="240" height="22" rx="5" fill="var(--accent-soft)" stroke="var(--accent-line)"/>
         <text class="cap" x="108" y="210.5" fill="var(--accent-text)">${T(['WALL · 10,000 USDC @ TICK 0.950','WALL · 10 000 USDC @ TICK 0.950'])}</text>
       </g>
@@ -792,14 +791,14 @@ V.push({
         <rect x="96" y="48" width="290" height="34" rx="8" fill="var(--elevated)" stroke="var(--border)"/>
         <text class="sm" x="110" y="69" fill="var(--secondary)">${T(['Cancel is immediate and unconditional, at any instant',"Cancel immédiat et inconditionnel, à tout instant"])}</text>
       </g>
-      ${CALL('mk-fill', 520, 44, 320, 84, ['FILLED AT EXACTLY Bᵢ','FILL À EXACTEMENT Bᵢ'], [
+      ${CALL('mk-fill', 534, 44, 306, 84, ['FILLED AT EXACTLY Bᵢ','FILL À EXACTEMENT Bᵢ'], [
         ['10,526.3 EV','10 526,3 EV'],
         ['zero slippage, zero fee for the maker','zéro slippage, zéro fee pour le maker'],
         ['the taker had already paid theirs up front',"le taker avait déjà payé la sienne en tête"]], 'g')}
-      ${CALL('mk-reb', 520, 138, 320, 66, ['+ MAKER REBATE','+ MAKER REBATE'], [
+      ${CALL('mk-reb', 534, 138, 306, 66, ['+ MAKER REBATE','+ MAKER REBATE'], [
         ['≈ 19 USDC','≈ 19 USDC'],
         ["majority share of the fill's LP fee",'part majoritaire du LP fee du fill']], 'b')}
-      ${CALL('mk-adv', 520, 208, 320, 66, ['ADVERSE SELECTION','ADVERSE SELECTION'], [
+      ${CALL('mk-adv', 534, 208, 306, 66, ['ADVERSE SELECTION','ADVERSE SELECTION'], [
         ['− 526 USDC mark-to-market','− 526 USDC en mark-to-market'],
         ['the price kept going, down to 0.90',"le prix a continué jusqu'à 0.90"]], 'r')}`,
     base: {'#mk-band':{o:0},'#mk-p1':{o:1,do:1},'#mk-p2':{o:1,do:1},'#mk-hit':{o:0},
@@ -1127,7 +1126,7 @@ V.push({
        d: ['The price fell 10 %. They lost <b>16.4 % against simply doing nothing</b>. And there was no way to automate the exit: the protocol <b>attaches no stop-loss and no take-profit to a loan</b>. The only upside exit is a manual close, or a separately placed limit order they must remember to collect.',
            "Le prix a baissé de 10 %. Lui a perdu <b>16,4 % contre le simple fait de ne rien faire</b>. Et il n'existait aucun moyen d'automatiser la sortie : le protocole <b>n'attache ni stop-loss ni take-profit à un prêt</b>. La seule sortie haussière est une fermeture manuelle, ou un ordre limite posé séparément qu'il faut penser à collecter."],
        tone: 'danger',
-       set: {...A, ...B, '#bo-s1':{do:0}, ...D, '#bo-s2':{do:0}, '#bo-hit':{o:1}, '#bo-s3':{do:0}, '#bo-bal':{o:1}}}
+       set: {...A, ...B, '#bo-s1':{do:0}, ...D, '#bo-s2':{do:0}, '#bo-hit':{o:1}, '#bo-s3':{do:0}, '#bo-bal':{o:1}, '#bo-l1t':{o:0}}}
     ]; })()
   },
   pnl: {
@@ -1339,8 +1338,15 @@ V.push({
       ${WF('lp-w1',100,54,'1',['FILL CLAIMS','FILL CLAIMS'],['reserved at fill time · never gated, in any state','réservés au fill · jamais gatés, dans aucun état'],'g')}
       ${WF('lp-w2',162,54,'2',['NON-LENT ESCROW','ESCROW NON-LENT'],['pure custody · untouchable by construction','pure custody · intouchable par construction'],'g')}
       ${WF('lp-w3',224,54,'3',['LENT SUPPLIERS','LENT SUPPLIERS'],['shares at index L · L is NEVER haircut',"parts à l'index L · L n'est JAMAIS haircut"],'b')}
-      ${WF('lp-w4',286,102,'4',['LP RESERVE TRANCHE · JUNIOR','LP RESERVE TRANCHE · JUNIOR'],['absorbs bad debt, written-off fronts, seizure slippage','absorbe la bad debt, les fronts écrits off, le slippage de saisie'],'r')}
-      <g id="lp-loss" class="anim"><rect x="470" y="26" width="370" height="42" rx="8" fill="var(--bad)" opacity=".9"/>
+      <g id="lp-w4" class="anim">
+        <rect x="470" y="286" width="370" height="102" rx="8" fill="var(--bad-bg)" stroke="var(--bad-line)" stroke-width="1.2"/>
+        <text class="cap" x="486" y="352" fill="var(--bad-text)">4 · ${T(['LP RESERVE TRANCHE · JUNIOR','LP RESERVE TRANCHE · JUNIOR'])}</text>
+        <text class="sm" x="486" y="370" fill="var(--bad-text)">${T(['absorbs bad debt, written-off fronts, seizure slippage','absorbe la bad debt, les fronts écrits off, le slippage de saisie'])}</text></g>
+      <g id="lp-burn" class="anim">
+        <rect x="470" y="286" width="370" height="46" rx="8" fill="var(--bad)" opacity=".38"/>
+        <line x1="472" y1="332" x2="838" y2="332" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <text class="cap" x="655" y="314" text-anchor="middle" fill="var(--bad-text)">${T(['THIS PART IS GONE','CETTE PART EST PARTIE'])}</text></g>
+      <g id="lp-loss" class="anim"><rect x="470" y="26" width="370" height="42" rx="8" fill="#b3261e"/>
         <text class="cap" x="486" y="43" fill="#fff">${T(['LIQUIDATION LOSS · 8 % OF THE RESERVE','PERTE DE LIQUIDATION · 8 % DE LA RÉSERVE'])}</text>
         <text class="sm" x="486" y="60" fill="#fff">${T(['seizure marked at the band, not at realisable value','saisie valorisée au band, pas au réalisable'])}</text></g>
       <text id="lp-burnt" class="anim cap" x="840" y="404" text-anchor="end" fill="var(--bad-text)">${T(['SHARES BURNED · kept = min(shares, ⌈(R̃ + I_sup)/L⌉)','PARTS BRÛLÉES · kept = min(shares, ⌈(R̃ + I_sup)/L⌉)'])}</text>
@@ -1348,13 +1354,13 @@ V.push({
         <text class="cap" x="655" y="429" text-anchor="middle" fill="var(--bad-text)">MINT · BURN · BORROW · LEVERAGE → REVERT</text></g>`,
     base: {'#lp-src1':{o:0},'#lp-src2':{o:0},'#lp-f1':{o:0},'#lp-f2':{o:0},'#lp-apr':{o:0},
       '#lp-bonus':{o:0},'#lp-bonus2':{o:0},'#lp-calc':{o:0},
-      '#lp-w1':{o:0},'#lp-w2':{o:0},'#lp-w3':{o:0},'#lp-w4':{o:0,sc:[1,1]},
+      '#lp-w1':{o:0},'#lp-w2':{o:0},'#lp-w3':{o:0},'#lp-w4':{o:0},'#lp-burn':{o:0},
       '#lp-loss':{o:0,t:[0,0]},'#lp-burnt':{o:0},'#lp-gate':{o:0}},
     steps: (() => {
       const S1={'#lp-src1':{o:1},'#lp-f1':{o:1}}, S2={'#lp-src2':{o:1},'#lp-f2':{o:1},'#lp-apr':{o:1}};
       const BON={'#lp-bonus':{o:1},'#lp-bonus2':{o:1}};
       const WFA={'#lp-w1':{o:1},'#lp-w2':{o:1},'#lp-w3':{o:1},'#lp-w4':{o:1}};
-      const BURN={'#lp-w4':{o:1,sc:[1,.62]},'#lp-burnt':{o:1}};
+      const BURN={'#lp-w4':{o:1},'#lp-burn':{o:1},'#lp-burnt':{o:1}};
       return [
       {t: ['They deposit both tokens', 'Il dépose les deux tokens'],
        d: ['They receive pool shares, and the pair is itself the LP token. What they do not choose: <b>their reserve is lent by construction</b>. There is no lend flag for an LP, because the reserve that prices the swaps <b>is</b> the credit book\'s first inventory.',
@@ -1386,12 +1392,12 @@ V.push({
        d: ['Fill claims were set aside at fill time: no event can re-spend them. Non-lent escrow is pure custody. And <b>the index <code>L</code> is never reduced</b>: lent suppliers and filled makers never pay for bad debt through their index, ever. The loss only stops at the fourth floor.',
            "Les fill claims ont été mis de côté au moment du fill : aucun évènement ne peut les redépenser. L'escrow non-lent est de la pure custody. Et <b>l'index <code>L</code> n'est jamais réduit</b> : les lent suppliers et les makers remplis ne paient jamais la bad debt par leur index, jamais. La perte ne s'arrête qu'au quatrième étage."],
        tone: 'alert',
-       set: {...S1, ...S2, ...BON, ...WFA, '#lp-loss':{o:1,t:[0,242]}}},
+       set: {...S1, ...S2, ...BON, ...WFA, '#lp-loss':{o:1,t:[0,260]}}},
       {t: ['Their shares are written down', 'Ses parts sont écrites down'],
        d: ["The borrowed side's reserve claim is re-based to what physically backs it, and the burned difference <b>is their loss</b>. Fronts still outstanding at liquidation time are junior too: the advance the pool made against unrealised yield is written off at their expense, tranche-neutrally for everyone above.",
            "La créance du côté emprunté est re-basée sur ce qui la couvre physiquement, et la différence brûlée <b>est sa perte</b>. Les fronts encore en cours au moment de la liquidation sont juniors aussi : l'avance que le pool avait faite contre du rendement non réalisé est passée en perte à ses frais, de façon neutre pour tout le monde au-dessus."],
        tone: 'danger',
-       set: {...S1, ...S2, ...BON, '#lp-w1':{o:1},'#lp-w2':{o:1},'#lp-w3':{o:1}, '#lp-loss':{o:0,t:[0,242]}, ...BURN}},
+       set: {...S1, ...S2, ...BON, '#lp-w1':{o:1},'#lp-w2':{o:1},'#lp-w3':{o:1}, '#lp-loss':{o:0,t:[0,260]}, ...BURN}},
       {t: ['And the door shuts behind them', 'Et la porte se ferme derrière lui'],
        d: ['While any tick is pending, <b>mint, burn, borrow, leverage and new lent deposits revert</b> with a typed error: nobody may enter or exit the junior tranche against an unsettled book. It is coherent, it is even what prevents the run that would guarantee the seniors\' loss. But said plainly: <b>the LP cannot flee ahead of the losses</b>. Meanwhile swaps, repayments, cancels and fill collection keep working, and their inflow is what rebuilds the reserve.',
            "Tant que des ticks restent en attente, <b>mint, burn, borrow, leverage et nouveaux dépôts lents revert</b> avec une erreur typée : personne ne peut entrer ni sortir de la tranche junior contre un carnet non réglé. C'est cohérent, c'est même ce qui empêche la ruée qui garantirait la perte des seniors. Mais dit autrement : <b>le LP ne peut pas fuir avant les pertes</b>. Pendant ce temps, swaps, remboursements, cancels et collectes continuent, et c'est leur flux qui reconstitue la réserve."],
@@ -1558,18 +1564,18 @@ V.push({
     title: ['The price breaks: eight ticks, two passes, one deferred',
             'Le prix casse : huit ticks, deux passes, un différé'],
     tag: '§8.1–8.3 · §9.2 invariants 1–3',
-    vb: '0 0 900 440',
+    vb: '0 0 900 452',
     svg: () => MK('lq') + `
       <text class="cap" x="90" y="72">${T(['LOAN BOOK, INDEXED BY LIQUIDATION TICK','CARNET DE PRÊTS, INDEXÉ PAR TICK DE LIQUIDATION'])}</text>
       <text class="cap" x="486" y="72" text-anchor="end">${T(['DEBT','DETTE'])}</text>
       ${tickRow(1,84,'1.10','120 k')}${tickRow(2,118,'1.05','340 k')}${tickRow(3,152,'1.00','510 k')}
-      ${tickRow(4,186,'0.95','280 k')}${tickRow(5,220,'0.90','195 k')}${tickRow(6,254,'0.85','410 k')}
-      ${tickRow(7,288,'0.80','160 k')}${tickRow(8,322,'0.75','2 400 k')}
+      ${tickRow(4,208,'0.95','280 k')}${tickRow(5,242,'0.90','195 k')}${tickRow(6,276,'0.85','410 k')}
+      ${tickRow(7,310,'0.80','160 k')}${tickRow(8,344,'0.75','2 400 k')}
       <g id="lq-price" class="anim">
-        <line x1="76" y1="180" x2="514" y2="180" stroke="var(--bad)" stroke-width="2"/>
-        <text class="cap" x="76" y="172" fill="var(--bad-text)">${T(['LENDING PRICE, READ AT THE LENIENT ANCHOR',"LENDING PRICE, LU À L'ANCRE CLÉMENTE"])}</text></g>
-      <text id="lq-cnt" class="anim cap" x="90" y="374" fill="var(--muted)">${T(['Geometric detection: not a single per-loan check is performed.','Détection géométrique : aucun contrôle prêt par prêt n\'est effectué.'])}</text>
-      <text id="lq-cnt2" class="anim cap" x="90" y="394" fill="var(--muted)">${T(['A tick carrying ten thousand loans settles at the cost of one carrying a single loan.','Un tick portant dix mille prêts se règle au prix d\'un tick qui en porte un.'])}</text>
+        <line x1="76" y1="194" x2="514" y2="194" stroke="var(--bad)" stroke-width="2"/>
+        <text class="cap" x="76" y="187" fill="var(--bad-text)">${T(['LENDING PRICE, READ AT THE LENIENT ANCHOR',"LENDING PRICE, LU À L'ANCRE CLÉMENTE"])}</text></g>
+      <text id="lq-cnt" class="anim cap" x="90" y="394" fill="var(--muted)">${T(['Geometric detection: not a single per-loan check is performed.','Détection géométrique : aucun contrôle prêt par prêt n\'est effectué.'])}</text>
+      <text id="lq-cnt2" class="anim cap" x="90" y="414" fill="var(--muted)">${T(['A tick carrying ten thousand loans settles at the cost of one carrying a single loan.','Un tick portant dix mille prêts se règle au prix d\'un tick qui en porte un.'])}</text>
       ${CALL('lq-pre',528,84,312,102,['THE PREAMBLE, BEFORE ANYTHING','LE PRÉAMBULE, AVANT TOUT'],[
         ['accrue · advance · cascade','accrue · advance · cascade'],
         ['Every operation that moves the books replays','Toute opération qui bouge les books rejoue'],
@@ -1728,8 +1734,8 @@ V.push({
       {t: ['So pile it up where it matters', "Alors on l'empile là où ça compte"],
        plain: ['Instead of spreading the money evenly, squash it into a mound around the current price. It is exactly the same amount of money — nobody added anything — but the depth right where people are actually trading is many times bigger. That is why a swap here moves the price less than it would on a plain pool of the same size.',
                "Au lieu d'étaler l'argent uniformément, on l'écrase en un monticule autour du prix courant. C'est exactement la même somme, personne n'a rien ajouté, mais la profondeur là où les gens échangent vraiment est plusieurs fois plus grande. C'est pour ça qu'un échange ici déplace moins le prix que sur une réserve ordinaire de même taille."],
-       d: ['Everything ports Curve\'s CryptoSwap invariant, an amplified concentrated-liquidity curve. Two parameters govern it: an amplification factor that decides how tightly the depth is squeezed, and a damping factor that decides how quickly the curve gives way as you leave the centre.',
-           "Everything porte l'invariant CryptoSwap de Curve, une courbe de liquidité concentrée amplifiée. Deux paramètres la gouvernent : un facteur d'amplification qui décide de la compression de la profondeur, et un facteur d'amortissement qui décide de la vitesse à laquelle la courbe cède quand on s'éloigne du centre."],
+       d: ["Everything ports Curve’s CryptoSwap invariant, an amplified concentrated-liquidity curve. Two parameters govern it, and unlike most of the protocol’s levers the paper bounds them outright: amplification <code>A ∈ [0.1, 1000]</code> decides how tightly the depth is squeezed, damping <code>γ ∈ [10⁻⁸, 0.06]</code> decides how fast the curve gives way as you leave the centre. Both re-tune live, but only along a time-linear ramp of at most tenfold and never shorter than a day — a pair can change personality without redeployment, and not overnight.",
+           "Everything porte l'invariant CryptoSwap de Curve, une courbe de liquidité concentrée amplifiée. Deux paramètres la gouvernent, et contrairement à la plupart des leviers du protocole le papier les borne explicitement : l'amplification <code>A ∈ [0,1 ; 1000]</code> décide de la compression de la profondeur, l'amortissement <code>γ ∈ [10⁻⁸ ; 0,06]</code> décide de la vitesse à laquelle la courbe cède quand on s'éloigne du centre. Les deux se re-règlent à chaud, mais seulement le long d'une rampe linéaire d'un facteur dix maximum, jamais plus courte qu'un jour : une paire change de personnalité sans redéploiement, et pas du jour au lendemain."],
        set: {'#cv-flat':{o:.35},'#cv-bell':{o:1},'#cv-conc':{o:1}}},
       {t: ['But then the market walks off', 'Mais le marché s\'en va'],
        plain: ['Concentration has an obvious flaw. Pile all your depth around 1.00, and the day the market decides EV is worth 1.30, every bit of that carefully placed money is sitting somewhere nobody trades any more. The pool would be deep at a price that no longer exists and thin at the price everyone wants.',
@@ -1740,14 +1746,14 @@ V.push({
       {t: ['So the mound follows it', 'Alors le monticule le suit'],
        plain: ['The pool watches a smoothed average of its own recent trading prices, and slides the whole mound along to sit back on top of it. Nobody triggers this and nobody is paid for it — it happens inside ordinary trades. This is called the repeg, and it is why the pool can stay concentrated without anyone managing it.',
                "La réserve observe une moyenne lissée de ses propres prix d'échange récents, et fait glisser tout le monticule pour venir se reposer dessus. Personne ne déclenche ça et personne n'est payé pour : ça se produit à l'intérieur des échanges ordinaires. Cela s'appelle le repeg, et c'est pour ça que la réserve peut rester concentrée sans que personne ne la gère."],
-       d: ['The price scale, the centre of concentration, is nudged toward an EMA of post-trade spot prices. The whitepaper\'s phrasing: the price scale follows the market.',
-           "Le price scale, le centre de concentration, est poussé vers une EMA des prix spot post-trade. La formule du whitepaper : le price scale suit le marché."],
+       d: ['The price scale, the centre of concentration, is nudged toward an EMA of post-trade spot prices, <code>o ← αo + (1−α)·min(p<sub>last</sub>, 2p<sub>s</sub>)</code>. Two limits are stated outright: the <code>2p<sub>s</sub></code> cap bounds what a single block can inject into that EMA, and each move covers <b>at least a fifth of the gap</b> while never overshooting it.',
+           "Le price scale, le centre de concentration, est poussé vers une EMA des prix spot post-trade, <code>o ← αo + (1−α)·min(p<sub>last</sub>, 2p<sub>s</sub>)</code>. Deux limites sont énoncées noir sur blanc : le plafond <code>2p<sub>s</sub></code> borne ce qu'un seul bloc peut injecter dans cette EMA, et chaque mouvement couvre <b>au moins un cinquième de l'écart</b> sans jamais le dépasser."],
        set: {'#cv-flat':{o:.35},'#cv-bell':{o:1,t:[260,0]},'#cv-conc':{o:1},'#cv-spot':{o:1,t:[260,0]},'#cv-gap':{o:0}}},
       {t: ['Only when it can afford to', 'Seulement quand il en a les moyens'],
        plain: ['Moving the mound is not free — doing it at the wrong moment would lock in a loss for everyone who deposited. So the pool keeps a running measure of its own wealth and simply refuses any re-centring that would make that number go down. It follows the market when following is affordable, and sits still when it is not.',
                "Déplacer le monticule n'est pas gratuit : le faire au mauvais moment figerait une perte pour tous ceux qui ont déposé. La réserve tient donc une mesure courante de sa propre richesse et refuse simplement tout recentrage qui ferait baisser ce chiffre. Elle suit le marché quand le suivre est abordable, et reste immobile sinon."],
-       d: ['The pool measures itself against a constant-product benchmark and gates the repeg on that benchmark not decreasing. The gate is suspended for exactly one transition: a liquidation seizure, which may legitimately lower it.',
-           "La réserve se mesure à un benchmark à produit constant et conditionne le repeg à la non-décroissance de ce benchmark. Le gate est suspendu pour exactement une transition : une saisie de liquidation, qui peut légitimement le faire baisser."],
+       d: ["The pool tracks a virtual price <code>v</code> against a constant-product benchmark, and a profit accumulator <code>χ</code> compounds its growth. The move is attempted only if <code>(v−ε)² &gt; χ</code>, and kept only if <code>v′ &gt; 1</code> and <code>(v′)² &gt; χ</code> — in the paper’s own words, <b>re-centering is funded by income, never by principal</b>. It is frozen outright during a liquidation cascade, on drained reserves, and whenever the move would leave the solvable domain.",
+           "La réserve suit un prix virtuel <code>v</code> contre un benchmark à produit constant, et un accumulateur de profit <code>χ</code> en compose la croissance. Le mouvement n'est tenté que si <code>(v−ε)² &gt; χ</code>, et n'est conservé que si <code>v′ &gt; 1</code> et <code>(v′)² &gt; χ</code>. Dans les mots du papier : <b>le recentrage est financé par les revenus, jamais par le principal</b>. Il est gelé net pendant une cascade de liquidation, sur des réserves vidées, et dès que le mouvement sortirait du domaine solvable."],
        tone: 'good',
        set: {'#cv-flat':{o:.35},'#cv-bell':{o:1,t:[260,0]},'#cv-conc':{o:1},'#cv-spot':{o:1,t:[260,0]},'#cv-gate':{o:1}}},
       {t: ['And the fee is not a flat number', "Et la fee n'est pas un chiffre fixe"],

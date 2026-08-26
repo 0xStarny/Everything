@@ -24,6 +24,11 @@ V.push({
       <line x1="90" y1="340" x2="835" y2="340" stroke="var(--border)" stroke-width="1.4"/>
       ${[190,240,340,390,490,540,640,690,740,790].map(x=>`<line x1="${x}" y1="336" x2="${x}" y2="344" stroke="var(--grid)" stroke-width="1"/>`).join('')}
       <text class="cap" x="835" y="362" text-anchor="end">${T(['PRICE (USDC PER EV) →','PRIX (USDC PAR EV) →'])}</text>
+      <g id="tr-spot" class="anim">
+        <line x1="290" y1="150" x2="290" y2="368" stroke="var(--primary)" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <rect x="262" y="370" width="56" height="19" rx="4" fill="var(--primary)"/>
+        <text class="cap" x="290" y="383.5" text-anchor="middle" fill="var(--canvas)">SPOT</text>
+      </g>
       ${wall(1, 140, 62, ['5,000 USDC','5 000 USDC'], '0.990')}
       ${wall(2, 290, 96, ['10,000 USDC','10 000 USDC'], '1.000')}
       ${wall(3, 440, 128, ['15,000 USDC','15 000 USDC'], '1.010')}
@@ -31,13 +36,7 @@ V.push({
         <path d="M 560,340 L 560,300 Q 675,258 790,240 L 790,340 Z" fill="var(--accent-soft)" opacity=".55"/>
         <path d="M 560,300 Q 675,258 790,240" fill="none" stroke="var(--accent-line)" stroke-width="1.8"/>
         <text class="num" x="675" y="322" text-anchor="middle">${T(['19,850 USDC → 19,481 EV','19 850 USDC → 19 481 EV'])}</text>
-        <text class="sm" x="675" y="290" text-anchor="middle">${T(['residual on the curve · 1.010 → 1.028','résidu sur la courbe · 1.010 → 1.028'])}</text>
-        <text class="num" x="675" y="362" text-anchor="middle" fill="var(--muted)">1.010 → 1.028</text>
-      </g>
-      <g id="tr-spot" class="anim">
-        <line x1="290" y1="150" x2="290" y2="352" stroke="var(--primary)" stroke-width="1.4" stroke-dasharray="4 4"/>
-        <rect x="262" y="130" width="56" height="19" rx="4" fill="var(--primary)"/>
-        <text class="cap" x="290" y="143.5" text-anchor="middle" fill="var(--canvas)">SPOT</text>
+        <text class="sm" x="675" y="290" text-anchor="middle" fill="var(--accent-text)">${T(['residual on the curve · 1.010 → 1.028','résidu sur la courbe · 1.010 → 1.028'])}</text>
       </g>
       <g id="tr-in" class="anim">
         <rect x="90" y="30" width="196" height="42" rx="8" fill="var(--elevated)" stroke="var(--border)"/>
@@ -58,7 +57,7 @@ V.push({
       </g>
       <g id="tr-br" class="anim">
         <path d="M 560,222 Q 675,186 790,166" fill="none" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="6 4"/>
-        <text class="sm" x="790" y="158" text-anchor="end" fill="var(--bad-text)">${T(['displaced b⁺ anchor: what a back-run would pay','ancre b⁺ déplacée : ce que paierait un back-run'])}</text>
+        <text class="sm" x="672" y="158" text-anchor="end" fill="var(--bad-text)">${T(['displaced b⁺ anchor: what a back-run would pay','ancre b⁺ déplacée : ce que paierait un back-run'])}</text>
       </g>`,
     base: {'#tr-in':{o:0},'#tr-fee':{o:0},'#tr-cv':{o:0},'#tr-out':{o:0},'#tr-br':{o:0},
       '#tr-spot':{o:1,t:[0,0]},

@@ -19,18 +19,18 @@ V.push({
     title: ['The price breaks: eight ticks, two passes, one deferred',
             'Le prix casse : huit ticks, deux passes, un différé'],
     tag: '§8.1–8.3 · §9.2 invariants 1–3',
-    vb: '0 0 900 440',
+    vb: '0 0 900 452',
     svg: () => MK('lq') + `
       <text class="cap" x="90" y="72">${T(['LOAN BOOK, INDEXED BY LIQUIDATION TICK','CARNET DE PRÊTS, INDEXÉ PAR TICK DE LIQUIDATION'])}</text>
       <text class="cap" x="486" y="72" text-anchor="end">${T(['DEBT','DETTE'])}</text>
       ${tickRow(1,84,'1.10','120 k')}${tickRow(2,118,'1.05','340 k')}${tickRow(3,152,'1.00','510 k')}
-      ${tickRow(4,186,'0.95','280 k')}${tickRow(5,220,'0.90','195 k')}${tickRow(6,254,'0.85','410 k')}
-      ${tickRow(7,288,'0.80','160 k')}${tickRow(8,322,'0.75','2 400 k')}
+      ${tickRow(4,208,'0.95','280 k')}${tickRow(5,242,'0.90','195 k')}${tickRow(6,276,'0.85','410 k')}
+      ${tickRow(7,310,'0.80','160 k')}${tickRow(8,344,'0.75','2 400 k')}
       <g id="lq-price" class="anim">
-        <line x1="76" y1="180" x2="514" y2="180" stroke="var(--bad)" stroke-width="2"/>
-        <text class="cap" x="76" y="172" fill="var(--bad-text)">${T(['LENDING PRICE, READ AT THE LENIENT ANCHOR',"LENDING PRICE, LU À L'ANCRE CLÉMENTE"])}</text></g>
-      <text id="lq-cnt" class="anim cap" x="90" y="374" fill="var(--muted)">${T(['Geometric detection: not a single per-loan check is performed.','Détection géométrique : aucun contrôle prêt par prêt n\'est effectué.'])}</text>
-      <text id="lq-cnt2" class="anim cap" x="90" y="394" fill="var(--muted)">${T(['A tick carrying ten thousand loans settles at the cost of one carrying a single loan.','Un tick portant dix mille prêts se règle au prix d\'un tick qui en porte un.'])}</text>
+        <line x1="76" y1="194" x2="514" y2="194" stroke="var(--bad)" stroke-width="2"/>
+        <text class="cap" x="76" y="187" fill="var(--bad-text)">${T(['LENDING PRICE, READ AT THE LENIENT ANCHOR',"LENDING PRICE, LU À L'ANCRE CLÉMENTE"])}</text></g>
+      <text id="lq-cnt" class="anim cap" x="90" y="394" fill="var(--muted)">${T(['Geometric detection: not a single per-loan check is performed.','Détection géométrique : aucun contrôle prêt par prêt n\'est effectué.'])}</text>
+      <text id="lq-cnt2" class="anim cap" x="90" y="414" fill="var(--muted)">${T(['A tick carrying ten thousand loans settles at the cost of one carrying a single loan.','Un tick portant dix mille prêts se règle au prix d\'un tick qui en porte un.'])}</text>
       ${CALL('lq-pre',528,84,312,102,['THE PREAMBLE, BEFORE ANYTHING','LE PRÉAMBULE, AVANT TOUT'],[
         ['accrue · advance · cascade','accrue · advance · cascade'],
         ['Every operation that moves the books replays','Toute opération qui bouge les books rejoue'],

@@ -45,9 +45,16 @@ Light by default, with a dark palette on `:root[data-theme="dark"]`. The toggle 
 
 ## Deploying
 
-Vercel, zero config. Import the repository, leave the framework as **Other**, and leave the build command and output directory empty — `app.js` is committed, so there is nothing to build at deploy time. `vercel.json` only sets clean URLs and a few response headers.
+Vercel, static, framework preset **Other**. Everything is in `vercel.json`, so there is nothing to configure in the dashboard:
 
-The one thing to remember: **run `npm run build` and commit `app.js` whenever you touch `src/`**, or the deployed site will keep serving the previous version.
+```json
+"buildCommand": "node build.mjs",
+"outputDirectory": "."
+```
+
+Both lines matter. Because `package.json` carries a `build` script, Vercel runs a build whether you ask for one or not, and then looks for `public/` — which does not exist here. `outputDirectory: "."` points it at the repository root, where `index.html` and `app.js` actually live.
+
+`app.js` is committed as well, so the site still works if the build is ever skipped. Locally, **run `npm run build` and commit `app.js` whenever you touch `src/`**.
 
 ## Caveats
 

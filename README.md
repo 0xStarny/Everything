@@ -45,7 +45,9 @@ Light by default, with a dark palette on `:root[data-theme="dark"]`. The toggle 
 
 ## Deploying
 
-Vercel, as a static project. `vercel.json` sets `buildCommand: node build.mjs` and serves the repository root. `app.js` is committed, so the site also works with no build step at all.
+Vercel, zero config. Import the repository, leave the framework as **Other**, and leave the build command and output directory empty — `app.js` is committed, so there is nothing to build at deploy time. `vercel.json` only sets clean URLs and a few response headers.
+
+The one thing to remember: **run `npm run build` and commit `app.js` whenever you touch `src/`**, or the deployed site will keep serving the previous version.
 
 ## Caveats
 

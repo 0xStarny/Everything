@@ -1,0 +1,11 @@
+{
+  "name": "everything-guide",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An animated, bilingual, step-by-step reading of the EVERYTHING Protocol whitepaper.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx --yes serve . -l 5173"
+  }
+}

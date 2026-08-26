@@ -2,6 +2,7 @@
 const TABLABEL = {
   start:    ['Start here', 'Commencez ici'],
   overview: ['The protocol', 'Le protocole'],
+  curve:    ['Where the price comes from', "D'où vient le prix"],
   trader:   ['Bob · Taker', 'Bob · Taker'],
   maker:    ['Alice · Maker', 'Alice · Maker'],
   lent:     ['Nadia · Lent maker', 'Nadia · Maker lent'],
@@ -13,7 +14,7 @@ const TABLABEL = {
 };
 const GROUPS = [
   { label: [' ', ' '], ids: ['start'] },
-  { label: ['Mechanics', 'Mécanique'], ids: ['overview'] },
+  { label: ['Mechanics', 'Mécanique'], ids: ['overview', 'curve'] },
   { label: ['The six', 'Les six'], ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
   { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] }
 ];
@@ -208,12 +209,21 @@ function wire(p, v) {
     bNext.disabled = i === steps.length - 1;
     if (!silent && STATE.tab === v.id) writeHash();
   }
-  function stop() { if (timer) { clearInterval(timer); timer = null; bPlay.innerHTML = T(UI.play); } }
+  function stop() { if (timer) { clearTimeout(timer); timer = null; bPlay.innerHTML = T(UI.play); } }
   function play() {
     if (timer) { stop(); return; }
     if (i === steps.length - 1) render(0);
     bPlay.innerHTML = T(UI.pause);
-    timer = setInterval(() => { if (i >= steps.length - 1) { stop(); return; } render(i + 1); }, 4600);
+    const pace = () => {
+      const words = (cap.textContent || '').trim().split(/\s+/).length;
+      return Math.min(22000, Math.max(5000, words * 300));
+    };
+    const tick = () => {
+      if (i >= steps.length - 1) { stop(); return; }
+      render(i + 1);
+      timer = setTimeout(tick, pace());
+    };
+    timer = setTimeout(tick, pace());
   }
   bPrev.addEventListener('click', () => { stop(); render(i - 1); });
   bNext.addEventListener('click', () => { stop(); render(i + 1); });
@@ -256,6 +266,8 @@ function show(id, keepScroll) {
     if (panel) panel.hidden = (v.id !== id);
   });
   Object.keys(CTRL).forEach(k => { if (k !== id) CTRL[k].stop(); });
+  const n = ORDER.indexOf(id) + 1;
+  document.getElementById('prog').innerHTML = `${T(UI.view)} <b>${String(n).padStart(2, '0')}</b> / ${ORDER.length}`;
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   writeHash();
 }
@@ -301,7 +313,6 @@ function build() {
   V.forEach(v => { CTRL[v.id] = wire(document.getElementById('p-' + v.id), v); });
   show(STATE.tab, true);
   document.getElementById('kicker').textContent = T(UI.kicker);
-  document.getElementById('crumb').innerHTML = T(UI.crumb);
   document.getElementById('foot').innerHTML = T(UI.foot);
   document.title = LANG === 'fr' ? 'Everything, le guide' : 'Everything, the guide';
 }
@@ -314,26 +325,12 @@ function setLang(l) {
   syncToggles();
   build();
 }
-function setLevel(l) {
-  LEVEL = (l === 'full') ? 'full' : 'plain';
-  try { localStorage.setItem('ev-level', LEVEL); } catch (e) {}
-  document.documentElement.setAttribute('data-read', LEVEL);
-  syncToggles();
-}
 function syncToggles() {
   document.querySelectorAll('.seg button[data-lang]').forEach(b =>
     b.setAttribute('aria-pressed', b.dataset.lang === LANG ? 'true' : 'false'));
-  document.querySelectorAll('.seg button[data-level]').forEach(b => {
-    b.setAttribute('aria-pressed', b.dataset.level === LEVEL ? 'true' : 'false');
-    b.textContent = T(b.dataset.level === 'full' ? UI.lvFull : UI.lvPlain);
-  });
-  const lh = document.getElementById('levelhint');
-  if (lh) lh.setAttribute('aria-label', T(UI.lvHint));
 }
 document.querySelectorAll('.seg button[data-lang]').forEach(b =>
   b.addEventListener('click', () => { if (b.dataset.lang !== LANG) setLang(b.dataset.lang); }));
-document.querySelectorAll('.seg button[data-level]').forEach(b =>
-  b.addEventListener('click', () => { if (b.dataset.level !== LEVEL) setLevel(b.dataset.level); }));
 document.getElementById('theme').addEventListener('click', () => {
   const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
@@ -350,7 +347,6 @@ TABBAR.addEventListener('keydown', e => {
   tabs[nxt].focus();
 });
 
-document.documentElement.setAttribute('data-read', LEVEL);
 readHash();
 syncToggles();
 build();

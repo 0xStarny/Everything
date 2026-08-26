@@ -29,7 +29,7 @@ V.push({
   id_card: [
     [['Reading time', 'Temps de lecture'], ['2 min', '2 min'], 'b'],
     [['Prerequisites', 'Prérequis'], ['none', 'aucun'], 'g'],
-    [['Views after this', 'Vues ensuite'], ['9', '9'], 'n']],
+    [['Views after this', 'Vues ensuite'], ['10', '10'], 'n']],
   stage: {
     title: ['Three shops, or one counter', 'Trois boutiques, ou un seul comptoir'],
     tag: ['the core idea', "l'idée centrale"],

@@ -3,18 +3,13 @@
    Every user-facing string is a ["English", "Français"] pair. */
 
 let LANG = 'en';
-let LEVEL = 'plain';   // 'plain' = plain language only · 'full' = plain + the technical layer
 try { LANG  = (localStorage.getItem('ev-lang')  === 'fr')  ? 'fr'  : 'en'; } catch (e) {}
-try { LEVEL = (localStorage.getItem('ev-level') === 'full') ? 'full' : 'plain'; } catch (e) {}
 const T = x => Array.isArray(x) ? (LANG === 'fr' ? x[1] : x[0]) : x;
 
 const UI = {
   kicker: ['Guide', 'Guide'],
-  crumb: ['Reading the whitepaper · <b>10 views</b>', 'Lecture du whitepaper · <b>10 vues</b>'],
+  view: ['View', 'Vue'],
   inPlain: ['In plain words', 'En clair'],
-  lvPlain: ['Plain', 'Simple'],
-  lvFull: ['Full', 'Complet'],
-  lvHint: ['Reading level', 'Niveau de lecture'],
   nextView: ['Next', 'Suivant'],
   prevView: ['Previous', 'Précédent'],
   meet: ['Meet', 'Voici'],

@@ -4,15 +4,11 @@ The [EVERYTHING Protocol](https://everything.inc/) explained without the whitepa
 
 It opens with one everyday comparison and no formulas at all: today you need three shops, one to swap your tokens, one to lend against them and one to hold your standing orders, and each of the three needs its own pile of cash sitting idle. Everything puts all three behind a single counter with a single till. The part that actually matters is that the counter setting the exchange rate is the same counter holding your pawn, so it knows exactly what it could sell that pawn for today. That is why it can lend against tokens other venues refuse.
 
-After that, ten views. One builds the protocol brick by brick. Six follow a named person through one concrete situation with real numbers: **Bob** just wants to swap, **Alice** waits patiently for a better price, **Nadia** wants the same thing but refuses to let her money sleep while it waits, **David** needs cash without selling, **Elena** wants leverage, and **Farid** puts up the money that makes the other five possible. Two more open the mechanics underneath: the internal price band that replaces the oracle, and the liquidation cascade with its loss waterfall.
+After that, ten views. Two build the machinery: the protocol assembled brick by brick, then where the price actually comes from, which is the one piece everything else sits on. Six follow a named person through one concrete situation with real numbers: **Bob** just wants to swap, **Alice** waits patiently for a better price, **Nadia** wants the same thing but refuses to let her money sleep while it waits, **David** needs cash without selling, **Elena** wants leverage, and **Farid** puts up the money that makes the other five possible. Two more open what runs underneath: the internal price band that replaces the oracle, and the liquidation cascade with its loss waterfall.
 
-Every view is a scenario you step through. Each step animates the diagram and explains what just happened, and every profile closes on the same question: **what do they do, why, and exactly how do they make or lose money.**
+Every view is a scenario you step through. Each step animates the diagram and explains what just happened, first in ordinary language and then in the whitepaper's own terms underneath, and every profile closes on the same question: **what do they do, why, and exactly how do they make or lose money.**
 
-## Two reading levels
-
-Everything is written twice. **Plain** gives you every step in ordinary language, with no formulas, no jargon and no section references. **Full** keeps that and adds the technical layer underneath, in the whitepaper's own terms. The toggle is in the top bar and you keep your place when you switch.
-
-Any term that might not be obvious is underlined the first time it appears in a panel; click it for a one-sentence definition. The full glossary is at the bottom of the first view.
+Any term that might not be obvious is underlined the first time it appears in a panel; click it for a one-sentence definition. The full glossary sits at the bottom of the first view.
 
 ## Deep links
 

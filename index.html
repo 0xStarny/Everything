@@ -64,6 +64,9 @@ a:hover{text-decoration:underline}
 .topbar .spacer{flex:1}
 .topbar .crumb{font-size:12px;color:var(--muted);white-space:nowrap}
 .topbar .crumb b{color:var(--secondary);font-weight:600}
+.prog{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--muted);
+  border:1px solid var(--hairline);border-radius:var(--r-md);padding:4px 9px;white-space:nowrap}
+.prog b{color:var(--accent-text);font-weight:600}
 @media (max-width:720px){.topbar .crumb{display:none}}
 
 .seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
@@ -217,10 +220,6 @@ td b{color:var(--primary);font-weight:600}
 .caption .cptext{font-size:15px;line-height:1.6;color:var(--primary);max-width:76ch}
 .caption .cplabel{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-text)}
 .caption .cd{margin-top:12px;padding-top:11px;border-top:1px dashed var(--border)}
-:root[data-read="plain"] .caption .cd,
-:root[data-read="plain"] .caption .cplabel,
-:root[data-read="plain"] .hd .tag{display:none}
-:root[data-read="plain"] .caption .cd + *{margin-top:0}
 
 /* glossary */
 .gl{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;
@@ -286,10 +285,7 @@ td b{color:var(--primary);font-weight:600}
   <span class="pill-beta" id="kicker">Guide</span>
   <span class="spacer"></span>
   <span class="crumb" id="crumb"></span>
-  <div class="seg" role="group" id="levelhint" aria-label="Reading level">
-    <button type="button" data-level="plain" aria-pressed="true">Plain</button>
-    <button type="button" data-level="full" aria-pressed="false">Full</button>
-  </div>
+  <span class="prog" id="prog"></span>
   <div class="seg" role="group" aria-label="Language">
     <button type="button" data-lang="en" aria-pressed="true">EN</button>
     <button type="button" data-lang="fr" aria-pressed="false">FR</button>

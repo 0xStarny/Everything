@@ -10,13 +10,15 @@ const TABLABEL = {
   lev:      ['Elena · Leverage', 'Elena · Levier'],
   lp:       ['Farid · LP', 'Farid · LP'],
   band:     ['The band', 'Le band'],
-  liq:      ['Liquidation', 'Liquidation']
+  liq:      ['Liquidation', 'Liquidation'],
+  quiz:     ['Take the quiz', 'Passez le quiz']
 };
 const GROUPS = [
   { label: [' ', ' '], ids: ['start'] },
   { label: ['Mechanics', 'Mécanique'], ids: ['overview', 'curve'] },
   { label: ['The six', 'Les six'], ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
-  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] }
+  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] },
+  { label: ['Test yourself', 'Testez-vous'], ids: ['quiz'] }
 ];
 const ORDER = GROUPS.flatMap(g => g.ids);
 
@@ -118,6 +120,22 @@ function renderView(v) {
   const i = ORDER.indexOf(v.id);
   const prev = i > 0 ? ORDER[i - 1] : null;
   const next = i < ORDER.length - 1 ? ORDER[i + 1] : null;
+  const HEAD = `
+    <div class="rolehead">
+      <div class="lead">
+        <div class="eyebrow">${T(v.eyebrow)}</div>
+        <h2>${T(v.title)}</h2>
+        <p class="sub">${T(v.sub)}</p>
+      </div>
+      <div class="idcard">${v.id_card.map(([k, val, c]) =>
+        `<div class="stat"><div class="k">${T(k)}</div><div class="v ${c}">${T(val)}</div></div>`).join('')}</div>
+    </div>`;
+  const NAV = `
+    <nav class="viewnav">
+      ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
+      ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
+    </nav>`;
+  if (v.custom) { p.innerHTML = HEAD + v.custom() + NAV; return p; }
   p.innerHTML = `
     <div class="rolehead">
       <div class="lead">
@@ -162,6 +180,7 @@ function renderView(v) {
 }
 
 function wire(p, v) {
+  if (v.custom) return v.wireup ? v.wireup(p) : { stop() {}, render() {} };
   const svg   = p.querySelector('svg.stage');
   const steps = v.stage.steps;
   const plain = PLAIN[v.id] || [];

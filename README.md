@@ -4,11 +4,19 @@ The [EVERYTHING Protocol](https://everything.inc/) explained without the whitepa
 
 It opens with one everyday comparison and no formulas at all: today you need three shops, one to swap your tokens, one to lend against them and one to hold your standing orders, and each of the three needs its own pile of cash sitting idle. Everything puts all three behind a single counter with a single till. The part that actually matters is that the counter setting the exchange rate is the same counter holding your pawn, so it knows exactly what it could sell that pawn for today. That is why it can lend against tokens other venues refuse.
 
-After that, ten views. Two build the machinery: the protocol assembled brick by brick, then where the price actually comes from, which is the one piece everything else sits on. Six follow a named person through one concrete situation with real numbers: **Bob** just wants to swap, **Alice** waits patiently for a better price, **Nadia** wants the same thing but refuses to let her money sleep while it waits, **David** needs cash without selling, **Elena** wants leverage, and **Farid** puts up the money that makes the other five possible. Two more open what runs underneath: the internal price band that replaces the oracle, and the liquidation cascade with its loss waterfall.
+After that, eleven views. Two build the machinery: the protocol assembled brick by brick, then where the price actually comes from, which is the one piece everything else sits on. Six follow a named person through one concrete situation with real numbers: **Bob** just wants to swap, **Alice** waits patiently for a better price, **Nadia** wants the same thing but refuses to let her money sleep while it waits, **David** needs cash without selling, **Elena** wants leverage, and **Farid** puts up the money that makes the other five possible. Two more open what runs underneath: the internal price band that replaces the oracle, and the liquidation cascade with its loss waterfall.
 
 Every view is a scenario you step through. Each step animates the diagram and explains what just happened, first in ordinary language and then in the whitepaper's own terms underneath, and every profile closes on the same question: **what do they do, why, and exactly how do they make or lose money.**
 
 Any term that might not be obvious is underlined the first time it appears in a panel; click it for a one-sentence definition. The full glossary sits at the bottom of the first view.
+
+## Take the quiz
+
+The last view is a quiz: fifteen questions drawn at random from a bank of thirty-nine, four options each, shuffled every run. Every answer is somewhere in the guide, every explanation says which view covers it, and a wrong answer gets a button that opens that view.
+
+At the end you get a score, a rank, and a share card drawn on a `<canvas>` at 1200×675. **Copy image** puts the PNG on the clipboard, **Share on X** opens the post: X cannot pull an image from a link, so the flow is copy then paste. **Download** is there for browsers that refuse clipboard image writes.
+
+The card is always dark, whatever the site theme, because that is what reads on a timeline.
 
 ## Deep links
 

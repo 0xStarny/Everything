@@ -1,0 +1,549 @@
+/* ══════════════ TAKE THE QUIZ ══════════════
+   Not a stepped scenario: a custom view with its own render and wiring.
+   Every question is answerable from the guide, and every explanation points
+   back at the view that covers it. */
+
+const QUIZ_N = 15;
+
+const QI = {
+  intro: ['Fifteen questions, drawn at random from a bank of thirty-nine. Every answer is somewhere in this guide, and every explanation tells you which view.',
+          "Quinze questions, tirées au hasard dans une banque de trente-neuf. Chaque réponse est quelque part dans ce guide, et chaque explication vous dit dans quelle vue."],
+  start: ['Start the quiz', 'Commencer le quiz'],
+  q: ['Question', 'Question'],
+  right: ['Correct', 'Correct'],
+  wrong: ['Not quite', 'Pas tout à fait'],
+  goto: ['Open the view', 'Ouvrir la vue'],
+  next: ['Next question', 'Question suivante'],
+  see: ['See the result', 'Voir le résultat'],
+  score: ['Your score', 'Votre score'],
+  again: ['Try again', 'Recommencer'],
+  copy: ['Copy image', "Copier l'image"],
+  copied: ['Copied, now paste it into your post', 'Copié, collez-la dans votre post'],
+  copyfail: ['Copy failed, use Download instead', 'Échec de la copie, utilisez Télécharger'],
+  dl: ['Download', 'Télécharger'],
+  share: ['Share on X', 'Partager sur X'],
+  howto: ['X cannot take an image from a link. Copy the card first, then paste it into the post that opens.',
+          "X ne peut pas récupérer une image depuis un lien. Copiez la carte d'abord, puis collez-la dans le post qui s'ouvre."],
+  missed: ['What you missed', 'Ce que vous avez raté'],
+  perfect: ['Nothing. Every single one.', 'Rien. Absolument tout juste.'],
+  ranks: [
+    [15, ['Wrote the whitepaper', 'A écrit le whitepaper']],
+    [13, ['Protocol engineer', 'Ingénieur protocole']],
+    [10, ['Knows where the money goes', "Sait où va l'argent"]],
+    [7,  ['Getting there', 'En bonne voie']],
+    [4,  ['Read the intro', "A lu l'intro"]],
+    [0,  ['Here for the diagrams', 'Ici pour les schémas']]
+  ]
+};
+
+/* q · question · o · four options · c · index of the correct one · w · why · v · view to open */
+const QBANK = [
+{v:'overview', c:0,
+ q:['What does a single Everything contract hold?', 'Que détient un seul contrat Everything ?'],
+ o:[['One reserve that prices swaps, is lent out, and backs resting orders', 'Une seule réserve qui price les swaps, est prêtée, et adosse les ordres au repos'],
+    ['Three separate pools, one per market', 'Trois réserves séparées, une par marché'],
+    ['A reserve for swaps, and an external money market for credit', 'Une réserve pour les swaps, et un money market externe pour le crédit'],
+    ['Only the order book, with swaps routed elsewhere', 'Seulement le carnet d’ordres, les swaps étant routés ailleurs']],
+ w:['One contract per pair, one reserve, three markets. That single balance sheet is the whole design.',
+    'Un contrat par paire, une réserve, trois marchés. Ce bilan unique, c’est tout le design.']},
+{v:'overview', c:2,
+ q:['Why can Everything lend against tokens a normal money market refuses?', 'Pourquoi Everything peut-il prêter contre des tokens qu’un money market normal refuse ?'],
+ o:[['It requires more collateral than anyone else', 'Il exige plus de collateral que les autres'],
+    ['It uses several oracles instead of one', 'Il utilise plusieurs oracles au lieu d’un'],
+    ['The pool that sets the price is the pool holding the collateral, so exit liquidity is known', 'Le pool qui fixe le prix est celui qui détient le collateral, donc la liquidité de sortie est connue'],
+    ['It insures every loan with an external fund', 'Il assure chaque prêt avec un fonds externe']],
+ w:['Borrowing capacity is derived, price level by price level, from the depth that will actually absorb the liquidation.',
+    'La capacité d’emprunt est dérivée, niveau de prix par niveau de prix, de la profondeur qui absorbera réellement la liquidation.']},
+{v:'overview', c:1,
+ q:['What are the protocol’s only inputs?', 'Quelles sont les seules entrées du protocole ?'],
+ o:[['An oracle feed and a keeper network', 'Un flux d’oracle et un réseau de keepers'],
+    ['Deposits, trades, and the clock', 'Les dépôts, les trades, et l’horloge'],
+    ['Governance votes and a price committee', 'Des votes de gouvernance et un comité de prix'],
+    ['Chainlink plus an emergency multisig', 'Chainlink plus un multisig d’urgence']],
+ w:['No external price oracle and no keeper subsidy appear anywhere in the design.',
+    'Aucun oracle de prix externe ni subvention de keeper n’apparaît nulle part dans le design.']},
+{v:'curve', c:3,
+ q:['Where does the swap price come from?', 'D’où vient le prix de swap ?'],
+ o:[['A price committee sets it per pair', 'Un comité de prix le fixe par paire'],
+    ['It is imported from the deepest external venue', 'Il est importé du venue externe le plus profond'],
+    ['Market makers quote it manually', 'Les market makers le cotent à la main'],
+    ['From how much of each token the pool is holding, through an invariant', 'De la quantité que la réserve détient de chaque token, via un invariant']],
+ w:['Take one token out and less is left, so the next buyer pays more. That is the whole mechanism.',
+    'Sortez un token et il en reste moins, donc le suivant paie plus cher. C’est tout le mécanisme.']},
+{v:'curve', c:0,
+ q:['What funds the repeg, when the pool re-centres its liquidity?', 'Qu’est-ce qui finance le repeg, quand la réserve recentre sa liquidité ?'],
+ o:[['Retained fees only, never principal', 'Les fees retenues seulement, jamais le principal'],
+    ['A slice of every borrower’s collateral', 'Une part du collateral de chaque emprunteur'],
+    ['The protocol treasury', 'La trésorerie du protocole'],
+    ['Newly minted LP shares', 'De nouvelles parts LP émises']],
+ w:['A double gate on the virtual price blocks any move the accumulated fees cannot pay for.',
+    'Une double barrière sur le prix virtuel bloque tout mouvement que les fees accumulées ne peuvent pas payer.']},
+{v:'curve', c:2,
+ q:['The whitepaper bounds the curve’s amplification parameter A to:', 'Le whitepaper borne le paramètre d’amplification A de la courbe à :'],
+ o:[['1 to 100', '1 à 100'],
+    ['It gives no value at all', 'Il ne donne aucune valeur'],
+    ['0.1 to 1000', '0,1 à 1000'],
+    ['0 to 1', '0 à 1']],
+ w:['A ∈ [0.1, 1000] and γ ∈ [10⁻⁸, 0.06], re-tunable only along a ramp of at most tenfold, never shorter than a day.',
+    'A ∈ [0,1 ; 1000] et γ ∈ [10⁻⁸ ; 0,06], re-réglables uniquement le long d’une rampe d’un facteur dix maximum, jamais plus courte qu’un jour.']},
+{v:'curve', c:1,
+ q:['A trade that pushes the pool further out of balance pays:', 'Un échange qui déséquilibre davantage la réserve paie :'],
+ o:[['The same flat fee as any other', 'La même fee fixe que n’importe quel autre'],
+    ['A higher fee than one that restores the balance', 'Une fee plus élevée que celui qui rééquilibre'],
+    ['No fee at all', 'Aucune fee'],
+    ['A fee set by the maker it fills', 'Une fee fixée par le maker qu’il remplit']],
+ w:['The dynamic fee interpolates with the pool’s imbalance. It quietly pays people to tidy up.',
+    'La fee dynamique interpole avec le déséquilibre. Elle paie discrètement les gens pour ranger.']},
+{v:'curve', c:0,
+ q:['Impermanent loss happens because the pool:', 'L’impermanent loss survient parce que la réserve :'],
+ o:[['Ends up holding more of the token that fell and less of the one that rose', 'Finit avec plus du token qui a baissé et moins de celui qui a monté'],
+    ['Charges a fee on withdrawals', 'Prélève une fee au retrait'],
+    ['Lends the collateral without permission', 'Prête le collateral sans autorisation'],
+    ['Rounds every division against the user', 'Arrondit chaque division contre l’utilisateur']],
+ w:['Quoting a price means selling the winner and buying the loser. That is the service, and the fees are what pay for it.',
+    'Coter un prix, c’est vendre le gagnant et acheter le perdant. C’est le service rendu, et les fees sont là pour le payer.']},
+{v:'trader', c:1,
+ q:['In what order is a swap filled?', 'Dans quel ordre un swap est-il rempli ?'],
+ o:[['The curve first, then any leftover orders', 'La courbe d’abord, puis les ordres restants'],
+    ['Stale walls, then in-path walls, then the curve residual', 'Les stale walls, puis les in-path walls, puis le résidu sur la courbe'],
+    ['Oldest resting order first, regardless of price', 'L’ordre le plus ancien d’abord, quel que soit le prix'],
+    ['Whichever route pays the protocol the most', 'La route qui rapporte le plus au protocole']],
+ w:['Best price first. A stale wall is strictly better than the curve, so it is served before anything else.',
+    'Meilleur prix d’abord. Un wall stale est strictement meilleur que la courbe, donc il est servi en premier.']},
+{v:'trader', c:2,
+ q:['When is the taker’s fee decided?', 'Quand la fee du taker est-elle décidée ?'],
+ o:[['After the routing, on whatever actually touched the curve', 'Après le routage, sur ce qui a réellement touché la courbe'],
+    ['Per wall filled, negotiated with each maker', 'Par wall rempli, négociée avec chaque maker'],
+    ['Once up front, on the gross input and the pre-swap state', 'Une fois en tête, sur l’input brut et l’état pré-swap'],
+    ['At the end of the block, on the average price', 'En fin de bloc, sur le prix moyen']],
+ w:['Because the rate cannot depend on the routing, the pool gains nothing by ignoring a resting order.',
+    'Comme le taux ne peut pas dépendre du routage, la réserve ne gagne rien à ignorer un ordre au repos.']},
+{v:'trader', c:0,
+ q:['Someone who buys the dip seconds after a crash pays:', 'Celui qui achète la baisse quelques secondes après un krach paie :'],
+ o:[['A premium, because the curve leg executes on the displaced anchor', 'Une prime, parce que la jambe de courbe s’exécute sur l’ancre déplacée'],
+    ['Nothing extra, the price is the price', 'Rien de plus, le prix est le prix'],
+    ['A discount, as a reward for adding liquidity', 'Une décote, en récompense pour la liquidité apportée'],
+    ['A fee paid directly to the liquidated borrower', 'Une fee versée directement à l’emprunteur liquidé']],
+ w:['The execution basis taxes the wake of a move and decays with τ. Flow that waits pays nothing.',
+    'L’execution basis taxe le sillage d’un mouvement et décroît avec τ. Le flux qui attend ne paie rien.']},
+{v:'maker', c:3,
+ q:['A non-lent maker’s filled order is:', 'L’ordre rempli d’un maker non-lent est :'],
+ o:[['Credited to their balance like any other payout', 'Crédité sur son solde comme n’importe quel paiement'],
+    ['Held back until the pool reaches full capacity', 'Retenu jusqu’à ce que la réserve retrouve sa capacité'],
+    ['Paid out only after every borrower has repaid', 'Versé seulement quand tous les emprunteurs ont remboursé'],
+    ['Set aside senior-most at fill time, never gated in any state', 'Mis de côté senior-most au moment du fill, jamais gaté dans aucun état']],
+ w:['The tokens were reserved the instant the fill happened. No later event can re-spend them.',
+    'Les tokens ont été réservés à l’instant du fill. Aucun évènement ultérieur ne peut les redépenser.']},
+{v:'maker', c:1,
+ q:['What can block a non-lent maker from cancelling?', 'Qu’est-ce qui peut empêcher un maker non-lent d’annuler ?'],
+ o:[['High utilisation on the borrowed side', 'Une utilisation élevée du côté emprunté'],
+    ['Nothing at all, in any pool state', 'Rien du tout, dans n’importe quel état de la réserve'],
+    ['A pending liquidation tick', 'Un tick de liquidation en attente'],
+    ['A governance timelock', 'Un timelock de gouvernance']],
+ w:['That capital was never lent to anyone, so nobody has to give it back first. It is the safest seat in the protocol.',
+    'Ce capital n’a jamais été prêté à personne, donc personne n’a besoin de le rendre d’abord. C’est la place la plus sûre du protocole.']},
+{v:'maker', c:2,
+ q:['A liquidity order’s return comes from:', 'Le revenu d’un liquidity order vient :'],
+ o:[['The spread between its two legs', 'De l’écart entre ses deux jambes'],
+    ['Interest earned while it waits', 'Des intérêts gagnés pendant l’attente'],
+    ['The rebate on each flip, since the round trip is value-neutral', 'Du rebate sur chaque flip, puisque l’aller-retour est neutre en valeur'],
+    ['A share of the liquidation penalty', 'D’une part de la pénalité de liquidation']],
+ w:['Both legs happen at the same static tick price, so the round trip creates no gain by itself.',
+    'Les deux jambes se font au même prix statique de tick, donc l’aller-retour ne crée aucun gain par lui-même.']},
+{v:'lent', c:0,
+ q:['What does ticking the "lend" flag on a resting order cost you?', 'Que coûte le fait de cocher le flag « lend » sur un ordre au repos ?'],
+ o:[['The cancel is no longer free or immediate', 'L’annulation n’est plus ni libre ni immédiate'],
+    ['A slice of the principal, taken up front', 'Une part du principal, prélevée d’avance'],
+    ['The right to be filled at your exact price', 'Le droit d’être rempli à votre prix exact'],
+    ['Nothing, it is pure upside', 'Rien, c’est du gain pur']],
+ w:['It becomes a voluntary lent exit: capacity-gated, block-and-retry, with no guaranteed unblocking time.',
+    'Cela devient un voluntary lent exit : capacity-gated, block-and-retry, sans garantie de délai.']},
+{v:'lent', c:3,
+ q:['Can the supply index L be cut to absorb bad debt?', 'L’index de supply L peut-il être coupé pour absorber de la bad debt ?'],
+ o:[['Yes, pro-rata across all suppliers', 'Oui, au prorata sur tous les suppliers'],
+    ['Yes, but only above a governance threshold', 'Oui, mais seulement au-delà d’un seuil de gouvernance'],
+    ['Only during an emergency stop', 'Seulement pendant un emergency stop'],
+    ['Never, under any circumstance', 'Jamais, en aucune circonstance']],
+ w:['Lent suppliers and filled makers never pay for bad debt through their index. The loss falls on the LP tranche.',
+    'Les lent suppliers et les makers remplis ne paient jamais la bad debt par leur index. La perte tombe sur la tranche LP.']},
+{v:'lent', c:1,
+ q:['A lent exit that does not fit the capacity envelope results in:', 'Une sortie de fonds prêtés qui ne rentre pas dans l’enveloppe de capacité donne :'],
+ o:[['A partial payout plus an IOU for the rest', 'Un paiement partiel plus une reconnaissance de dette pour le reste'],
+    ['The transaction reverting intact, to be retried later', 'Une transaction qui revert intacte, à réessayer plus tard'],
+    ['A queue position with a guaranteed date', 'Une place en file avec une date garantie'],
+    ['An automatic haircut on the amount', 'Une décote automatique sur le montant']],
+ w:['The protocol refuses the IOU as a settlement instrument. The cost of illiquidity is explicit and temporary.',
+    'Le protocole refuse l’IOU comme instrument de règlement. Le coût de l’illiquidité est explicite et temporaire.']},
+{v:'lent', c:2,
+ q:['Once an order is placed with the lend flag, the flag is:', 'Une fois un ordre posé avec le flag lend, ce flag est :'],
+ o:[['Switchable at any time from the interface', 'Modifiable à tout moment depuis l’interface'],
+    ['Automatically dropped when utilisation gets high', 'Retiré automatiquement quand l’utilisation monte'],
+    ['Frozen for the life of the order', 'Figé pour la vie de l’ordre'],
+    ['Reset at every price crossing', 'Réinitialisé à chaque croisement de prix']],
+ w:['And admission is binary: an opt-in that does not fit in full reverts outright, never degrading silently to non-lent.',
+    'Et l’admission est binaire : un opt-in qui ne rentre pas en entier revert net, sans jamais dégrader en silence vers du non-lent.']},
+{v:'borrow', c:2,
+ q:['Who chooses the price at which a loan gets liquidated?', 'Qui choisit le prix auquel un prêt est liquidé ?'],
+ o:[['Governance, per pair', 'La gouvernance, par paire'],
+    ['An oracle, from the external market', 'Un oracle, depuis le marché externe'],
+    ['The borrower, at the open', 'L’emprunteur, à l’ouverture'],
+    ['The liquidity providers, by vote', 'Les liquidity providers, par vote']],
+ w:['They pick a tick, and the tick prices the loan: c = (1+π)·q·Aᵢ.',
+    'Il choisit un tick, et le tick price le prêt : c = (1+π)·q·Aᵢ.']},
+{v:'borrow', c:0,
+ q:['What happens to a loan’s liquidation threshold as time passes?', 'Qu’arrive-t-il au seuil de liquidation d’un prêt quand le temps passe ?'],
+ o:[['It drifts against the borrower as interest compounds', 'Il dérive contre l’emprunteur à mesure que les intérêts composent'],
+    ['It stays exactly where it was set', 'Il reste exactement où il a été fixé'],
+    ['It drifts in the borrower’s favour', 'Il dérive en faveur de l’emprunteur'],
+    ['It resets every thirty days', 'Il est réinitialisé tous les trente jours']],
+ w:['Aᵢ(t) = P(i)/M(t). It is what lets a whole tick be liquidated as one object, and it means an unattended loan dies of time.',
+    'Aᵢ(t) = P(i)/M(t). C’est ce qui permet de liquider un tick entier comme un seul objet, et ça veut dire qu’un prêt non surveillé meurt du temps.']},
+{v:'borrow', c:1,
+ q:['At liquidation, what is handed back to the borrower?', 'À la liquidation, qu’est-ce qui est rendu à l’emprunteur ?'],
+ o:[['Whatever exceeds the debt plus the penalty', 'Ce qui dépasse la dette plus la pénalité'],
+    ['Nothing, the whole tick’s collateral is seized', 'Rien, tout le collateral du tick est saisi'],
+    ['Half of the posted collateral', 'La moitié du collateral posté'],
+    ['The collateral, minus a fixed fee', 'Le collateral, moins une fee fixe']],
+ w:['No auction, no negotiation. The collateral moves from escrow into the pricing reserve in one operation.',
+    'Pas d’enchère, pas de négociation. Le collateral passe de l’escrow à la pricing reserve en une opération.']},
+{v:'borrow', c:3,
+ q:['Does the protocol attach a stop-loss to a loan?', 'Le protocole attache-t-il un stop-loss à un prêt ?'],
+ o:[['Yes, at a configurable level', 'Oui, à un niveau paramétrable'],
+    ['Yes, automatically at the tick buffer', 'Oui, automatiquement au tick buffer'],
+    ['Only for leveraged positions', 'Seulement pour les positions à levier'],
+    ['No, and no take-profit either', 'Non, ni take-profit non plus']],
+ w:['The only upside exit is a manual close, or a separately placed limit order you must remember to collect.',
+    'La seule sortie haussière est une fermeture manuelle, ou un ordre limite posé séparément qu’il faut penser à collecter.']},
+{v:'borrow', c:0,
+ q:['The gate c ≥ swapIn(q) exists so that:', 'La condition c ≥ swapIn(q) existe pour que :'],
+ o:[['Borrowing is never cheaper than simply swapping', 'Emprunter ne soit jamais moins cher que simplement swapper'],
+    ['The pool always holds more of token 0', 'La réserve détienne toujours plus de token 0'],
+    ['Liquidations always turn a profit', 'Les liquidations soient toujours rentables'],
+    ['Makers are filled before borrowers', 'Les makers soient servis avant les emprunteurs']],
+ w:['Otherwise borrowing and walking away would be a discounted trade, and the pool would be robbed one loan at a time.',
+    'Sinon emprunter puis disparaître serait un trade à prix réduit, et la réserve serait dévalisée prêt après prêt.']},
+{v:'lev', c:1,
+ q:['What plays the role of a funding rate for a leveraged position?', 'Qu’est-ce qui joue le rôle du funding rate pour une position à levier ?'],
+ o:[['An eight-hour index, like a perp venue', 'Un index à huit heures, comme sur un perp'],
+    ['The kinked borrow interest rate', 'Le taux d’emprunt kinké'],
+    ['A fee charged on the collateral', 'Une fee prélevée sur le collateral'],
+    ['Nothing, leverage is free to hold', 'Rien, tenir du levier est gratuit']],
+ w:['When everyone piles onto the same side, utilisation rises, borrowing gets expensive, and funding pays for itself.',
+    'Quand tout le monde se rue du même côté, l’utilisation monte, emprunter devient cher, et le funding se paie tout seul.']},
+{v:'lev', c:2,
+ q:['Is there a hard maximum leverage?', 'Existe-t-il un levier maximum en dur ?'],
+ o:[['Yes, capped at 10× by governance', 'Oui, plafonné à 10× par la gouvernance'],
+    ['Yes, 5× on every pair', 'Oui, 5× sur toutes les paires'],
+    ['No, the bound emerges from the penalty, the buffer and the swap cost', 'Non, la borne émerge de la pénalité, du buffer et du coût de swap'],
+    ['No, and it is genuinely unlimited', 'Non, et il est réellement illimité']],
+ w:['Each loop turn costs more than it adds, so the geometric series exhausts itself. Your max is written nowhere: you compute it.',
+    'Chaque tour de boucle coûte plus qu’il n’ajoute, donc la série géométrique s’épuise. Votre max n’est écrit nulle part : il se calcule.']},
+{v:'lev', c:0,
+ q:['What does the pair’s own flash loan cost?', 'Combien coûte le flash loan de la paire elle-même ?'],
+ o:[['Nothing, it is fee-free', 'Rien, il est gratuit'],
+    ['0.09 %, like Aave', '0,09 %, comme Aave'],
+    ['A share of the profit made with it', 'Une part du profit réalisé avec'],
+    ['It requires collateral up front', 'Il exige du collateral d’avance']],
+ w:['It cannot outlive the transaction, so it needs no collateral. Its interface is deliberately narrower than ERC-3156.',
+    'Il ne peut pas survivre à la transaction, donc il ne demande aucun collateral. Son interface est volontairement plus étroite qu’ERC-3156.']},
+{v:'lp', c:3,
+ q:['Where does the liquidity provider sit in the loss waterfall?', 'Où se situe le liquidity provider dans le waterfall des pertes ?'],
+ o:[['First, they are paid before everyone', 'Premier, il est payé avant tout le monde'],
+    ['Second, just under the fill claims', 'Deuxième, juste sous les fill claims'],
+    ['Third, level with lent suppliers', 'Troisième, à égalité avec les lent suppliers'],
+    ['Last, the junior tranche that absorbs losses first', 'Dernier, la tranche junior qui absorbe les pertes en premier']],
+ w:['The paper says it outright: the LPs are the insurance fund, and there is no external backstop.',
+    'Le papier le dit noir sur blanc : les LPs sont le fonds d’assurance, et il n’y a aucun backstop externe.']},
+{v:'lp', c:0,
+ q:['What does one LP position earn that siloed designs force you to choose between?', 'Que gagne une position LP là où les designs silotés forcent à choisir ?'],
+ o:[['Swap fees and lending interest, both at once', 'Les swap fees et les intérêts de prêt, les deux à la fois'],
+    ['Trading fees and a governance token', 'Les fees de trading et un token de gouvernance'],
+    ['Interest and the liquidation penalty', 'Les intérêts et la pénalité de liquidation'],
+    ['Maker rebates and protocol fees', 'Les rebates maker et les protocol fees']],
+ w:['The reserve that prices swaps is the credit book’s first inventory. One deposit, two income streams.',
+    'La réserve qui price les swaps est le premier inventaire du carnet de crédit. Un dépôt, deux flux de revenus.']},
+{v:'lp', c:1,
+ q:['While liquidation ticks are pending, an LP can:', 'Tant que des ticks de liquidation sont en attente, un LP peut :'],
+ o:[['Withdraw freely, that is the point of being senior', 'Retirer librement, c’est l’intérêt d’être senior'],
+    ['Neither enter nor exit, mint and burn revert', 'Ni entrer ni sortir, mint et burn revert'],
+    ['Exit but not deposit', 'Sortir mais pas déposer'],
+    ['Deposit but not exit', 'Déposer mais pas sortir']],
+ w:['It stops the run that would guarantee the seniors lose. It also means the LP cannot flee ahead of the losses.',
+    'Cela empêche la ruée qui garantirait la perte des seniors. Cela veut aussi dire que le LP ne peut pas fuir avant les pertes.']},
+{v:'lp', c:2,
+ q:['Seized collateral is valued at:', 'Le collateral saisi est valorisé :'],
+ o:[['The price its own sale will actually realise', 'Au prix que sa propre vente obtiendra réellement'],
+    ['The average price over the last hour', 'Au prix moyen de la dernière heure'],
+    ['The band price, not the realisable value', 'Au prix du band, pas au réalisable'],
+    ['The price at which the loan was opened', 'Au prix auquel le prêt a été ouvert']],
+ w:['The capacity model exists to keep that gap small, but the residual slippage is junior-tranche risk.',
+    'Le modèle de capacité existe pour garder cet écart petit, mais le slippage résiduel est du risque de tranche junior.']},
+{v:'band', c:1,
+ q:['Within a single block, the price band is:', 'À l’intérieur d’un seul bloc, le price band est :'],
+ o:[['Recomputed on every operation', 'Recalculé à chaque opération'],
+    ['Frozen, using the spot as the block opened', 'Gelé, sur le spot tel qu’il était à l’ouverture du bloc'],
+    ['Averaged over the block’s trades', 'Moyenné sur les trades du bloc'],
+    ['Taken from the last external oracle update', 'Repris de la dernière mise à jour d’oracle externe']],
+ w:['Same-block immunity: a flash-loan wick, however violent, loosens no credit decision in its own block.',
+    'Immunité intra-bloc : une mèche de flash loan, aussi violente soit-elle, ne desserre aucune décision de crédit dans son propre bloc.']},
+{v:'band', c:0,
+ q:['An attacker who pushes the spot up and then back down leaves the band:', 'Un attaquant qui pousse le spot vers le haut puis le ramène laisse le band :'],
+ o:[['Wider, with every credit decision reading the anchor that moved against them', 'Plus large, chaque décision de crédit lisant l’ancre qui a bougé contre lui'],
+    ['Exactly where it started, no harm done', 'Exactement où il était, sans dommage'],
+    ['Narrower, which is what makes the attack work', 'Plus étroit, ce qui fait fonctionner l’attaque'],
+    ['Shifted permanently to the new level', 'Décalé définitivement au nouveau niveau']],
+ w:['The clamp is one-way. Manipulation only widens, so the sandwich on credit pricing is unprofitable by construction.',
+    'Le clamp est à sens unique. La manipulation ne fait qu’écarter, donc le sandwich sur le pricing du crédit n’est pas rentable par construction.']},
+{v:'band', c:2,
+ q:['At rest, with nothing happening, the band costs honest users:', 'Au repos, quand rien ne se passe, le band coûte aux utilisateurs honnêtes :'],
+ o:[['A permanent spread on every credit decision', 'Un spread permanent sur chaque décision de crédit'],
+    ['A small fee routed to the protocol', 'Une petite fee versée au protocole'],
+    ['Nothing, it collapses to zero width', 'Rien, il se referme à largeur nulle'],
+    ['A one-block delay on every action', 'Un bloc de délai sur chaque action']],
+ w:['The protective margin is transient by construction, and never a standing spread.',
+    'La marge protectrice est transitoire par construction, et jamais un spread permanent.']},
+{v:'band', c:3,
+ q:['What is the admitted cost of using a band instead of an oracle?', 'Quel est le coût admis d’un band à la place d’un oracle ?'],
+ o:[['A fee charged to borrowers', 'Une fee prélevée aux emprunteurs'],
+    ['Losing same-block protection', 'La perte de la protection intra-bloc'],
+    ['Needing a keeper to advance it', 'Le besoin d’un keeper pour l’avancer'],
+    ['Honest liquidations lag the market too', 'Les liquidations honnêtes retardent aussi sur le marché']],
+ w:['Section 11 states it plainly: the band trades latency for safety, and the honest wait as well.',
+    'La section 11 le dit clairement : le band échange de la latence contre de la sécurité, et l’honnête attend aussi.']},
+{v:'liq', c:2,
+ q:['Loans are indexed by:', 'Les prêts sont indexés par :'],
+ o:[['The borrower’s address', 'L’adresse de l’emprunteur'],
+    ['The date they were opened', 'La date d’ouverture'],
+    ['The price at which they get liquidated', 'Le prix auquel ils sont liquidés'],
+    ['Their health factor', 'Leur health factor']],
+ w:['Which makes detection geometric: everything at or below the current price is underwater, with no per-loan check.',
+    'Ce qui rend la détection géométrique : tout ce qui est au niveau du prix ou en dessous est sous l’eau, sans contrôle prêt par prêt.']},
+{v:'liq', c:0,
+ q:['Closing a tick that holds ten thousand loans costs:', 'Fermer un tick qui porte dix mille prêts coûte :'],
+ o:[['The same as one holding a single loan', 'La même chose qu’un tick qui en porte un seul'],
+    ['Ten thousand times more', 'Dix mille fois plus'],
+    ['Roughly the square root of the count', 'Environ la racine carrée du nombre'],
+    ['It cannot be done in one transaction', 'Cela ne peut pas se faire en une transaction']],
+ w:['The tick’s version is bumped, invalidating every loan keyed to it at once. That is why the engine holds up in a crash.',
+    'La version du tick est incrémentée, ce qui invalide tous ses prêts d’un coup. C’est pour ça que le moteur tient pendant un krach.']},
+{v:'liq', c:1,
+ q:['If a tick’s write-down exceeds what the junior tranche can absorb:', 'Si le write-down d’un tick dépasse ce que la tranche junior peut absorber :'],
+ o:[['It is booked as bad debt and spread across depositors', 'Il est inscrit en bad debt et étalé sur les déposants'],
+    ['The tick is deferred and never booked at all', 'Le tick est différé et n’est jamais comptabilisé'],
+    ['The pool halts permanently', 'La réserve s’arrête définitivement'],
+    ['Governance covers the difference', 'La gouvernance couvre la différence']],
+ w:['A loss either fits the junior tranche and is written down, or the tick that would create it stays pending.',
+    'Une perte tient dans la tranche junior et elle est écrite, ou bien le tick qui la créerait reste en attente.']},
+{v:'liq', c:3,
+ q:['Who is paid to run the liquidation cascade?', 'Qui est payé pour faire tourner la cascade de liquidation ?'],
+ o:[['A whitelisted keeper network', 'Un réseau de keepers autorisés'],
+    ['The first liquidator to call it, via a bounty', 'Le premier liquidateur qui l’appelle, via un bounty'],
+    ['The protocol treasury, per tick closed', 'La trésorerie du protocole, par tick fermé'],
+    ['Nobody, it runs inside every book-moving operation', 'Personne, elle tourne dans chaque opération qui bouge les books']],
+ w:['The words liquidator, bounty and reward appear zero times in the whitepaper. The incentive is redirected to whoever buys the collateral at a decaying price.',
+    'Les mots liquidator, bounty et reward apparaissent zéro fois dans le whitepaper. L’incitation est reportée sur celui qui achète le collateral à prix décroissant.']},
+{v:'liq', c:0,
+ q:['While ticks are pending, what keeps working?', 'Pendant que des ticks sont en attente, qu’est-ce qui continue de fonctionner ?'],
+ o:[['Swaps, repayments, cancels and fill collection', 'Les swaps, remboursements, cancels et collectes de fills'],
+    ['Nothing, the pair is frozen', 'Rien, la paire est gelée'],
+    ['Only withdrawals, to let people escape', 'Seulement les retraits, pour laisser les gens fuir'],
+    ['Only new deposits', 'Seulement les nouveaux dépôts']],
+ w:['Their inflow is exactly what refills the reserve. The pool heals through its own trading, or it waits.',
+    'Leur flux entrant est exactement ce qui refait la réserve. La réserve guérit par ses propres échanges, ou elle attend.']}
+];
+
+/* ── the view ─────────────────────────────────────────────────── */
+V.push({
+  id: 'quiz',
+  eyebrow: ['Test yourself', 'Testez-vous'],
+  title: ['Take the quiz', 'Passez le quiz'],
+  sub: ['Fifteen questions on how the protocol actually works. Get a score, get a card, and go argue about it on X.',
+        'Quinze questions sur le fonctionnement réel du protocole. Un score, une carte, et allez en débattre sur X.'],
+  id_card: [
+    [['Questions', 'Questions'], ['15', '15'], 'b'],
+    [['Drawn from', 'Tirées de'], ['a bank of 39', 'une banque de 39'], 'n'],
+    [['Needed', 'Prérequis'], ['the guide', 'le guide'], 'g']],
+  custom: () => `
+    <div class="quizwrap" data-quiz>
+      <div class="card quizcard" data-qintro>
+        <div class="quizhero">
+          <div class="qbig">${T(['Take the quiz', 'Passez le quiz'])}</div>
+          <p class="qlead">${T(QI.intro)}</p>
+          <button class="btn primary qstart" type="button" data-qstart>${T(QI.start)} &rarr;</button>
+        </div>
+      </div>
+      <div class="card quizcard" data-qplay hidden>
+        <div class="qtop">
+          <span class="qcount" data-qcount></span>
+          <div class="qbar"><i data-qbar></i></div>
+        </div>
+        <div class="qbody">
+          <h3 class="qtext" data-qtext></h3>
+          <div class="qopts" data-qopts></div>
+          <div class="qfb" data-qfb hidden>
+            <div class="qfbhead" data-qfbhead></div>
+            <p data-qwhy></p>
+            <div class="qfbrow">
+              <button class="btn" type="button" data-qgoto></button>
+              <button class="btn primary" type="button" data-qnext></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card quizcard" data-qdone hidden>
+        <div class="qresult">
+          <div class="qscoreline">
+            <span class="qscore" data-qscore></span>
+            <span class="qrank" data-qrank></span>
+          </div>
+          <div class="qmarks" data-qmarks></div>
+          <canvas class="qcanvas" data-qcanvas width="1200" height="675"></canvas>
+          <p class="qhowto">${T(QI.howto)}</p>
+          <div class="qactions">
+            <button class="btn primary" type="button" data-qcopy>${T(QI.copy)}</button>
+            <button class="btn" type="button" data-qdl>${T(QI.dl)}</button>
+            <button class="btn xbtn" type="button" data-qx>
+              <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.66l7.73-8.84L1.24 2.25H8.07l4.71 6.23 5.46-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z"/></svg>
+              ${T(QI.share)}</button>
+            <button class="btn" type="button" data-qagain>${T(QI.again)}</button>
+          </div>
+          <div class="qmiss" data-qmiss></div>
+        </div>
+      </div>
+    </div>`,
+  wireup: p => {
+    const $ = s => p.querySelector(s);
+    const intro = $('[data-qintro]'), play = $('[data-qplay]'), done = $('[data-qdone]');
+    let picked = [], idx = 0, right = 0, marks = [];
+
+    const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+    const rankOf = s => { for (const [min, label] of QI.ranks) if (s >= min) return T(label); return T(QI.ranks[QI.ranks.length - 1][1]); };
+
+    function begin() {
+      picked = shuffle(QBANK).slice(0, QUIZ_N).map(q => {
+        const order = shuffle([0, 1, 2, 3]);
+        return { ...q, order, c2: order.indexOf(q.c) };
+      });
+      idx = 0; right = 0; marks = [];
+      intro.hidden = true; done.hidden = true; play.hidden = false;
+      paint();
+    }
+
+    function paint() {
+      const q = picked[idx];
+      $('[data-qcount]').textContent = `${T(QI.q)} ${idx + 1} / ${QUIZ_N}`;
+      $('[data-qbar]').style.width = ((idx / QUIZ_N) * 100) + '%';
+      $('[data-qtext]').textContent = T(q.q);
+      $('[data-qfb]').hidden = true;
+      const opts = $('[data-qopts]');
+      opts.innerHTML = q.order.map((oi, k) =>
+        `<button class="qopt" type="button" data-pick="${k}"><span class="ql">${'ABCD'[k]}</span><span>${T(q.o[oi])}</span></button>`).join('');
+      opts.querySelectorAll('.qopt').forEach(b => b.addEventListener('click', () => answer(+b.dataset.pick), { once: true }));
+    }
+
+    function answer(k) {
+      const q = picked[idx];
+      const ok = k === q.c2;
+      if (ok) right++;
+      marks.push(ok);
+      $('[data-qopts]').querySelectorAll('.qopt').forEach((b, i) => {
+        b.disabled = true;
+        if (i === q.c2) b.classList.add('good');
+        else if (i === k) b.classList.add('bad');
+      });
+      const fb = $('[data-qfb]');
+      fb.hidden = false;
+      fb.className = 'qfb ' + (ok ? 'ok' : 'no');
+      $('[data-qfbhead]').textContent = ok ? T(QI.right) : T(QI.wrong);
+      $('[data-qwhy]').textContent = T(q.w);
+      const g = $('[data-qgoto]');
+      g.textContent = T(QI.goto) + ' · ' + T(TABLABEL[q.v]);
+      g.onclick = () => show(q.v);
+      const n = $('[data-qnext]');
+      n.textContent = idx === QUIZ_N - 1 ? T(QI.see) : T(QI.next);
+      n.onclick = () => { if (idx === QUIZ_N - 1) finish(); else { idx++; paint(); } };
+      n.focus();
+    }
+
+    function finish() {
+      play.hidden = true; done.hidden = false;
+      $('[data-qscore]').textContent = `${right} / ${QUIZ_N}`;
+      $('[data-qrank]').textContent = rankOf(right);
+      $('[data-qmarks]').innerHTML = marks.map(m => `<i class="${m ? 'g' : 'b'}"></i>`).join('');
+      const miss = picked.filter((q, i) => !marks[i]);
+      $('[data-qmiss]').innerHTML = miss.length
+        ? `<h4>${T(QI.missed)}</h4>` + miss.map(q =>
+            `<button class="missrow" type="button" data-goto="${q.v}"><span>${T(q.q)}</span><em>${T(TABLABEL[q.v])} &rarr;</em></button>`).join('')
+        : `<h4>${T(QI.missed)}</h4><p class="qperfect">${T(QI.perfect)}</p>`;
+      drawCard($('[data-qcanvas]'), right, QUIZ_N, rankOf(right), marks);
+      done.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+
+    /* the share card, always dark: it reads better on a timeline */
+    function drawCard(cv, score, total, rank, marks) {
+      const W = 1200, H = 675, c = cv.getContext('2d');
+      const BG = '#1d2029', FG = '#ffffff', MUT = '#a0a9bb', ACC = '#387efc', OK = '#3fd86a', NO = '#f87171';
+      const F = (px, w) => `${w} ${px}px "Geist", ui-sans-serif, system-ui, sans-serif`;
+      c.clearRect(0, 0, W, H);
+      c.fillStyle = BG; c.fillRect(0, 0, W, H);
+      c.fillStyle = ACC; c.fillRect(0, H - 8, W, 8);
+      // logo mark, the three stacked bars
+      const mx = 80, my = 66, s = 2.9, bar = pts => { c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](mx + x * s, my + y * s)); c.closePath(); c.fill(); };
+      c.fillStyle = FG;
+      bar([[0, 4.5], [11.7, 0.1], [11.7, 4.2], [0, 8.6]]);
+      bar([[0, 10.9], [11.7, 6.7], [11.7, 10.8], [6, 13.1]]);
+      bar([[0, 10.9], [11.7, 15.2], [11.7, 19.5], [0, 15.2]]);
+      c.fillStyle = MUT; c.font = F(26, '600');
+      c.fillText(T(['Everything, the guide', 'Everything, le guide']), 128, 96);
+      c.fillStyle = MUT; c.font = F(30, '500');
+      c.fillText(T(['I scored', "J'ai fait"]), 80, 210);
+      c.fillStyle = FG; c.font = F(150, '800');
+      c.fillText(`${score} / ${total}`, 80, 350);
+      c.fillStyle = ACC; c.font = F(46, '700');
+      c.fillText(rank, 80, 424);
+      // one mark per question
+      const bw = 62, gap = 10, x0 = 80, y0 = 486;
+      marks.forEach((m, i) => {
+        c.fillStyle = m ? OK : NO;
+        const x = x0 + i * (bw + gap);
+        c.beginPath(); c.roundRect(x, y0, bw, 16, 8); c.fill();
+      });
+      c.fillStyle = MUT; c.font = F(26, '500');
+      c.fillText(T(['on the Everything Protocol quiz', 'au quiz du protocole Everything']), 80, 570);
+      c.fillStyle = ACC; c.font = F(26, '600');
+      c.fillText(location.host + '/#/quiz', 80, 614);
+    }
+
+    function blobOf(cv) { return new Promise(res => cv.toBlob(res, 'image/png')); }
+
+    $('[data-qstart]').addEventListener('click', begin);
+    $('[data-qagain]').addEventListener('click', begin);
+    $('[data-qcopy]').addEventListener('click', async () => {
+      const b = $('[data-qcopy]');
+      try {
+        const blob = await blobOf($('[data-qcanvas]'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        b.textContent = T(QI.copied);
+      } catch (e) { b.textContent = T(QI.copyfail); }
+      setTimeout(() => { b.textContent = T(QI.copy); }, 3200);
+    });
+    $('[data-qdl]').addEventListener('click', async () => {
+      const blob = await blobOf($('[data-qcanvas]'));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `everything-quiz-${right}-${QUIZ_N}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    });
+    $('[data-qx]').addEventListener('click', () => {
+      const txt = T([
+        `I scored ${right}/${QUIZ_N} on the Everything Protocol quiz.\n\n"${rankOf(right)}"\n\nOne reserve, three markets. Try it:`,
+        `J'ai fait ${right}/${QUIZ_N} au quiz du protocole Everything.\n\n« ${rankOf(right)} »\n\nUne réserve, trois marchés. Essayez :`
+      ]);
+      const url = location.origin + location.pathname + '#/quiz';
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(url)}`,
+        '_blank', 'noopener,noreferrer');
+    });
+    return { stop() {}, render() {} };
+  }
+});

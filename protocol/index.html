@@ -482,7 +482,7 @@ td b{color:var(--primary);font-weight:600}
   background:transparent;border:1px solid transparent;color:var(--muted);
   font:500 11px/1 var(--sans);letter-spacing:.01em;border-radius:var(--r-sm);padding:4px 7px;
   transition:color .15s,border-color .15s,background .15s}
-.ghost:hover{color:var(--accent-text);border-color:var(--hairline);background:var(--surface-2)}
+.ghost:hover{color:var(--accent-text);border-color:var(--hairline);background:var(--surface)}
 .ghost svg{flex:none;opacity:.8}
 
 /* ── the pull quote ─────────────────────────────────────────── */
@@ -512,7 +512,7 @@ td b{color:var(--primary);font-weight:600}
 .palrow{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;appearance:none;
   border:0;background:transparent;cursor:pointer;border-radius:var(--r-sm);padding:9px 11px;
   color:var(--primary);font:500 13.5px/1.35 var(--sans)}
-.palrow:hover,.palrow.on{background:var(--surface-2)}
+.palrow:hover,.palrow.on{background:var(--surface)}
 .palrow .palk{font-family:var(--mono);font-size:11px;color:var(--accent-text);width:13px;flex:none}
 .palrow .palt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .palrow em{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--muted);flex:none}
@@ -536,6 +536,50 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
   letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .hero .ghostmark{position:absolute;right:-40px;top:-30px;width:260px;opacity:.05;pointer-events:none;color:var(--primary)}
 @media (max-width:640px){.hero{padding:22px 20px}.hero .facts{gap:18px}}
+/* ── badge panel footnotes ──────────────────────────────────── */
+.notify{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:18px 0 0;padding:15px 17px;
+  border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface)}
+.notify > div{flex:1;min-width:240px}
+.notify b{display:block;font-size:13.5px;color:var(--primary);letter-spacing:-.01em}
+.notify p{margin:5px 0 0;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.notify .btn{text-decoration:none;white-space:nowrap}
+.honest{margin:14px 0 0;border-top:1px solid var(--hairline);padding-top:12px}
+.honest summary{cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);list-style:none}
+.honest summary::-webkit-details-marker{display:none}
+.honest summary::before{content:'+ ';color:var(--accent-text)}
+.honest[open] summary::before{content:'\2212 '}
+.honest summary:hover{color:var(--accent-text)}
+.honest p{margin:9px 0 0;font-size:12.5px;line-height:1.6;color:var(--muted);max-width:74ch}
+/* ── the borrow lab ─────────────────────────────────────────── */
+.lab{padding:20px 22px 16px}
+.labgrid{display:grid;grid-template-columns:minmax(240px,1fr) minmax(260px,1fr);gap:26px}
+.dial{display:block;margin-bottom:20px}
+.dial:last-child{margin-bottom:0}
+.dl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.dl b{font-size:16px;letter-spacing:-.01em;text-transform:none;color:var(--primary)}
+.dh{display:block;margin-top:7px;font-size:11.5px;line-height:1.5;color:var(--muted)}
+.dial input[type=range]{-webkit-appearance:none;appearance:none;width:100%;margin:11px 0 0;
+  height:4px;border-radius:2px;background:var(--hairline);cursor:pointer}
+.dial input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--canvas);box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:grab}
+.dial input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--canvas);cursor:grab}
+.dial input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.labout{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start}
+.lstat{border:1px solid var(--hairline);border-radius:var(--r-md);padding:11px 13px;background:var(--surface)}
+.lstat span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted)}
+.lstat b{display:block;margin-top:6px;font-size:22px;letter-spacing:-.02em;color:var(--primary);font-weight:700}
+.lstat em{display:block;margin-top:3px;font-style:normal;font-size:10.5px;color:var(--muted)}
+.lstat.danger b{color:var(--bad)}
+.labchart{display:block;width:100%;height:auto;margin:20px 0 4px}
+.labchart text{font-family:var(--sans)}
+.labchart .cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em}
+.labchart .cap:not([fill]){fill:var(--muted)}
+.labnote{margin:6px 0 0;font-size:12px;line-height:1.6;color:var(--muted)}
+@media (max-width:760px){.labgrid{grid-template-columns:1fr;gap:20px}}
 </style>
 </head>
 <body>

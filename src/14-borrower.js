@@ -111,6 +111,85 @@ V.push({
        set: {...A, ...B, '#bo-s1':{do:0}, ...D, '#bo-s2':{do:0}, '#bo-hit':{o:1}, '#bo-s3':{do:0}, '#bo-bal':{o:1}, '#bo-l1t':{o:0}}}
     ]; })()
   },
+  extra: () => `
+  <h3 class="sec">${T(['Set your own liquidation', 'Choisissez votre propre liquidation'])}</h3>
+  <p class="seclead">${T(['David took <code>0.78</code>. You do not have to. Move the two dials and watch the only two numbers that matter: what the pool will lend you today, and how long your margin survives standing still. Spot is <code>1.00</code>, the penalty is <code>π = 8 %</code>, and you are posting 10,000 EV.',
+    "David a pris <code>0,78</code>. Vous n'êtes pas obligé. Bougez les deux curseurs et regardez les deux seuls chiffres qui comptent : ce que le pool vous prête aujourd'hui, et combien de temps votre marge survit sans rien faire. Le spot est à <code>1,00</code>, la pénalité est <code>π = 8 %</code>, et vous postez 10 000 EV."])}</p>
+  <div class="card lab" data-lab>
+    <div class="labgrid">
+      <div class="labdials">
+        <label class="dial">
+          <span class="dl">${T(['Liquidation tick', 'Tick de liquidation'])}<b class="mono" data-lt>0.78</b></span>
+          <input type="range" data-tick min="-25" max="-2" value="-25" step="1">
+          <span class="dh">${T(['On the grid <code>P(i) = 1.01<sup>i</sup></code>. Higher means more borrowed now, and less room.',
+            "Sur la grille <code>P(i) = 1,01<sup>i</sup></code>. Plus haut veut dire plus d'emprunt maintenant, et moins de marge."])}</span>
+        </label>
+        <label class="dial">
+          <span class="dl">${T(['Borrow rate', "Taux d'emprunt"])}<b class="mono" data-lr>11.7 %</b></span>
+          <input type="range" data-rate min="30" max="300" value="117" step="1">
+          <span class="dh">${T(['Not yours to choose: it is the kinked curve, and it pins to the ceiling when capacity hits zero.',
+            "Pas à vous de le choisir : c'est le taux kinké, et il s'épingle au plafond quand la capacité tombe à zéro."])}</span>
+        </label>
+      </div>
+      <div class="labout">
+        <div class="lstat"><span>${T(['You can borrow', 'Vous pouvez emprunter'])}</span><b class="mono" data-lq>7,220</b><em>USDC</em></div>
+        <div class="lstat"><span>${T(['Room today', "Marge aujourd'hui"])}</span><b class="mono" data-lroom>22.0</b><em>${T(['points', 'points'])}</em></div>
+        <div class="lstat danger"><span>${T(['Room in 18 months', 'Marge dans 18 mois'])}</span><b class="mono" data-lroom18>7.9</b><em>${T(['points', 'points'])}</em></div>
+        <div class="lstat danger"><span>${T(['Liquidated by drift alone', 'Liquidé par la seule dérive'])}</span><b class="mono" data-lzero>2 y 3 m</b><em>${T(['if price never moves', 'si le prix ne bouge jamais'])}</em></div>
+      </div>
+    </div>
+    <svg class="labchart" viewBox="0 0 720 200" role="img" aria-label="${T(['Liquidation threshold drifting upward over time', 'Seuil de liquidation dérivant vers le haut avec le temps'])}">
+      <line x1="56" y1="34" x2="704" y2="34" stroke="var(--hairline)"/>
+      <line x1="56" y1="168" x2="704" y2="168" stroke="var(--hairline)"/>
+      <text class="cap" x="56" y="26">${T(['SPOT 1.00 — where the price is standing still', 'SPOT 1,00 — où le prix reste immobile'])}</text>
+      <path data-lfill fill="var(--accent-soft)" d=""/>
+      <path data-lline fill="none" stroke="var(--bad)" stroke-width="2" d=""/>
+      <text class="cap" data-llab x="56" y="0" fill="var(--bad)"></text>
+      ${[0, 6, 12, 18, 24].map((m, i) => `<g>
+        <line x1="${56 + i * 162}" y1="168" x2="${56 + i * 162}" y2="174" stroke="var(--hairline)"/>
+        <text class="cap" x="${56 + i * 162}" y="188" text-anchor="middle">${m}${T(['m', 'm'])}</text></g>`).join('')}
+    </svg>
+    <p class="labnote">${T(['Nothing on this chart is a price move. The line is <code>A<sub>i</sub>(t) = P(i)/M(t)</code>: your own liquidation level, rising as the borrowed side compounds. It is the same multiplier for every loan at every tick, which is exactly what lets a whole tick be closed as one object.',
+      "Rien sur ce graphe n'est un mouvement de prix. La ligne est <code>A<sub>i</sub>(t) = P(i)/M(t)</code> : votre propre niveau de liquidation, qui monte à mesure que le côté emprunté compose. C'est le même multiplicateur pour tous les prêts à tous les ticks, et c'est exactement ce qui permet de fermer un tick entier comme un seul objet."])}</p>
+  </div>`,
+  wireExtra: p => {
+    const lab = p.querySelector('[data-lab]'); if (!lab) return;
+    const $$ = s => lab.querySelector(s);
+    const tickIn = $$('[data-tick]'), rateIn = $$('[data-rate]');
+    const COLL = 10000, PEN = 1.08, SPOT = 1;
+    const fmt = n => Math.round(n).toLocaleString(LANG === 'fr' ? 'fr-FR' : 'en-US');
+    const dec = (n, d) => n.toFixed(d).replace('.', LANG === 'fr' ? ',' : '.');
+    function paint() {
+      const i = +tickIn.value, r = +rateIn.value / 1000;
+      const tick = Math.pow(1.01, i);
+      const q = tick * COLL / PEN;
+      const room = (SPOT - tick) / SPOT * 100;
+      const at = t => tick * Math.pow(1 + r, t);          // A_i(t) = P(i)·M(t)
+      const room18 = Math.max(0, (SPOT - at(1.5)) / SPOT * 100);
+      const years = Math.log(SPOT / tick) / Math.log(1 + r);
+      $$('[data-lt]').textContent = dec(tick, 3);
+      $$('[data-lr]').textContent = dec(r * 100, 1) + ' %';
+      $$('[data-lq]').textContent = fmt(q);
+      $$('[data-lroom]').textContent = dec(room, 1);
+      $$('[data-lroom18]').textContent = dec(room18, 1);
+      $$('[data-lzero]').textContent = years > 24 ? T(['never', 'jamais'])
+        : (Math.floor(years) ? Math.floor(years) + T([' y ', ' a ']) : '') + Math.round((years % 1) * 12) + T([' m', ' m']);
+      // the chart: 0 to 24 months, y maps 0.60 (bottom) to 1.00 (top)
+      const X = m => 56 + (m / 24) * 648;
+      const Y = v => 168 - ((v - 0.6) / 0.4) * 134;
+      const pts = [];
+      for (let m = 0; m <= 24; m++) pts.push([X(m), Y(Math.min(1, at(m / 12)))]);
+      const line = pts.map((pt, k) => `${k ? 'L' : 'M'} ${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ');
+      $$('[data-lline]').setAttribute('d', line);
+      $$('[data-lfill]').setAttribute('d', `${line} L 704,34 L 56,34 Z`);
+      const lab0 = $$('[data-llab]');
+      lab0.setAttribute('y', Math.max(46, Y(tick) - 7));
+      lab0.textContent = T(['YOUR LIQUIDATION LEVEL', 'VOTRE NIVEAU DE LIQUIDATION']) + ' · ' + dec(tick, 3);
+    }
+    tickIn.addEventListener('input', paint);
+    rateIn.addEventListener('input', paint);
+    paint();
+  },
   pnl: {
     win: [
       ['A <b>deterministic liquidation price, chosen by them, known at opening</b>. No health factor, no opaque collateralisation ratio.',

@@ -4,6 +4,9 @@
    score belongs to an address rather than to a browser. */
 
 const PASS = 0.75;
+/* Each test draws DRAW questions from its pool, so a retake is a different
+   paper. The pass mark is on the draw, not on the pool. */
+const DRAW = 8;
 /* Set this to { chain: 8453, address: '0x…' } once the badge contract is live,
    and the mint button below stops being inert. */
 const BADGE_CONTRACT = null;
@@ -31,8 +34,10 @@ const QUIZZES = [
   { id:'hood',   n:'06', views:['band','liq'],      t:['Under the hood', 'Sous le capot'],
     s:['The band that replaces the oracle, and the cascade.', "Le band qui remplace l'oracle, et la cascade."] }
 ];
-const qsOf = z => QBANK.filter(q => z.views.includes(q.v));
-const needOf = z => Math.ceil(qsOf(z).length * PASS);
+const poolOf = z => QBANK.filter(q => z.views.includes(q.v));
+const qsOf = z => poolOf(z);                       // the pool, for counting
+const drawOf = z => Math.min(DRAW, poolOf(z).length);
+const needOf = z => Math.ceil(drawOf(z) * PASS);
 
 const QI = {
   gateT: ['Connect your wallet to begin', 'Connectez votre wallet pour commencer'],
@@ -42,6 +47,7 @@ const QI = {
   lead:  ['Every answer is somewhere in the guide, and every explanation names the view that covers it. Pass all six at 75 % or better to unlock the badge.',
           'Chaque réponse est quelque part dans le guide, et chaque explication nomme la vue qui la traite. Passez les six à 75 % ou mieux pour débloquer le badge.'],
   qs:    ['questions', 'questions'],
+  outof: ['drawn from', 'tirées sur'],
   need:  ['pass at', 'réussite à'],
   start: ['Start', 'Commencer'],
   retry: ['Retry', 'Refaire'],
@@ -76,7 +82,14 @@ const QI = {
   mint:  ['Mint the badge', 'Mint le badge'],
   soon:  ['Minting opens at launch', 'Le mint ouvre au lancement'],
   howto: ['X cannot take an image from a link. Copy the card first, then paste it into the post that opens.',
-          "X ne peut pas récupérer une image depuis un lien. Copiez la carte d'abord, puis collez-la dans le post qui s'ouvre."]
+          "X ne peut pas récupérer une image depuis un lien. Copiez la carte d'abord, puis collez-la dans le post qui s'ouvre."],
+  notifyT:['Tell me when minting opens', 'Prévenez-moi quand le mint ouvre'],
+  notifyS:['There is no contract yet, so there is no list to join and nothing to sign. The claim code above is derived from your address and your six scores, so it will still be here when there is. This guide is independent of the protocol, so the announcement, if it comes, comes from the repo.',
+           "Il n'y a pas encore de contrat, donc pas de liste à rejoindre et rien à signer. Le code ci-dessus est dérivé de votre adresse et de vos six scores, il sera donc toujours là quand il y en aura un. Ce guide est indépendant du protocole, donc l'annonce, si elle vient, viendra du repo."],
+  notifyB:['Watch the repo', 'Suivre le repo'],
+  honest: ['How honest this is', 'Ce que vaut cette preuve'],
+  honestS:['Scores are kept in this browser, and browser storage can be edited by whoever owns the browser. The signature proves that the address agreed to a message, not that the answers were unaided. Treat the badge as something you made, not as an attestation.',
+           "Les scores sont gardés dans ce navigateur, et le stockage d'un navigateur est modifiable par celui à qui il appartient. La signature prouve que l'adresse a accepté un message, pas que les réponses étaient sans aide. Prenez le badge pour ce que vous avez fabriqué, pas pour une attestation."]
 };
 
 /* progress is stored per address, so switching wallets switches scoreboards */
@@ -104,11 +117,11 @@ V.push({
   id: 'quiz',
   eyebrow: ['Test yourself', 'Testez-vous'],
   title: ['Take the tests', 'Passez les tests'],
-  sub: ['Six tests, one per part of the guide. Pass every one at 75 % or better and a badge unlocks, signed to your address.',
-        'Six tests, un par partie du guide. Réussissez-les tous à 75 % ou mieux et un badge se débloque, signé à votre adresse.'],
+  sub: ['Six tests, one per part of the guide. Each one draws eight questions from a larger pool, so a retake is never the same paper. Pass every one at 75 % or better and a badge unlocks, signed to your address.',
+        'Six tests, un par partie du guide. Chacun tire huit questions dans un vivier plus large, donc refaire un test ne redonne jamais la même copie. Réussissez-les tous à 75 % ou mieux et un badge se débloque, signé à votre adresse.'],
   id_card: [
     [['Tests', 'Tests'], ['6', '6'], 'b'],
-    [['Questions', 'Questions'], ['49', '49'], 'n'],
+    [['Questions', 'Questions'], [DRAW * QUIZZES.length + ' of ' + QBANK.length, DRAW * QUIZZES.length + ' sur ' + QBANK.length], 'n'],
     [['To unlock', 'Pour débloquer'], ['75 % each', '75 % chacun'], 'w']],
   custom: () => `
     <div class="quizwrap" data-quiz>
@@ -178,13 +191,13 @@ V.push({
             </div>
           </div>
           <div class="qgrid">${QUIZZES.map(q => {
-            const r = prog[q.id], n = qsOf(q).length, ok = r && r.s >= needOf(q);
+            const r = prog[q.id], n = drawOf(q), ok = r && r.s >= needOf(q);
             return `<button class="tcard${ok ? ' passed' : r ? ' tried' : ''}" type="button" data-test="${q.id}">
               <span class="trow"><span class="tn mono">${q.n}</span>
                 <span class="tstate">${r ? `<span class="mono">${r.s}/${n}</span>${ok ? ' ✓' : ''}` : ''}</span></span>
               <span class="tt">${T(q.t)}</span>
               <span class="tsub">${T(q.s)}</span>
-              <span class="tmeta mono">${n} ${T(QI.qs)} · ${T(QI.need)} ${needOf(q)}</span>
+              <span class="tmeta mono">${n} ${T(QI.qs)} ${T(QI.outof)} ${poolOf(q).length} · ${T(QI.need)} ${needOf(q)}</span>
               <span class="tgo">${r ? (ok ? T(QI.again) : T(QI.retry)) : T(QI.start)} &rarr;</span>
             </button>`;
           }).join('')}</div>
@@ -208,7 +221,8 @@ V.push({
               <p class="qlead">${done} / ${QUIZZES.length} &middot; <b>${left.length} ${T(QI.bLeft)}</b></p>
               <div class="bleft">${left.map(q => `<span class="bchip">${q.n} ${T(q.t)}</span>`).join('')}</div>
             </div>
-          </div></div>`;
+          </div>
+          <details class="honest"><summary>${T(QI.honest)}</summary><p>${T(QI.honestS)}</p></details></div>`;
       }
       return `<div class="card quizcard badgecard open">
         <div class="bwrap">
@@ -229,7 +243,11 @@ V.push({
             ${T(QI.share)}</button>
           <button class="btn mintbtn" type="button" data-bmint ${BADGE_CONTRACT ? '' : 'disabled'}>${T(QI.mint)}</button>
         </div>
-        ${BADGE_CONTRACT ? '' : `<p class="qnote">${T(QI.soon)}</p>`}</div>`;
+        ${BADGE_CONTRACT ? '' : `<div class="notify">
+          <div><b>${T(QI.notifyT)}</b><p>${T(QI.notifyS)}</p></div>
+          <a class="btn" href="https://github.com/0xStarny/Everything" target="_blank" rel="noopener noreferrer">${T(QI.notifyB)}</a>
+        </div>`}
+        <details class="honest"><summary>${T(QI.honest)}</summary><p>${T(QI.honestS)}</p></details></div>`;
     }
 
     const coinIMG = () => `<img src="${BADGE_IMG}" alt="" width="640" height="640" draggable="false">`;
@@ -238,7 +256,7 @@ V.push({
     /* ── playing ─────────────────────────────────────────────── */
     function begin(quiz) {
       z = quiz;
-      list = shuffle(qsOf(z)).map(q => { const order = shuffle([0, 1, 2, 3]); return { ...q, order, c2: order.indexOf(q.c) }; });
+      list = shuffle(poolOf(z)).slice(0, drawOf(z)).map(q => { const order = shuffle([0, 1, 2, 3]); return { ...q, order, c2: order.indexOf(q.c) }; });
       idx = 0; right = 0; marks = [];
       only(play); paint();
     }
@@ -353,7 +371,7 @@ V.push({
       c.fillText(T(['All six tests passed', 'Les six tests réussis']), 430, 224);
       // per-test bars
       QUIZZES.forEach((q, i) => {
-        const r = prog[q.id] || { s: 0, n: qsOf(q).length };
+        const r = prog[q.id] || { s: 0, n: drawOf(q) };
         const x = 430 + i * 118, y = 274;
         c.fillStyle = OK; c.beginPath(); c.roundRect(x, y, 100, 10, 5); c.fill();
         c.fillStyle = MUT; c.font = F(19, '600');
@@ -368,7 +386,7 @@ V.push({
       c.fillStyle = MUT; c.font = F(20, '500');
       c.fillText(WALLET.short || '', 430, 508);
       c.fillStyle = ACC; c.font = F(22, '600');
-      c.fillText(location.host + '/#/quiz', 430, 574);
+      c.fillText(ROUTES.site.url.replace(/^https?:\/\//, '') + '/tests', 430, 574);
     }
     const blobOf = cv => new Promise(r => cv.toBlob(r, 'image/png'));
 
@@ -396,7 +414,7 @@ V.push({
           `I passed all six Everything Protocol tests.\n\nBadge unlocked · ${claimCode()}\n\nOne reserve, three markets. Try it:`,
           `J'ai réussi les six tests du protocole Everything.\n\nBadge débloqué · ${claimCode()}\n\nUne réserve, trois marchés. Essayez :`
         ]);
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(location.origin + location.pathname + '#/quiz')}`,
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(shareUrl('/tests'))}`,
           '_blank', 'noopener,noreferrer');
       });
     }

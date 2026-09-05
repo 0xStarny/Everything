@@ -182,6 +182,7 @@ function renderView(v) {
       <div class="pnlcard lose"><h4>${T(UI.lose)}</h4><ul>${v.pnl.lose.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
       <div class="pnlcard trap"><h4>${T(UI.trap)}</h4><ul>${v.pnl.trap.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
     </div>` : ''}
+    ${v.extra ? v.extra() : ''}
     ${QUOTES[v.id] ? `<figure class="pull">
       <blockquote>${T(QUOTES[v.id])}</blockquote>
       <figcaption>
@@ -193,7 +194,6 @@ function renderView(v) {
       </figcaption>
       <canvas hidden data-qcanvasimg width="1200" height="675"></canvas>
     </figure>` : ''}
-    ${v.extra ? v.extra() : ''}
     <nav class="viewnav">
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
       ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
@@ -294,6 +294,7 @@ function wire(p, v) {
   });
   render(STATE.step[v.id] || 0, true);
   decorate(p);
+  if (v.wireExtra) v.wireExtra(p);
   return { stop, render };
 }
 

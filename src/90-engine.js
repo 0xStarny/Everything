@@ -11,10 +11,11 @@ const TABLABEL = {
   lp:       ['Farid · LP', 'Farid · LP'],
   band:     ['The band', 'Le band'],
   liq:      ['Liquidation', 'Liquidation'],
-  quiz:     ['Take the quiz', 'Passez le quiz']
+  quiz:     ['Take the tests', 'Passez les tests'],
+  which:    ['Which of the six are you?', 'Lequel des six êtes-vous ?']
 };
 const GROUPS = [
-  { label: [' ', ' '], ids: ['start'] },
+  { label: [' ', ' '], ids: ['start', 'which'] },
   { label: ['Mechanics', 'Mécanique'], ids: ['overview', 'curve'] },
   { label: ['The six', 'Les six'], ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
   { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] },
@@ -221,7 +222,7 @@ function wire(p, v) {
     });
     bPrev.disabled = i === 0;
     bNext.disabled = i === steps.length - 1;
-    if (!silent && STATE.tab === v.id) writeHash();
+    if (!silent && STATE.tab === v.id) writePath(false);
   }
   function stop() { if (timer) { clearTimeout(timer); timer = null; bPlay.innerHTML = T(UI.play); } }
   function play() {
@@ -260,7 +261,7 @@ function buildNav() {
     `<div class="navgroup${g.ids.includes('quiz') ? ' navpin' : ''}">${T(g.label).trim() ? `<div class="navlabel">${T(g.label)}</div>` : ''}` +
     g.ids.map(id => {
       const num = String(n++).padStart(2, '0');
-      return `<button class="navitem${id === 'quiz' ? ' navcta' : ''}" type="button" role="tab"
+      return `<button class="navitem${(id === 'quiz' || id === 'which') ? ' navcta' : ''}" type="button" role="tab"
         id="n-${id}" aria-controls="p-${id}" aria-selected="false" data-nav="${id}">
         <span class="ni mono">${num}</span><span class="nt">${T(TABLABEL[id])}</span>
         <span class="nk" data-tick="${id}"></span></button>
@@ -282,6 +283,7 @@ function paintTicks() {
   const a = seen();
   NAV.querySelectorAll('[data-tick]').forEach(el => {
     const id = el.dataset.tick;
+    if (id === 'which') { el.textContent = '30s'; return; }
     if (id === 'quiz') {
       const prog = (typeof myProg === 'function') ? myProg() : {};
       const done = QUIZZES.filter(q => prog[q.id] && prog[q.id].s >= needOf(q)).length;
@@ -315,7 +317,7 @@ function closeNav() {
   document.getElementById('menu').setAttribute('aria-expanded', 'false');
 }
 
-function show(id, keepScroll) {
+function show(id, keepScroll, fromPop) {
   if (!ORDER.includes(id)) id = 'start';
   STATE.tab = id;
   closePop();
@@ -328,6 +330,7 @@ function show(id, keepScroll) {
   });
   paintTicks();
   paintSteps();
+  setTitle();
   V.forEach(v => {
     const panel = document.getElementById('p-' + v.id);
     if (panel) panel.hidden = (v.id !== id);
@@ -338,7 +341,7 @@ function show(id, keepScroll) {
   // the whitepaper attribution belongs under the guide, not under the tests
   document.getElementById('foot').hidden = (id === 'quiz');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
-  writeHash();
+  writePath(!fromPop);
 }
 
 /* jump buttons: cast cards and the prev/next view nav */
@@ -347,29 +350,53 @@ document.addEventListener('click', e => {
   if (b) show(b.dataset.goto);
 });
 
-/* ── deep links: #/view/step ───────────────────────────────────── */
-let hashLock = false;
-function writeHash() {
-  const s = (STATE.step[STATE.tab] || 0) + 1;
-  const h = '#/' + STATE.tab + (s > 1 ? '/' + s : '');
-  if (location.hash === h) return;
-  hashLock = true;
-  history.replaceState(null, '', h);
-  setTimeout(() => { hashLock = false; }, 0);
+/* ── routing: real paths, so every deep link carries its own card ── */
+const PATHOF = {}, IDOF = {};
+let ROOTID = 'start';
+ROUTES.views.forEach(v => {
+  PATHOF[v.id] = v.path;
+  IDOF[v.path] = v.id;
+  if (v.root) { ROOTID = v.id; IDOF[''] = v.id; }
+});
+
+const TITLEOF = {};
+ROUTES.views.forEach(v => { TITLEOF[v.id] = v.title; });
+function setTitle() {
+  const site = LANG === 'fr' ? 'Everything, le guide' : 'Everything, the guide';
+  const t = TITLEOF[STATE.tab];
+  document.title = (t && STATE.tab !== ROOTID) ? `${t} · ${site}` : `${site} · ${ROUTES.site.tagline}`;
 }
-function readHash() {
-  const m = /^#\/([a-z]+)(?:\/(\d+))?$/.exec(location.hash);
-  if (!m || !ORDER.includes(m[1])) return false;
-  STATE.tab = m[1];
-  if (m[2]) STATE.step[m[1]] = Math.max(0, +m[2] - 1);
+
+function urlFor(id, step) {
+  const seg = PATHOF[id] || '';
+  const n = (step || 0) + 1;
+  if (id === ROOTID && n === 1) return '/';
+  return '/' + seg + (n > 1 ? '/' + n : '');
+}
+const samePath = (a, b) => a.replace(/\/+$/, '') === b.replace(/\/+$/, '');
+let navLock = false;
+function writePath(push) {
+  const u = urlFor(STATE.tab, STATE.step[STATE.tab]);
+  if (samePath(location.pathname, u)) return;
+  navLock = true;
+  try { history[push ? 'pushState' : 'replaceState'](null, '', u); } catch (e) {}
+  setTimeout(() => { navLock = false; }, 0);
+}
+function readPath() {
+  const parts = location.pathname.split('/').filter(Boolean);
+  const id = IDOF[parts[0] || ''];
+  if (id === undefined) return false;
+  STATE.tab = id;
+  const n = parseInt(parts[1], 10);
+  if (!isNaN(n)) STATE.step[id] = Math.max(0, n - 1);
   return true;
 }
-window.addEventListener('hashchange', () => {
-  if (hashLock) return;
-  if (!readHash()) return;
+window.addEventListener('popstate', () => {
+  if (navLock) return;
+  if (!readPath()) return;
   const c = CTRL[STATE.tab];
   if (c) c.render(STATE.step[STATE.tab] || 0, true);
-  show(STATE.tab, true);
+  show(STATE.tab, true, true);
 });
 
 /* ── build ─────────────────────────────────────────────────────── */
@@ -384,7 +411,7 @@ function build() {
   document.getElementById('kicker').textContent = T(UI.kicker);
   document.getElementById('foot').innerHTML = T(UI.foot);
   paintWallet();
-  document.title = LANG === 'fr' ? 'Everything, le guide' : 'Everything, the guide';
+  setTitle();
 }
 
 /* ── toggles ───────────────────────────────────────────────────── */
@@ -430,7 +457,7 @@ document.getElementById('wallet').addEventListener('click', () => {
 if (WALLET.has()) {
   WALLET.provider.on && WALLET.provider.on('accountsChanged', a => WALLET._set(a && a[0]));
 }
-readHash();
+readPath();
 syncToggles();
 build();
 WALLET.restore();

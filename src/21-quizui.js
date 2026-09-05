@@ -7,7 +7,7 @@ const PASS = 0.75;
 /* Set this to { chain: 8453, address: '0x…' } once the badge contract is live,
    and the mint button below stops being inert. */
 const BADGE_CONTRACT = null;
-const BADGE_IMG = 'assets/badge.webp';
+const BADGE_IMG = '/assets/badge.webp';
 const COIN = { img: null };
 const loadCoin = () => new Promise(res => {
   if (COIN.img) return res(COIN.img);

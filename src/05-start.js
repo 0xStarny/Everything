@@ -113,6 +113,31 @@ V.push({
     ]
   },
   pnl: null,
+  top: () => `
+  <section class="hero">
+    <svg class="ghostmark" viewBox="0 0 12 20" fill="currentColor" aria-hidden="true">
+      <path d="M11.72.11.14 4.32a.21.21 0 0 0-.14.21v3.9c0 .16.15.26.29.21L11.87 4.43a.21.21 0 0 0 .14-.21V.32c0-.15-.15-.26-.29-.21Z"/>
+      <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13a.21.21 0 0 0 .14-.21Z" opacity=".55"/>
+      <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.58 4.22c.14.05.29-.06.29-.21v-3.9a.21.21 0 0 0-.14-.21Z"/>
+    </svg>
+    <p class="herokick">${T(['A guide, not advice', 'Un guide, pas un conseil'])}</p>
+    <h1>${T(['One reserve. Three markets. No oracle.',
+             'Une seule réserve. Trois marchés. Aucun oracle.'])}</h1>
+    <p>${T(['Everything puts a spot market, a lending book and a leverage venue on top of a single pool of tokens. That one decision is what lets it lend against assets nothing else will touch, and it is also where every hard question in the design comes from. This guide walks the whole mechanism with six people, real numbers and one animated diagram per step.',
+            "Everything empile un marché spot, un carnet de lending et un venue de levier sur une seule réserve de tokens. Cette décision unique est ce qui lui permet de prêter contre des actifs que personne d'autre n'accepte, et c'est aussi de là que vient chaque question difficile du design. Ce guide parcourt tout le mécanisme avec six personnes, de vrais chiffres et un schéma animé par étape."])}</p>
+    <div class="heroact">
+      <button class="btn primary" type="button" data-goto="overview">${T(['Start reading', 'Commencer la lecture'])} &rarr;</button>
+      <button class="btn" type="button" data-goto="which">${T(['Which of the six are you?', 'Lequel des six êtes-vous ?'])}</button>
+      <button class="btn" type="button" data-goto="quiz">${T(['Take the tests', 'Passer les tests'])}</button>
+    </div>
+    <div class="facts">
+      <div><b>${ROUTES.views.length}</b><span>${T(['views', 'vues'])}</span></div>
+      <div><b>6</b><span>${T(['people', 'personnes'])}</span></div>
+      <div><b>6</b><span>${T(['tests', 'tests'])}</span></div>
+      <div><b>~45 min</b><span>${T(['front to back', "d'une traite"])}</span></div>
+    </div>
+  </section>
+`,
   extra: () => `
   <h3 class="sec">${T(['The six people you will follow', 'Les six personnes que vous allez suivre'])}</h3>
   <p class="seclead">${T(['Every view after this one follows one of them through one concrete situation, step by step, with real numbers. Click a card to jump straight there.',
@@ -132,9 +157,9 @@ V.push({
     <div class="mini"><h4>${T(['Go in order','Dans l\'ordre'])}</h4><div class="role">${T(['page by page','page par page'])}</div>
       <p>${T(['The views build on each other. Each one ends with a button to the next, so you can read the whole thing front to back without going back to the tabs.',
         "Les vues s'appuient les unes sur les autres. Chacune se termine par un bouton vers la suivante, pour lire l'ensemble d'une traite sans repasser par les onglets."])}</p></div>
-    <div class="mini"><h4>${T(['Two reading levels','Deux niveaux de lecture'])}</h4><div class="role">${T(['top right','en haut à droite'])}</div>
-      <p>${T(['<strong>Plain</strong> gives you every step in ordinary language, with no formulas and no jargon. <strong>Full</strong> adds the technical layer underneath, with the whitepaper\'s own terms and section references. Switch at any time — you keep your place.',
-        "<strong>Simple</strong> vous donne chaque étape en langage ordinaire, sans formule et sans jargon. <strong>Complet</strong> ajoute la couche technique en dessous, avec les termes et les renvois de section du whitepaper. Changez quand vous voulez, vous gardez votre place."])}</p></div>
+    <div class="mini"><h4>${T(['Two layers per step','Deux couches par étape'])}</h4><div class="role">${T(['under each diagram','sous chaque schéma'])}</div>
+      <p>${T(['Every step is written twice. <strong>In plain terms</strong> explains what just happened in ordinary language, with no formula and no jargon. The paragraph under it adds the technical layer, with the whitepaper\'s own terms and section references. Read one, both, or skip between them.',
+        "Chaque étape est écrite deux fois. <strong>En clair</strong> explique ce qui vient de se passer en langage ordinaire, sans formule et sans jargon. Le paragraphe en dessous ajoute la couche technique, avec les termes et les renvois de section du whitepaper. Lisez l'une, les deux, ou passez de l'une à l'autre."])}</p></div>
     <div class="mini"><h4>${T(['Underlined words','Les mots soulignés'])}</h4><div class="role">${T(['click them','cliquez dessus'])}</div>
       <p>${T(['Any term that might not be obvious is underlined the first time it appears. Click or hover it for a one-sentence definition in ordinary language. The full list is at the bottom of this page.',
         "Tout terme qui pourrait ne pas être évident est souligné à sa première apparition. Cliquez ou survolez pour une définition en une phrase, en langage ordinaire. La liste complète est en bas de cette page."])}</p></div>

@@ -476,6 +476,66 @@ td b{color:var(--primary);font-weight:600}
   .anim{transition-duration:.01ms !important}
   html{scroll-behavior:auto}
 }
+/* ── share controls in the stage header ─────────────────────── */
+.hd .hdr{display:inline-flex;align-items:center;gap:8px}
+.ghost{appearance:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  font:500 11px/1 var(--sans);letter-spacing:.01em;border-radius:var(--r-sm);padding:4px 7px;
+  transition:color .15s,border-color .15s,background .15s}
+.ghost:hover{color:var(--accent-text);border-color:var(--hairline);background:var(--surface-2)}
+.ghost svg{flex:none;opacity:.8}
+
+/* ── the pull quote ─────────────────────────────────────────── */
+.pull{margin:26px 0 4px;padding:20px 22px 16px;border:1px solid var(--hairline);
+  border-left:3px solid var(--accent);border-radius:var(--r-md);background:var(--surface)}
+.pull blockquote{margin:0;font:600 17.5px/1.45 var(--sans);letter-spacing:-.012em;color:var(--primary);
+  text-wrap:balance}
+.pull figcaption{display:flex;align-items:center;gap:9px;margin-top:14px;flex-wrap:wrap}
+.pull figcaption > span{font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);margin-right:auto}
+.pull .btn{padding:5px 11px;font-size:11.5px}
+.xbtn{display:inline-flex;align-items:center;gap:6px}
+@media (max-width:640px){.pull{padding:16px}.pull blockquote{font-size:15.5px}
+  .pull figcaption > span{width:100%;margin:0 0 2px}}
+
+/* ── the search palette ─────────────────────────────────────── */
+#pal{position:fixed;inset:0;z-index:120;background:rgba(9,11,16,.44);
+  backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px}
+#pal[hidden]{display:none}
+.palbox{width:min(620px,100%);background:var(--canvas);border:1px solid var(--border);
+  border-radius:var(--r-lg);box-shadow:0 26px 60px rgba(0,0,0,.3);overflow:hidden}
+.palin{width:100%;box-sizing:border-box;appearance:none;border:0;outline:0;background:transparent;
+  color:var(--primary);font:500 16px/1 var(--sans);padding:17px 19px;
+  border-bottom:1px solid var(--hairline)}
+.palin::placeholder{color:var(--muted)}
+.palout{max-height:52vh;overflow:auto;padding:6px}
+.palrow{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;appearance:none;
+  border:0;background:transparent;cursor:pointer;border-radius:var(--r-sm);padding:9px 11px;
+  color:var(--primary);font:500 13.5px/1.35 var(--sans)}
+.palrow:hover,.palrow.on{background:var(--surface-2)}
+.palrow .palk{font-family:var(--mono);font-size:11px;color:var(--accent-text);width:13px;flex:none}
+.palrow .palt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.palrow em{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--muted);flex:none}
+.palnone{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
+
+/* ── the opening block ──────────────────────────────────────── */
+.hero{margin:0 0 30px;padding:30px 30px 26px;border:1px solid var(--hairline);border-radius:var(--r-lg);
+  background:linear-gradient(140deg,var(--surface) 0%,var(--canvas) 62%);position:relative;overflow:hidden}
+.hero h1{margin:0;font:800 clamp(27px,4.1vw,42px)/1.08 var(--sans);letter-spacing:-.03em;
+  color:var(--primary);max-width:19ch;text-wrap:balance}
+.hero p{margin:14px 0 0;max-width:60ch;font-size:15px;line-height:1.58;color:var(--secondary)}
+.hero .herokick{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent-text);margin:0 0 12px}
+.hero .heroact{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.hero .facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:24px;padding-top:18px;
+  border-top:1px solid var(--hairline)}
+.hero .facts div{min-width:90px}
+.hero .facts b{display:block;font:700 20px/1 var(--sans);letter-spacing:-.02em;color:var(--primary)}
+.hero .facts span{display:block;margin-top:5px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hero .ghostmark{position:absolute;right:-40px;top:-30px;width:260px;opacity:.05;pointer-events:none;color:var(--primary)}
+@media (max-width:640px){.hero{padding:22px 20px}.hero .facts{gap:18px}}
 </style>
 </head>
 <body>
@@ -517,6 +577,9 @@ td b{color:var(--primary);font-weight:600}
     <button type="button" data-lang="en" aria-pressed="true">EN</button>
     <button type="button" data-lang="fr" aria-pressed="false">FR</button>
   </div>
+  <button class="iconbtn" id="search" type="button" aria-label="Search" title="Search (⌘K)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m15.6 15.6 4 4"/></svg>
+  </button>
   <button class="wbtn" id="wallet" type="button"></button>
   <button class="iconbtn" id="theme" type="button" aria-label="Toggle theme">
     <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg>
@@ -533,6 +596,7 @@ td b{color:var(--primary);font-weight:600}
   </div>
 </div>
 
+<script defer src="/_vercel/insights/script.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

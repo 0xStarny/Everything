@@ -14,6 +14,8 @@ const UI = {
   prevView: ['Previous', 'Précédent'],
   meet: ['Meet', 'Voici'],
   glossary: ['Glossary', 'Glossaire'],
+  searchPh: ['Search views, steps and terms\u2026', 'Chercher une vue, une \u00e9tape, un terme\u2026'],
+  searchNone: ['Nothing here', 'Rien ici'],
   gMech: ['Mechanics', 'Mécanique'],
   gProf: ['Profiles', 'Profils'],
   gHood: ['Under the hood', 'Sous le capot'],
@@ -350,6 +352,31 @@ V.push({
     ]
   },
   pnl: null,
+  top: () => `
+  <section class="hero">
+    <svg class="ghostmark" viewBox="0 0 12 20" fill="currentColor" aria-hidden="true">
+      <path d="M11.72.11.14 4.32a.21.21 0 0 0-.14.21v3.9c0 .16.15.26.29.21L11.87 4.43a.21.21 0 0 0 .14-.21V.32c0-.15-.15-.26-.29-.21Z"/>
+      <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13a.21.21 0 0 0 .14-.21Z" opacity=".55"/>
+      <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.58 4.22c.14.05.29-.06.29-.21v-3.9a.21.21 0 0 0-.14-.21Z"/>
+    </svg>
+    <p class="herokick">${T(['A guide, not advice', 'Un guide, pas un conseil'])}</p>
+    <h1>${T(['One reserve. Three markets. No oracle.',
+             'Une seule réserve. Trois marchés. Aucun oracle.'])}</h1>
+    <p>${T(['Everything puts a spot market, a lending book and a leverage venue on top of a single pool of tokens. That one decision is what lets it lend against assets nothing else will touch, and it is also where every hard question in the design comes from. This guide walks the whole mechanism with six people, real numbers and one animated diagram per step.',
+            "Everything empile un marché spot, un carnet de lending et un venue de levier sur une seule réserve de tokens. Cette décision unique est ce qui lui permet de prêter contre des actifs que personne d'autre n'accepte, et c'est aussi de là que vient chaque question difficile du design. Ce guide parcourt tout le mécanisme avec six personnes, de vrais chiffres et un schéma animé par étape."])}</p>
+    <div class="heroact">
+      <button class="btn primary" type="button" data-goto="overview">${T(['Start reading', 'Commencer la lecture'])} &rarr;</button>
+      <button class="btn" type="button" data-goto="which">${T(['Which of the six are you?', 'Lequel des six êtes-vous ?'])}</button>
+      <button class="btn" type="button" data-goto="quiz">${T(['Take the tests', 'Passer les tests'])}</button>
+    </div>
+    <div class="facts">
+      <div><b>${ROUTES.views.length}</b><span>${T(['views', 'vues'])}</span></div>
+      <div><b>6</b><span>${T(['people', 'personnes'])}</span></div>
+      <div><b>6</b><span>${T(['tests', 'tests'])}</span></div>
+      <div><b>~45 min</b><span>${T(['front to back', "d'une traite"])}</span></div>
+    </div>
+  </section>
+`,
   extra: () => `
   <h3 class="sec">${T(['The six people you will follow', 'Les six personnes que vous allez suivre'])}</h3>
   <p class="seclead">${T(['Every view after this one follows one of them through one concrete situation, step by step, with real numbers. Click a card to jump straight there.',
@@ -369,9 +396,9 @@ V.push({
     <div class="mini"><h4>${T(['Go in order','Dans l\'ordre'])}</h4><div class="role">${T(['page by page','page par page'])}</div>
       <p>${T(['The views build on each other. Each one ends with a button to the next, so you can read the whole thing front to back without going back to the tabs.',
         "Les vues s'appuient les unes sur les autres. Chacune se termine par un bouton vers la suivante, pour lire l'ensemble d'une traite sans repasser par les onglets."])}</p></div>
-    <div class="mini"><h4>${T(['Two reading levels','Deux niveaux de lecture'])}</h4><div class="role">${T(['top right','en haut à droite'])}</div>
-      <p>${T(['<strong>Plain</strong> gives you every step in ordinary language, with no formulas and no jargon. <strong>Full</strong> adds the technical layer underneath, with the whitepaper\'s own terms and section references. Switch at any time — you keep your place.',
-        "<strong>Simple</strong> vous donne chaque étape en langage ordinaire, sans formule et sans jargon. <strong>Complet</strong> ajoute la couche technique en dessous, avec les termes et les renvois de section du whitepaper. Changez quand vous voulez, vous gardez votre place."])}</p></div>
+    <div class="mini"><h4>${T(['Two layers per step','Deux couches par étape'])}</h4><div class="role">${T(['under each diagram','sous chaque schéma'])}</div>
+      <p>${T(['Every step is written twice. <strong>In plain terms</strong> explains what just happened in ordinary language, with no formula and no jargon. The paragraph under it adds the technical layer, with the whitepaper\'s own terms and section references. Read one, both, or skip between them.',
+        "Chaque étape est écrite deux fois. <strong>En clair</strong> explique ce qui vient de se passer en langage ordinaire, sans formule et sans jargon. Le paragraphe en dessous ajoute la couche technique, avec les termes et les renvois de section du whitepaper. Lisez l'une, les deux, ou passez de l'une à l'autre."])}</p></div>
     <div class="mini"><h4>${T(['Underlined words','Les mots soulignés'])}</h4><div class="role">${T(['click them','cliquez dessus'])}</div>
       <p>${T(['Any term that might not be obvious is underlined the first time it appears. Click or hover it for a one-sentence definition in ordinary language. The full list is at the bottom of this page.',
         "Tout terme qui pourrait ne pas être évident est souligné à sa première apparition. Cliquez ou survolez pour une définition en une phrase, en langage ordinaire. La liste complète est en bas de cette page."])}</p></div>
@@ -661,6 +688,151 @@ function paintWallet() {
     b.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a2 2 0 0 1 2 2v1"/><path d="M3 7.5V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2.5"/><path d="M21 14.5h-4a2.25 2.25 0 0 1 0-4.5h4z"/></svg><span class="wtxt">${T(WALLET.has() ? WI.connect : WI.none)}</span>`;
     b.title = WALLET.has() ? T(WI.connect) : T(WI.noneHelp);
   }
+}
+
+/* ══════════════ SHARING ══════════════
+   Turning what is on screen into something postable: a diagram as a PNG, a
+   line of the argument as a quote card. Both go through a canvas, both come
+   out branded, and both are one click. */
+
+const SH = {
+  copyDiagram: ['Copy diagram', 'Copier le schéma'],
+  copied:  ['Copied', 'Copié'],
+  failed:  ['Copy failed', 'Échec'],
+  copyQuote: ['Copy as image', 'Copier en image'],
+  post:    ['Post it', 'Poster'],
+  quote:   ['Worth arguing about', 'À débattre']
+};
+
+const QUOTES = {
+  overview: ['The tokens that price a swap are, at the same second, the stock a borrower can borrow.', "Les tokens qui cotent un swap sont, à la même seconde, le stock que l'emprunteur peut emprunter."],
+  curve: ['Quoting a price means selling the winner and buying the loser. That is the service, and the fees are what pay for it.', "Coter un prix, c'est vendre le gagnant et acheter le perdant. C'est le service rendu, et les fees sont là pour le payer."],
+  trader: ['The deeper the book, the better the venue quotes. Bob did nothing clever and got 1.3 % more.', "Plus le carnet est profond, mieux le venue cote. Bob n'a rien fait d'astucieux et a eu 1,3 % de plus."],
+  maker: ['Of everyone in this guide, Alice is the only one nothing can hold up.', "De tous les gens de ce guide, Alice est la seule que rien ne peut bloquer."],
+  lent: ['What that yield buys is not loss risk. It is the right to leave when you want to.', "Ce que ce rendement achète, ce n'est pas du risque de perte. C'est le droit de partir quand on veut."],
+  borrow: ['The price fell 10 %. David lost 16 % against simply doing nothing.', "Le prix a baissé de 10 %. David a perdu 16 % contre le simple fait de ne rien faire."],
+  lev: ['There is no leverage slider. The maximum falls out of the penalty, the buffer and the swap cost.', "Il n'y a pas de curseur de levier. Le maximum tombe de la pénalité, du buffer et du coût de swap."],
+  lp: ['Three classes of user are protected by arithmetic. One class carries the loss, uncapped, and cannot leave while it happens.', "Trois classes d'utilisateurs sont protégées par arithmétique. Une seule porte la perte, sans plafond, et ne peut pas partir pendant ce temps."],
+  band: ['The attacker paid slippage on both legs and the only thing they achieved was making the protocol more careful with them.', "L'attaquant a payé le slippage des deux jambes et la seule chose qu'il a obtenue est de rendre le protocole plus méfiant avec lui."],
+  liq: ['A loss either fits the junior tranche and is written down, or the rung that would create it stays pending.', "Une perte tient dans la tranche junior et elle est écrite, ou bien le barreau qui la créerait reste en attente."],
+  capacity: ['The question stops being a judgement call and becomes a measurement taken from the curve that will do the selling.', "La question cesse d'être un jugement et devient une mesure prise sur la courbe qui fera la vente."],
+  recap: ['Alice and Nadia placed the identical order at the identical price. One boolean decided two very different days.', "Alice et Nadia ont posé le même ordre au même prix. Un booléen a décidé de deux journées très différentes."],
+  start: ['The counter setting the exchange rate is the counter holding the pawn.', "Le comptoir qui fixe le taux de change est celui qui détient le gage."],
+};
+
+const UTM = '?utm_source=x&utm_medium=social&utm_campaign=guide';
+const shareUrl = path => ROUTES.site.url + path + UTM;
+
+/* ── an svg on the page, rendered to a png ────────────────────── */
+const COPYPROPS = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-dashoffset',
+  'stroke-linecap', 'stroke-linejoin', 'opacity', 'font-family', 'font-size', 'font-weight',
+  'letter-spacing', 'text-anchor', 'transform', 'transform-origin', 'transform-box'];
+
+function inlineStyles(src, dst) {
+  const cs = getComputedStyle(src);
+  let css = '';
+  for (const p of COPYPROPS) {
+    const v = cs.getPropertyValue(p);
+    if (v && v !== 'none' && v !== 'normal') css += `${p}:${v};`;
+  }
+  dst.setAttribute('style', css);
+  const a = src.children, b = dst.children;
+  for (let i = 0; i < a.length; i++) inlineStyles(a[i], b[i]);
+}
+
+/* Computed styles carry CSS variables already resolved, so the clone survives
+   leaving the document. Fonts are the one thing that cannot follow, hence the
+   explicit family on every node. */
+function svgToPng(svg, { scale = 2, pad = 28, bg, footer } = {}) {
+  return new Promise((res, rej) => {
+    const vb = svg.getAttribute('viewBox').split(' ').map(Number);
+    const clone = svg.cloneNode(true);
+    inlineStyles(svg, clone);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('width', vb[2]);
+    clone.setAttribute('height', vb[3]);
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+    const im = new Image();
+    im.onload = () => {
+      const foot = footer ? 46 : 0;
+      const W = (vb[2] + pad * 2) * scale, H = (vb[3] + pad * 2 + foot) * scale;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const c = cv.getContext('2d');
+      c.scale(scale, scale);
+      c.fillStyle = bg || getComputedStyle(document.body).backgroundColor;
+      c.fillRect(0, 0, W / scale, H / scale);
+      c.drawImage(im, pad, pad, vb[2], vb[3]);
+      if (footer) {
+        const cs = getComputedStyle(document.body);
+        c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#7a8294';
+        c.font = `600 15px "Geist", ui-sans-serif, system-ui, sans-serif`;
+        c.fillText(footer, pad, vb[3] + pad * 2 + 6);
+        c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0f5ff7';
+        c.textAlign = 'right';
+        c.fillText(ROUTES.site.url.replace(/^https?:\/\//, ''), vb[2] + pad, vb[3] + pad * 2 + 6);
+        c.textAlign = 'left';
+      }
+      cv.toBlob(b => (b ? res(b) : rej(new Error('toBlob'))), 'image/png');
+    };
+    im.onerror = rej;
+    im.src = url;
+  });
+}
+
+async function copyBlob(blob) {
+  await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+}
+
+function flash(btn, ok) {
+  const was = btn.dataset.was || btn.innerHTML;
+  btn.dataset.was = was;
+  btn.innerHTML = T(ok ? SH.copied : SH.failed);
+  setTimeout(() => { btn.innerHTML = was; }, 2200);
+}
+
+/* ── a line of the argument, on a card ────────────────────────── */
+function quoteCard(cv, text, attribution) {
+  const W = 1200, H = 675, c = cv.getContext('2d');
+  const BG = '#1d2029', FG = '#fff', MUT = '#a0a9bb', ACC = '#387efc';
+  const F = (px, w) => `${w} ${px}px "Geist", ui-sans-serif, system-ui, sans-serif`;
+  c.fillStyle = BG; c.fillRect(0, 0, W, H);
+  c.fillStyle = ACC; c.fillRect(0, H - 8, W, 8);
+  c.fillStyle = '#2c303c';
+  for (let i = 0; i < 4; i++) c.fillRect(1120 - i * 60, 620 - i * 12, 60 + i * 60, 3);
+  // the mark
+  const mx = 80, my = 68, s = 2.2;
+  const bar = pts => { c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](mx + x * s, my + y * s)); c.closePath(); c.fill(); };
+  c.fillStyle = FG;
+  bar([[0, 4.5], [11.7, 0.1], [11.7, 4.2], [0, 8.6]]);
+  bar([[0, 10.9], [11.7, 6.7], [11.7, 10.8], [6, 13.1]]);
+  bar([[0, 10.9], [11.7, 15.2], [11.7, 19.5], [0, 15.2]]);
+  c.fillStyle = MUT; c.font = F(22, '600');
+  c.fillText(T(['Everything, the guide', 'Everything, le guide']), 118, 84);
+
+  // the quote, wrapped and auto-sized
+  let size = 60;
+  const fit = () => {
+    c.font = F(size, '800');
+    const words = text.split(' ');
+    const lines = []; let line = '';
+    for (const w of words) {
+      if (c.measureText(line + ' ' + w).width > 1040 && line) { lines.push(line); line = w; }
+      else line = line ? line + ' ' + w : w;
+    }
+    lines.push(line);
+    return lines;
+  };
+  let lines = fit();
+  while (lines.length > 6 && size > 30) { size -= 5; lines = fit(); }
+  let y = 340 - ((lines.length - 1) * (size + 12)) / 2;
+  c.fillStyle = FG;
+  for (const l of lines) { c.fillText(l, 80, y); y += size + 12; }
+
+  c.fillStyle = ACC; c.font = F(24, '600');
+  c.fillText(attribution, 80, 566);
+  c.fillStyle = MUT; c.font = F(22, '500');
+  c.fillText(ROUTES.site.url.replace(/^https?:\/\//, ''), 80, 606);
 }
 
 /* ══════════════ 00 · THE PROTOCOL ══════════════ */
@@ -3150,73 +3322,74 @@ V.push({
     vb: '0 0 900 430',
     svg: () => MK('rc') + `
       ${[[52,'1.20'],[100,'1.00'],[126,'0.90']].map(([y,l])=>
-        `<line x1="176" y1="${y}" x2="846" y2="${y}" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 6"/>
-         <text class="num" x="168" y="${+y+4}" text-anchor="end" fill="var(--muted)">${l}</text>`).join('')}
-      <path id="rc-price" class="anim rev" d="M 186,100 L 290,92 L 380,70 L 470,50 L 560,58 L 650,88 L 730,120 L 840,126"
+        `<line x1="210" y1="${y}" x2="846" y2="${y}" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 6"/>
+         <text class="num" x="202" y="${+y+4}" text-anchor="end" fill="var(--muted)">${l}</text>`).join('')}
+      <path id="rc-price" class="anim rev" d="M 210,100 L 310,92 L 397,70 L 484,50 L 571,58 L 658,88 L 734,120 L 840,126"
         fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linejoin="round"/>
-      <text class="cap" x="176" y="30">${T(['THE PRICE OF EV, ALL DAY','LE PRIX DE EV, TOUTE LA JOURNÉE'])}</text>
+      <text class="cap" x="210" y="30">${T(['THE PRICE OF EV, ALL DAY','LE PRIX DE EV, TOUTE LA JOURNÉE'])}</text>
 
-      ${RL.map(l => `<g>
-        <circle cx="106" cy="${l.y}" r="13" fill="var(--accent-soft)"/>
-        <text class="num" x="106" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
-        <text class="sm" x="126" y="${l.y + 4}">${T(TABLABEL[l.id]).split(' · ')[0]}</text>
-        <line x1="176" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`).join('')}
+      ${RL.map(l => { const [nm, role] = T(TABLABEL[l.id]).split(' · '); return `<g>
+        <circle cx="100" cy="${l.y}" r="12" fill="var(--accent-soft)"/>
+        <text class="num" x="100" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
+        <text class="sm" x="118" y="${l.y - 1}" fill="var(--primary)">${nm}</text>
+        <text class="cap" x="118" y="${l.y + 11}">${(role || '').toUpperCase()}</text>
+        <line x1="210" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`; }).join('')}
       <text class="cap" x="846" y="410" text-anchor="end">${T(['ONE DAY →','UNE JOURNÉE →'])}</text>
 
-      ${ev('rc-1', 186, 158, 'lp',     ['deposits both tokens', 'dépose les deux tokens'], 'b')}
-      ${ev('rc-2', 262, 150, 'maker',  ['rests 10k at 0.950', 'pose 10k à 0.950'], 'b')}
-      ${ev('rc-3', 262, 186, 'lent',   ['rests 10k, ticks lend', 'pose 10k, coche lend'], 'b')}
-      ${ev('rc-4', 356, 196, 'borrow', ['borrows 6k, tick 0.78', 'emprunte 6k, tick 0.78'], 'b')}
-      ${ev('rc-5', 446, 176, 'lev',    ['levers 3.4x on 5k', 'lève 3,4x sur 5k'], 'b')}
-      ${ev('rc-6', 536, 152, 'trader', ['swaps 50k USDC', 'swappe 50k USDC'], 'g')}
-      ${ev('rc-7', 536, 132, 'maker',  ['+ rebate, 0 fee', '+ rebate, 0 fee'], 'g')}
-      ${ev('rc-8', 536, 148, 'lp',     ['fees + interest', 'fees + intérêts'], 'g')}
-      ${ev('rc-9', 452, 176, 'lent',   ['lent to David, earning', 'prêté à David, rapporte'], 'g')}
-      ${ev('rc-10', 556, 152, 'borrow', ['tick drifts to 0.90', 'le tick dérive à 0.90'], 'w')}
-      ${ev('rc-11', 716, 128, 'borrow', ['liquidated', 'liquidé'], 'r')}
-      ${ev('rc-12', 716, 128, 'lev',    ['stopped out', 'stop-out'], 'r')}
-      ${ev('rc-13', 716, 130, 'lent',   ['exit blocked', 'sortie bloquée'], 'w')}
-      ${ev('rc-14', 716, 130, 'maker',  ['untouched', 'intouchée'], 'g')}
-      ${ev('rc-15', 716, 130, 'lp',     ['pays the gap', 'paie l’écart'], 'r')}
+      ${ev('rc-1', 210, 152, 'lp',     ['deposits both tokens', 'dépose les deux tokens'], 'b')}
+      ${ev('rc-2', 283, 145, 'maker',  ['rests 10k at 0.950', 'pose 10k à 0.950'], 'b')}
+      ${ev('rc-3', 283, 179, 'lent',   ['rests 10k, ticks lend', 'pose 10k, coche lend'], 'b')}
+      ${ev('rc-4', 374, 189, 'borrow', ['borrows 6k, tick 0.78', 'emprunte 6k, tick 0.78'], 'b')}
+      ${ev('rc-5', 461, 170, 'lev',    ['levers 3.4x on 5k', 'lève 3,4x sur 5k'], 'b')}
+      ${ev('rc-6', 547, 146, 'trader', ['swaps 50k USDC', 'swappe 50k USDC'], 'g')}
+      ${ev('rc-7', 547, 127, 'maker',  ['+ rebate, 0 fee', '+ rebate, 0 fee'], 'g')}
+      ${ev('rc-8', 547, 143, 'lp',     ['fees + interest', 'fees + intérêts'], 'g')}
+      ${ev('rc-9', 466, 170, 'lent',   ['lent to David, earning', 'prêté à David, rapporte'], 'g')}
+      ${ev('rc-10', 567, 146, 'borrow', ['tick drifts to 0.90', 'le tick dérive à 0.90'], 'w')}
+      ${ev('rc-11', 721, 123, 'borrow', ['liquidated', 'liquidé'], 'r')}
+      ${ev('rc-12', 721, 123, 'lev',    ['stopped out', 'stop-out'], 'r')}
+      ${ev('rc-13', 721, 125, 'lent',   ['exit blocked', 'sortie bloquée'], 'w')}
+      ${ev('rc-14', 721, 125, 'maker',  ['untouched', 'intouchée'], 'g')}
+      ${ev('rc-15', 721, 125, 'lp',     ['pays the gap', 'paie l’écart'], 'r')}
       <g id="rc-now" class="anim">
-        <line x1="186" y1="36" x2="186" y2="398" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 4"/></g>`,
+        <line x1="210" y1="36" x2="210" y2="398" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 4"/></g>`,
     base: {'#rc-price':{o:1,do:1},'#rc-now':{o:1,t:[0,0]},
       ...Object.fromEntries(Array.from({length:15},(_,i)=>['#rc-'+(i+1),{o:0}]))},
     steps: (() => {
       const on = (...n) => Object.fromEntries(n.map(i => ['#rc-' + i, { o: 1 }]));
-      const at = x => ({ '#rc-now': { o: 1, t: [x - 186, 0] } });
+      const at = x => ({ '#rc-now': { o: 1, t: [x - 210, 0] } });
       return [
       {t: ['Morning. Farid puts up the money.', 'Le matin. Farid met l\'argent.'],
        plain: ['Nothing else on this page can happen until somebody deposits. Farid puts in both tokens and receives pool shares. From this second his money is quoting prices, sitting in the loan book, and standing last in line if anything goes wrong. He did not choose those three jobs separately: they are the same tokens.',
                "Rien d'autre sur cette page ne peut arriver tant que quelqu'un n'a pas déposé. Farid met les deux tokens et reçoit des parts. Dès cette seconde, son argent cote des prix, dort dans le carnet de prêts, et se tient en dernier si quelque chose tourne mal. Il n'a pas choisi ces trois métiers séparément : ce sont les mêmes tokens."],
        d: ['One reserve, three markets, one solvency ledger. Everything after this is a claim on the same balance sheet.',
            "Une réserve, trois marchés, un ledger de solvabilité. Tout ce qui suit est une créance sur le même bilan."],
-       set: { ...at(220), ...on(1) }},
+       set: { ...at(240), ...on(1) }},
       {t: ['Alice and Nadia both want EV cheaper', 'Alice et Nadia veulent toutes deux de l\'EV moins cher'],
        plain: ['They place the identical order at the identical price, ten thousand each waiting at 0.950. One difference: Nadia ticks the box that lends her money while it waits. That single boolean is the only thing separating them, and by the end of the day it will have decided very different outcomes.',
                "Elles posent le même ordre au même prix, dix mille chacune en attente à 0.950. Une différence : Nadia coche la case qui prête son argent pendant l'attente. Ce seul booléen est tout ce qui les sépare, et à la fin de la journée il aura décidé de deux sorts très différents."],
        d: ['Both sit in escrow, held by the pair, never counted as pricing reserve. Nadia\'s additionally joins the borrowable pool, and her flag is frozen for the order\'s life.',
            "Les deux sont en escrow, détenues par la paire, jamais comptées en pricing reserve. Celle de Nadia rejoint en plus le pool empruntable, et son flag est figé pour la vie de l'ordre."],
-       set: { ...at(320), ...on(1, 2, 3) }},
+       set: { ...at(350), ...on(1, 2, 3) }},
       {t: ['David needs cash and refuses to sell', 'David a besoin de liquide et refuse de vendre'],
        plain: ['He borrows six thousand against his EV, and picks 0.78 as the price at which he accepts to be wiped out. Twenty-two percent of room feels generous. Notice where the money he borrows comes from: partly Farid\'s reserve, partly Nadia\'s waiting order. He will never know that.',
                "Il emprunte six mille contre son EV, et choisit 0.78 comme prix auquel il accepte d'être liquidé. Vingt-deux pour cent de marge, ça paraît confortable. Remarquez d'où vient l'argent qu'il emprunte : en partie la réserve de Farid, en partie l'ordre en attente de Nadia. Il ne le saura jamais."],
        d: ['Collateral sized by <code>c = (1+π)·q·A<sub>i</sub></code>, and the amount has to fit the global envelope plus the per-tick and per-range capacity shaped by the curve\'s own depth at 0.78.',
            "Collateral dimensionné par <code>c = (1+π)·q·A<sub>i</sub></code>, et le montant doit tenir dans l'enveloppe globale plus la capacité par tick et par range façonnée par la profondeur de la courbe à 0.78."],
-       set: { ...at(410), ...on(1, 2, 3, 4, 9) }},
+       set: { ...at(440), ...on(1, 2, 3, 4, 9) }},
       {t: ['Elena stacks the same machinery four times', 'Elena empile la même mécanique quatre fois'],
        plain: ['She does what David did, in a loop, inside one transaction: borrow, swap, post, borrow again. Five thousand of her own becomes seventeen thousand of exposure. No slider set that, and no funding index will charge her for it. The interest rate does that job by itself.',
                "Elle fait ce que David a fait, en boucle, dans une seule transaction : emprunter, swapper, poster, réemprunter. Cinq mille à elle deviennent dix-sept mille d'exposition. Aucun curseur n'a fixé ça, et aucun index de funding ne le lui facturera. Le taux fait ce travail tout seul."],
        d: ['Funded by the pair\'s own fee-free flash facility. The geometric series exhausts itself; the bound is the penalty, the buffer and the swap-cost floor.',
            "Financé par le flash gratuit de la paire elle-même. La série géométrique s'épuise ; la borne est la pénalité, le buffer et le plancher de coût de swap."],
-       set: { ...at(500), ...on(1, 2, 3, 4, 9, 5) }},
+       set: { ...at(520), ...on(1, 2, 3, 4, 9, 5) }},
       {t: ['Midday. Bob arrives and moves everything.', 'Midi. Bob arrive et déplace tout.'],
        plain: ['He presses swap with fifty thousand USDC, knowing none of the above. His order is offered to the resting walls before it ever touches the curve, so Alice is filled at exactly 0.950, with no fee and no slippage, and gets a rebate on top. Farid earns from the same trade. Bob gets a better price than the curve alone would have given him. Nobody negotiated any of this.',
                "Il appuie sur swap avec cinquante mille USDC, sans rien savoir de tout ça. Son ordre est offert aux walls en attente avant de toucher la courbe, donc Alice est remplie à exactement 0.950, sans fee et sans slippage, avec un rebate en prime. Farid gagne sur le même échange. Bob obtient un meilleur prix que la courbe seule. Personne n'a négocié quoi que ce soit."],
        d: ['The fee was resolved once on the gross input, before routing, which is precisely why the pool gains nothing by skipping Alice.',
            "La fee a été résolue une fois sur l'input brut, avant le routage, ce qui est précisément pourquoi la réserve ne gagne rien à sauter Alice."],
        tone: 'good',
-       set: { ...at(600), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8), '#rc-price': { do: .38 } }},
+       set: { ...at(620), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8), '#rc-price': { do: .38 } }},
       {t: ['Afternoon. The market turns.', 'L\'après-midi. Le marché se retourne.'],
        plain: ['EV falls back through the day. Nothing dramatic yet, and David is still well above his 0.78. Except his 0.78 is no longer 0.78: interest has been accruing since morning, and the level at which he gets wiped out has been climbing toward the price all along. Nothing told him.',
                "EV redescend au fil de la journée. Rien de dramatique encore, et David est toujours bien au-dessus de son 0.78. Sauf que son 0.78 n'est plus 0.78 : les intérêts courent depuis le matin, et le niveau auquel il est liquidé grimpe vers le prix depuis le début. Rien ne le lui a dit."],
@@ -3389,8 +3562,9 @@ function renderView(v) {
       ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
     </nav>`;
   // the tests are a destination, not a step in the reading sequence
-  if (v.custom) { p.innerHTML = HEAD + v.custom(); return p; }
-  p.innerHTML = `
+  const TOP = v.top ? v.top() : '';
+  if (v.custom) { p.innerHTML = TOP + HEAD + v.custom(); return p; }
+  p.innerHTML = TOP + `
     <div class="rolehead">
       <div class="lead">
         <div class="eyebrow">${T(v.eyebrow)}</div>
@@ -3404,7 +3578,12 @@ function renderView(v) {
         <span class="nm">${T(UI.meet)} ${who.n}</span><p>${T(who.l)}</p></div></div>` : ''}
     <div class="work">
       <div class="card">
-        <div class="hd"><h3>${T(st.title)}</h3><span class="tag">${T(st.tag)}</span></div>
+        <div class="hd"><h3>${T(st.title)}</h3>
+          <span class="hdr">
+            <button class="ghost" type="button" data-copysvg title="${T(SH.copyDiagram)}">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+              ${T(SH.copyDiagram)}</button>
+            <span class="tag">${T(st.tag)}</span></span></div>
         <div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div>
         <div class="caption" data-cap aria-live="polite">
           <div class="ct"></div>
@@ -3424,6 +3603,17 @@ function renderView(v) {
       <div class="pnlcard lose"><h4>${T(UI.lose)}</h4><ul>${v.pnl.lose.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
       <div class="pnlcard trap"><h4>${T(UI.trap)}</h4><ul>${v.pnl.trap.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
     </div>` : ''}
+    ${QUOTES[v.id] ? `<figure class="pull">
+      <blockquote>${T(QUOTES[v.id])}</blockquote>
+      <figcaption>
+        <span>${T(SH.quote)}</span>
+        <button class="btn" type="button" data-qcopyimg>${T(SH.copyQuote)}</button>
+        <button class="btn xbtn" type="button" data-qpost>
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.66l7.73-8.84L1.24 2.25H8.07l4.71 6.23 5.46-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z"/></svg>
+          ${T(SH.post)}</button>
+      </figcaption>
+      <canvas hidden data-qcanvasimg width="1200" height="675"></canvas>
+    </figure>` : ''}
     ${v.extra ? v.extra() : ''}
     <nav class="viewnav">
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
@@ -3432,7 +3622,30 @@ function renderView(v) {
   return p;
 }
 
+function wireShare(p, v) {
+  const cs = p.querySelector('[data-copysvg]');
+  if (cs) cs.addEventListener('click', async () => {
+    try {
+      await copyBlob(await svgToPng(p.querySelector('svg.stage'), { footer: T(v.title) }));
+      flash(cs, true);
+    } catch (e) { flash(cs, false); }
+  });
+  const qc = p.querySelector('[data-qcopyimg]'), qp = p.querySelector('[data-qpost]');
+  if (qc) qc.addEventListener('click', async () => {
+    const cv = p.querySelector('[data-qcanvasimg]');
+    quoteCard(cv, T(QUOTES[v.id]), T(v.title));
+    try { await copyBlob(await new Promise(r => cv.toBlob(r, 'image/png'))); flash(qc, true); }
+    catch (e) { flash(qc, false); }
+  });
+  if (qp) qp.addEventListener('click', () => {
+    const txt = `"${T(QUOTES[v.id])}"\n\n${T(v.title)} —`;
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(txt) +
+      '&url=' + encodeURIComponent(shareUrl(urlFor(v.id, 0))), '_blank', 'noopener,noreferrer');
+  });
+}
+
 function wire(p, v) {
+  wireShare(p, v);
   if (v.custom) return v.wireup ? v.wireup(p) : { stop() {}, render() {} };
   const svg   = p.querySelector('svg.stage');
   const steps = v.stage.steps;
@@ -3601,6 +3814,70 @@ document.addEventListener('click', e => {
   if (b) show(b.dataset.goto);
 });
 
+/* ── search ─────────────────────────────────────────────────── */
+function searchIndex() {
+  const out = [];
+  V.forEach(v => {
+    out.push({ k: 'view', id: v.id, i: 0, t: T(v.title), s: T(v.eyebrow) });
+    (v.stage ? v.stage.steps : []).forEach((st, i) =>
+      out.push({ k: 'step', id: v.id, i, t: T(st.t), s: T(TABLABEL[v.id]) }));
+  });
+  GLOSS.forEach((g, i) => out.push({ k: 'term', gi: i, t: T(g.t), s: T(UI.glossary) }));
+  return out;
+}
+function openSearch() {
+  let box = document.getElementById('pal');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'pal';
+    box.innerHTML = `<div class="palbox" role="dialog" aria-modal="true">
+      <input class="palin" type="search" autocomplete="off" spellcheck="false" placeholder="${T(UI.searchPh)}">
+      <div class="palout"></div></div>`;
+    document.body.appendChild(box);
+    box.addEventListener('click', e => { if (e.target === box) closeSearch(); });
+  }
+  box.hidden = false;
+  const inp = box.querySelector('.palin'), out = box.querySelector('.palout');
+  const idx = searchIndex();
+  let sel = 0, hits = [];
+  const paint = () => {
+    const q = inp.value.trim().toLowerCase();
+    hits = (q ? idx.filter(r => r.t.toLowerCase().includes(q) || r.s.toLowerCase().includes(q)) : idx.filter(r => r.k === 'view')).slice(0, 40);
+    sel = Math.min(sel, Math.max(0, hits.length - 1));
+    out.innerHTML = hits.map((r, i) =>
+      `<button class="palrow${i === sel ? ' on' : ''}" data-i="${i}"><span class="palk">${r.k === 'term' ? '𝐚' : r.k === 'view' ? '§' : '›'}</span><span class="palt">${r.t}</span><em>${r.s}</em></button>`).join('')
+      || `<div class="palnone">${T(UI.searchNone)}</div>`;
+    out.querySelectorAll('.palrow').forEach(b => b.addEventListener('click', () => go(+b.dataset.i)));
+  };
+  const go = i => {
+    const r = hits[i];
+    if (!r) return;
+    closeSearch();
+    if (r.k === 'term') { show('start'); setTimeout(() => {
+      const rows = document.querySelectorAll('#p-start tbody tr');
+      if (rows[r.gi]) { rows[r.gi].scrollIntoView({ block: 'center' }); rows[r.gi].classList.add('flashrow');
+        setTimeout(() => rows[r.gi].classList.remove('flashrow'), 1800); }
+    }, 120); return; }
+    show(r.id);
+    const c = CTRL[r.id];
+    if (c) { c.stop(); c.render(r.i); }
+  };
+  inp.value = ''; paint(); inp.focus();
+  inp.oninput = paint;
+  inp.onkeydown = e => {
+    if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, hits.length - 1); paint(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); paint(); e.preventDefault(); }
+    if (e.key === 'Enter') { go(sel); e.preventDefault(); }
+    if (e.key === 'Escape') closeSearch();
+  };
+}
+function closeSearch() { const b = document.getElementById('pal'); if (b) b.hidden = true; }
+document.addEventListener('keydown', e => {
+  if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !/input|textarea/i.test(e.target.tagName))) {
+    e.preventDefault(); openSearch();
+  }
+});
+
 /* ── routing: real paths, so every deep link carries its own card ── */
 const PATHOF = {}, IDOF = {};
 let ROOTID = 'start';
@@ -3694,6 +3971,7 @@ NAV.addEventListener('keydown', e => {
   const nxt = (cur + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
   items[nxt].focus();
 });
+document.getElementById('search').addEventListener('click', openSearch);
 document.getElementById('menu').addEventListener('click', () => {
   const open = NAV.classList.toggle('open');
   document.getElementById('veil').hidden = !open;

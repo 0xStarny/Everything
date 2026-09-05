@@ -141,8 +141,9 @@ function renderView(v) {
       ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
     </nav>`;
   // the tests are a destination, not a step in the reading sequence
-  if (v.custom) { p.innerHTML = HEAD + v.custom(); return p; }
-  p.innerHTML = `
+  const TOP = v.top ? v.top() : '';
+  if (v.custom) { p.innerHTML = TOP + HEAD + v.custom(); return p; }
+  p.innerHTML = TOP + `
     <div class="rolehead">
       <div class="lead">
         <div class="eyebrow">${T(v.eyebrow)}</div>
@@ -156,7 +157,12 @@ function renderView(v) {
         <span class="nm">${T(UI.meet)} ${who.n}</span><p>${T(who.l)}</p></div></div>` : ''}
     <div class="work">
       <div class="card">
-        <div class="hd"><h3>${T(st.title)}</h3><span class="tag">${T(st.tag)}</span></div>
+        <div class="hd"><h3>${T(st.title)}</h3>
+          <span class="hdr">
+            <button class="ghost" type="button" data-copysvg title="${T(SH.copyDiagram)}">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+              ${T(SH.copyDiagram)}</button>
+            <span class="tag">${T(st.tag)}</span></span></div>
         <div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div>
         <div class="caption" data-cap aria-live="polite">
           <div class="ct"></div>
@@ -176,6 +182,17 @@ function renderView(v) {
       <div class="pnlcard lose"><h4>${T(UI.lose)}</h4><ul>${v.pnl.lose.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
       <div class="pnlcard trap"><h4>${T(UI.trap)}</h4><ul>${v.pnl.trap.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
     </div>` : ''}
+    ${QUOTES[v.id] ? `<figure class="pull">
+      <blockquote>${T(QUOTES[v.id])}</blockquote>
+      <figcaption>
+        <span>${T(SH.quote)}</span>
+        <button class="btn" type="button" data-qcopyimg>${T(SH.copyQuote)}</button>
+        <button class="btn xbtn" type="button" data-qpost>
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.66l7.73-8.84L1.24 2.25H8.07l4.71 6.23 5.46-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z"/></svg>
+          ${T(SH.post)}</button>
+      </figcaption>
+      <canvas hidden data-qcanvasimg width="1200" height="675"></canvas>
+    </figure>` : ''}
     ${v.extra ? v.extra() : ''}
     <nav class="viewnav">
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
@@ -184,7 +201,30 @@ function renderView(v) {
   return p;
 }
 
+function wireShare(p, v) {
+  const cs = p.querySelector('[data-copysvg]');
+  if (cs) cs.addEventListener('click', async () => {
+    try {
+      await copyBlob(await svgToPng(p.querySelector('svg.stage'), { footer: T(v.title) }));
+      flash(cs, true);
+    } catch (e) { flash(cs, false); }
+  });
+  const qc = p.querySelector('[data-qcopyimg]'), qp = p.querySelector('[data-qpost]');
+  if (qc) qc.addEventListener('click', async () => {
+    const cv = p.querySelector('[data-qcanvasimg]');
+    quoteCard(cv, T(QUOTES[v.id]), T(v.title));
+    try { await copyBlob(await new Promise(r => cv.toBlob(r, 'image/png'))); flash(qc, true); }
+    catch (e) { flash(qc, false); }
+  });
+  if (qp) qp.addEventListener('click', () => {
+    const txt = `"${T(QUOTES[v.id])}"\n\n${T(v.title)} —`;
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(txt) +
+      '&url=' + encodeURIComponent(shareUrl(urlFor(v.id, 0))), '_blank', 'noopener,noreferrer');
+  });
+}
+
 function wire(p, v) {
+  wireShare(p, v);
   if (v.custom) return v.wireup ? v.wireup(p) : { stop() {}, render() {} };
   const svg   = p.querySelector('svg.stage');
   const steps = v.stage.steps;
@@ -353,6 +393,70 @@ document.addEventListener('click', e => {
   if (b) show(b.dataset.goto);
 });
 
+/* ── search ─────────────────────────────────────────────────── */
+function searchIndex() {
+  const out = [];
+  V.forEach(v => {
+    out.push({ k: 'view', id: v.id, i: 0, t: T(v.title), s: T(v.eyebrow) });
+    (v.stage ? v.stage.steps : []).forEach((st, i) =>
+      out.push({ k: 'step', id: v.id, i, t: T(st.t), s: T(TABLABEL[v.id]) }));
+  });
+  GLOSS.forEach((g, i) => out.push({ k: 'term', gi: i, t: T(g.t), s: T(UI.glossary) }));
+  return out;
+}
+function openSearch() {
+  let box = document.getElementById('pal');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'pal';
+    box.innerHTML = `<div class="palbox" role="dialog" aria-modal="true">
+      <input class="palin" type="search" autocomplete="off" spellcheck="false" placeholder="${T(UI.searchPh)}">
+      <div class="palout"></div></div>`;
+    document.body.appendChild(box);
+    box.addEventListener('click', e => { if (e.target === box) closeSearch(); });
+  }
+  box.hidden = false;
+  const inp = box.querySelector('.palin'), out = box.querySelector('.palout');
+  const idx = searchIndex();
+  let sel = 0, hits = [];
+  const paint = () => {
+    const q = inp.value.trim().toLowerCase();
+    hits = (q ? idx.filter(r => r.t.toLowerCase().includes(q) || r.s.toLowerCase().includes(q)) : idx.filter(r => r.k === 'view')).slice(0, 40);
+    sel = Math.min(sel, Math.max(0, hits.length - 1));
+    out.innerHTML = hits.map((r, i) =>
+      `<button class="palrow${i === sel ? ' on' : ''}" data-i="${i}"><span class="palk">${r.k === 'term' ? '𝐚' : r.k === 'view' ? '§' : '›'}</span><span class="palt">${r.t}</span><em>${r.s}</em></button>`).join('')
+      || `<div class="palnone">${T(UI.searchNone)}</div>`;
+    out.querySelectorAll('.palrow').forEach(b => b.addEventListener('click', () => go(+b.dataset.i)));
+  };
+  const go = i => {
+    const r = hits[i];
+    if (!r) return;
+    closeSearch();
+    if (r.k === 'term') { show('start'); setTimeout(() => {
+      const rows = document.querySelectorAll('#p-start tbody tr');
+      if (rows[r.gi]) { rows[r.gi].scrollIntoView({ block: 'center' }); rows[r.gi].classList.add('flashrow');
+        setTimeout(() => rows[r.gi].classList.remove('flashrow'), 1800); }
+    }, 120); return; }
+    show(r.id);
+    const c = CTRL[r.id];
+    if (c) { c.stop(); c.render(r.i); }
+  };
+  inp.value = ''; paint(); inp.focus();
+  inp.oninput = paint;
+  inp.onkeydown = e => {
+    if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, hits.length - 1); paint(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); paint(); e.preventDefault(); }
+    if (e.key === 'Enter') { go(sel); e.preventDefault(); }
+    if (e.key === 'Escape') closeSearch();
+  };
+}
+function closeSearch() { const b = document.getElementById('pal'); if (b) b.hidden = true; }
+document.addEventListener('keydown', e => {
+  if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !/input|textarea/i.test(e.target.tagName))) {
+    e.preventDefault(); openSearch();
+  }
+});
+
 /* ── routing: real paths, so every deep link carries its own card ── */
 const PATHOF = {}, IDOF = {};
 let ROOTID = 'start';
@@ -446,6 +550,7 @@ NAV.addEventListener('keydown', e => {
   const nxt = (cur + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
   items[nxt].focus();
 });
+document.getElementById('search').addEventListener('click', openSearch);
 document.getElementById('menu').addEventListener('click', () => {
   const open = NAV.classList.toggle('open');
   document.getElementById('veil').hidden = !open;

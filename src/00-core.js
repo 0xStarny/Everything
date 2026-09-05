@@ -14,6 +14,8 @@ const UI = {
   prevView: ['Previous', 'Précédent'],
   meet: ['Meet', 'Voici'],
   glossary: ['Glossary', 'Glossaire'],
+  searchPh: ['Search views, steps and terms\u2026', 'Chercher une vue, une \u00e9tape, un terme\u2026'],
+  searchNone: ['Nothing here', 'Rien ici'],
   gMech: ['Mechanics', 'Mécanique'],
   gProf: ['Profiles', 'Profils'],
   gHood: ['Under the hood', 'Sous le capot'],

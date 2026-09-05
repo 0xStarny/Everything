@@ -38,73 +38,74 @@ V.push({
     vb: '0 0 900 430',
     svg: () => MK('rc') + `
       ${[[52,'1.20'],[100,'1.00'],[126,'0.90']].map(([y,l])=>
-        `<line x1="176" y1="${y}" x2="846" y2="${y}" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 6"/>
-         <text class="num" x="168" y="${+y+4}" text-anchor="end" fill="var(--muted)">${l}</text>`).join('')}
-      <path id="rc-price" class="anim rev" d="M 186,100 L 290,92 L 380,70 L 470,50 L 560,58 L 650,88 L 730,120 L 840,126"
+        `<line x1="210" y1="${y}" x2="846" y2="${y}" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 6"/>
+         <text class="num" x="202" y="${+y+4}" text-anchor="end" fill="var(--muted)">${l}</text>`).join('')}
+      <path id="rc-price" class="anim rev" d="M 210,100 L 310,92 L 397,70 L 484,50 L 571,58 L 658,88 L 734,120 L 840,126"
         fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linejoin="round"/>
-      <text class="cap" x="176" y="30">${T(['THE PRICE OF EV, ALL DAY','LE PRIX DE EV, TOUTE LA JOURNÉE'])}</text>
+      <text class="cap" x="210" y="30">${T(['THE PRICE OF EV, ALL DAY','LE PRIX DE EV, TOUTE LA JOURNÉE'])}</text>
 
-      ${RL.map(l => `<g>
-        <circle cx="106" cy="${l.y}" r="13" fill="var(--accent-soft)"/>
-        <text class="num" x="106" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
-        <text class="sm" x="126" y="${l.y + 4}">${T(TABLABEL[l.id]).split(' · ')[0]}</text>
-        <line x1="176" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`).join('')}
+      ${RL.map(l => { const [nm, role] = T(TABLABEL[l.id]).split(' · '); return `<g>
+        <circle cx="100" cy="${l.y}" r="12" fill="var(--accent-soft)"/>
+        <text class="num" x="100" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
+        <text class="sm" x="118" y="${l.y - 1}" fill="var(--primary)">${nm}</text>
+        <text class="cap" x="118" y="${l.y + 11}">${(role || '').toUpperCase()}</text>
+        <line x1="210" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`; }).join('')}
       <text class="cap" x="846" y="410" text-anchor="end">${T(['ONE DAY →','UNE JOURNÉE →'])}</text>
 
-      ${ev('rc-1', 186, 158, 'lp',     ['deposits both tokens', 'dépose les deux tokens'], 'b')}
-      ${ev('rc-2', 262, 150, 'maker',  ['rests 10k at 0.950', 'pose 10k à 0.950'], 'b')}
-      ${ev('rc-3', 262, 186, 'lent',   ['rests 10k, ticks lend', 'pose 10k, coche lend'], 'b')}
-      ${ev('rc-4', 356, 196, 'borrow', ['borrows 6k, tick 0.78', 'emprunte 6k, tick 0.78'], 'b')}
-      ${ev('rc-5', 446, 176, 'lev',    ['levers 3.4x on 5k', 'lève 3,4x sur 5k'], 'b')}
-      ${ev('rc-6', 536, 152, 'trader', ['swaps 50k USDC', 'swappe 50k USDC'], 'g')}
-      ${ev('rc-7', 536, 132, 'maker',  ['+ rebate, 0 fee', '+ rebate, 0 fee'], 'g')}
-      ${ev('rc-8', 536, 148, 'lp',     ['fees + interest', 'fees + intérêts'], 'g')}
-      ${ev('rc-9', 452, 176, 'lent',   ['lent to David, earning', 'prêté à David, rapporte'], 'g')}
-      ${ev('rc-10', 556, 152, 'borrow', ['tick drifts to 0.90', 'le tick dérive à 0.90'], 'w')}
-      ${ev('rc-11', 716, 128, 'borrow', ['liquidated', 'liquidé'], 'r')}
-      ${ev('rc-12', 716, 128, 'lev',    ['stopped out', 'stop-out'], 'r')}
-      ${ev('rc-13', 716, 130, 'lent',   ['exit blocked', 'sortie bloquée'], 'w')}
-      ${ev('rc-14', 716, 130, 'maker',  ['untouched', 'intouchée'], 'g')}
-      ${ev('rc-15', 716, 130, 'lp',     ['pays the gap', 'paie l’écart'], 'r')}
+      ${ev('rc-1', 210, 152, 'lp',     ['deposits both tokens', 'dépose les deux tokens'], 'b')}
+      ${ev('rc-2', 283, 145, 'maker',  ['rests 10k at 0.950', 'pose 10k à 0.950'], 'b')}
+      ${ev('rc-3', 283, 179, 'lent',   ['rests 10k, ticks lend', 'pose 10k, coche lend'], 'b')}
+      ${ev('rc-4', 374, 189, 'borrow', ['borrows 6k, tick 0.78', 'emprunte 6k, tick 0.78'], 'b')}
+      ${ev('rc-5', 461, 170, 'lev',    ['levers 3.4x on 5k', 'lève 3,4x sur 5k'], 'b')}
+      ${ev('rc-6', 547, 146, 'trader', ['swaps 50k USDC', 'swappe 50k USDC'], 'g')}
+      ${ev('rc-7', 547, 127, 'maker',  ['+ rebate, 0 fee', '+ rebate, 0 fee'], 'g')}
+      ${ev('rc-8', 547, 143, 'lp',     ['fees + interest', 'fees + intérêts'], 'g')}
+      ${ev('rc-9', 466, 170, 'lent',   ['lent to David, earning', 'prêté à David, rapporte'], 'g')}
+      ${ev('rc-10', 567, 146, 'borrow', ['tick drifts to 0.90', 'le tick dérive à 0.90'], 'w')}
+      ${ev('rc-11', 721, 123, 'borrow', ['liquidated', 'liquidé'], 'r')}
+      ${ev('rc-12', 721, 123, 'lev',    ['stopped out', 'stop-out'], 'r')}
+      ${ev('rc-13', 721, 125, 'lent',   ['exit blocked', 'sortie bloquée'], 'w')}
+      ${ev('rc-14', 721, 125, 'maker',  ['untouched', 'intouchée'], 'g')}
+      ${ev('rc-15', 721, 125, 'lp',     ['pays the gap', 'paie l’écart'], 'r')}
       <g id="rc-now" class="anim">
-        <line x1="186" y1="36" x2="186" y2="398" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 4"/></g>`,
+        <line x1="210" y1="36" x2="210" y2="398" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 4"/></g>`,
     base: {'#rc-price':{o:1,do:1},'#rc-now':{o:1,t:[0,0]},
       ...Object.fromEntries(Array.from({length:15},(_,i)=>['#rc-'+(i+1),{o:0}]))},
     steps: (() => {
       const on = (...n) => Object.fromEntries(n.map(i => ['#rc-' + i, { o: 1 }]));
-      const at = x => ({ '#rc-now': { o: 1, t: [x - 186, 0] } });
+      const at = x => ({ '#rc-now': { o: 1, t: [x - 210, 0] } });
       return [
       {t: ['Morning. Farid puts up the money.', 'Le matin. Farid met l\'argent.'],
        plain: ['Nothing else on this page can happen until somebody deposits. Farid puts in both tokens and receives pool shares. From this second his money is quoting prices, sitting in the loan book, and standing last in line if anything goes wrong. He did not choose those three jobs separately: they are the same tokens.',
                "Rien d'autre sur cette page ne peut arriver tant que quelqu'un n'a pas déposé. Farid met les deux tokens et reçoit des parts. Dès cette seconde, son argent cote des prix, dort dans le carnet de prêts, et se tient en dernier si quelque chose tourne mal. Il n'a pas choisi ces trois métiers séparément : ce sont les mêmes tokens."],
        d: ['One reserve, three markets, one solvency ledger. Everything after this is a claim on the same balance sheet.',
            "Une réserve, trois marchés, un ledger de solvabilité. Tout ce qui suit est une créance sur le même bilan."],
-       set: { ...at(220), ...on(1) }},
+       set: { ...at(240), ...on(1) }},
       {t: ['Alice and Nadia both want EV cheaper', 'Alice et Nadia veulent toutes deux de l\'EV moins cher'],
        plain: ['They place the identical order at the identical price, ten thousand each waiting at 0.950. One difference: Nadia ticks the box that lends her money while it waits. That single boolean is the only thing separating them, and by the end of the day it will have decided very different outcomes.',
                "Elles posent le même ordre au même prix, dix mille chacune en attente à 0.950. Une différence : Nadia coche la case qui prête son argent pendant l'attente. Ce seul booléen est tout ce qui les sépare, et à la fin de la journée il aura décidé de deux sorts très différents."],
        d: ['Both sit in escrow, held by the pair, never counted as pricing reserve. Nadia\'s additionally joins the borrowable pool, and her flag is frozen for the order\'s life.',
            "Les deux sont en escrow, détenues par la paire, jamais comptées en pricing reserve. Celle de Nadia rejoint en plus le pool empruntable, et son flag est figé pour la vie de l'ordre."],
-       set: { ...at(320), ...on(1, 2, 3) }},
+       set: { ...at(350), ...on(1, 2, 3) }},
       {t: ['David needs cash and refuses to sell', 'David a besoin de liquide et refuse de vendre'],
        plain: ['He borrows six thousand against his EV, and picks 0.78 as the price at which he accepts to be wiped out. Twenty-two percent of room feels generous. Notice where the money he borrows comes from: partly Farid\'s reserve, partly Nadia\'s waiting order. He will never know that.',
                "Il emprunte six mille contre son EV, et choisit 0.78 comme prix auquel il accepte d'être liquidé. Vingt-deux pour cent de marge, ça paraît confortable. Remarquez d'où vient l'argent qu'il emprunte : en partie la réserve de Farid, en partie l'ordre en attente de Nadia. Il ne le saura jamais."],
        d: ['Collateral sized by <code>c = (1+π)·q·A<sub>i</sub></code>, and the amount has to fit the global envelope plus the per-tick and per-range capacity shaped by the curve\'s own depth at 0.78.',
            "Collateral dimensionné par <code>c = (1+π)·q·A<sub>i</sub></code>, et le montant doit tenir dans l'enveloppe globale plus la capacité par tick et par range façonnée par la profondeur de la courbe à 0.78."],
-       set: { ...at(410), ...on(1, 2, 3, 4, 9) }},
+       set: { ...at(440), ...on(1, 2, 3, 4, 9) }},
       {t: ['Elena stacks the same machinery four times', 'Elena empile la même mécanique quatre fois'],
        plain: ['She does what David did, in a loop, inside one transaction: borrow, swap, post, borrow again. Five thousand of her own becomes seventeen thousand of exposure. No slider set that, and no funding index will charge her for it. The interest rate does that job by itself.',
                "Elle fait ce que David a fait, en boucle, dans une seule transaction : emprunter, swapper, poster, réemprunter. Cinq mille à elle deviennent dix-sept mille d'exposition. Aucun curseur n'a fixé ça, et aucun index de funding ne le lui facturera. Le taux fait ce travail tout seul."],
        d: ['Funded by the pair\'s own fee-free flash facility. The geometric series exhausts itself; the bound is the penalty, the buffer and the swap-cost floor.',
            "Financé par le flash gratuit de la paire elle-même. La série géométrique s'épuise ; la borne est la pénalité, le buffer et le plancher de coût de swap."],
-       set: { ...at(500), ...on(1, 2, 3, 4, 9, 5) }},
+       set: { ...at(520), ...on(1, 2, 3, 4, 9, 5) }},
       {t: ['Midday. Bob arrives and moves everything.', 'Midi. Bob arrive et déplace tout.'],
        plain: ['He presses swap with fifty thousand USDC, knowing none of the above. His order is offered to the resting walls before it ever touches the curve, so Alice is filled at exactly 0.950, with no fee and no slippage, and gets a rebate on top. Farid earns from the same trade. Bob gets a better price than the curve alone would have given him. Nobody negotiated any of this.',
                "Il appuie sur swap avec cinquante mille USDC, sans rien savoir de tout ça. Son ordre est offert aux walls en attente avant de toucher la courbe, donc Alice est remplie à exactement 0.950, sans fee et sans slippage, avec un rebate en prime. Farid gagne sur le même échange. Bob obtient un meilleur prix que la courbe seule. Personne n'a négocié quoi que ce soit."],
        d: ['The fee was resolved once on the gross input, before routing, which is precisely why the pool gains nothing by skipping Alice.',
            "La fee a été résolue une fois sur l'input brut, avant le routage, ce qui est précisément pourquoi la réserve ne gagne rien à sauter Alice."],
        tone: 'good',
-       set: { ...at(600), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8), '#rc-price': { do: .38 } }},
+       set: { ...at(620), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8), '#rc-price': { do: .38 } }},
       {t: ['Afternoon. The market turns.', 'L\'après-midi. Le marché se retourne.'],
        plain: ['EV falls back through the day. Nothing dramatic yet, and David is still well above his 0.78. Except his 0.78 is no longer 0.78: interest has been accruing since morning, and the level at which he gets wiped out has been climbing toward the price all along. Nothing told him.',
                "EV redescend au fil de la journée. Rien de dramatique encore, et David est toujours bien au-dessus de son 0.78. Sauf que son 0.78 n'est plus 0.78 : les intérêts courent depuis le matin, et le niveau auquel il est liquidé grimpe vers le prix depuis le début. Rien ne le lui a dit."],

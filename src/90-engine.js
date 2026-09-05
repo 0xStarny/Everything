@@ -153,7 +153,7 @@ function renderView(v) {
       <div class="idcard">${v.id_card.map(([k, val, c]) =>
         `<div class="stat"><div class="k">${T(k)}</div><div class="v ${c}">${T(val)}</div></div>`).join('')}</div>
     </div>
-    ${who ? `<div class="persona"><span class="av">${who.k}</span><div>
+    ${who ? `<div class="persona"><span class="av">${MARK(v.id)}</span><div>
         <span class="nm">${T(UI.meet)} ${who.n}</span><p>${T(who.l)}</p></div></div>` : ''}
     <div class="work">
       <div class="card">
@@ -383,7 +383,7 @@ function show(id, keepScroll, fromPop) {
   const n = ORDER.indexOf(id) + 1;
   document.getElementById('prog').innerHTML = `${T(UI.view)} <b>${String(n).padStart(2, '0')}</b> / ${ORDER.length}`;
   // the whitepaper attribution belongs under the guide, not under the tests
-  document.getElementById('foot').hidden = (id === 'quiz');
+  document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   writePath(!fromPop);
 }

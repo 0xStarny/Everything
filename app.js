@@ -238,6 +238,48 @@ const ROUTES = {
 };
 
 /* ══════════════ START HERE · the whole thing in two minutes ══════════════ */
+/* ══════════════ THE SIX MARKS ══════════════
+   An initial in a circle says nothing about what someone does. Each of the six
+   gets a mark of their own instead, drawn from the mechanic that defines them:
+   a flow, a resting price, a price that works while it rests, locked
+   collateral, a tightening loop, a stack of tranches. No faces, no bodies,
+   nothing that stands in for a person. One 24 × 24 grid, one set of paths,
+   rendered inline in the DOM and through Path2D onto the share cards. */
+const MARKD = {
+  /* an order that arrives and goes straight through the wall */
+  trader: [{ d: 'M3.4 12H15' }, { d: 'm11.4 8.2 3.8 3.8-3.8 3.8' }, { d: 'M19.4 4.6v14.8' }],
+  /* a price planted below the market, waiting to be crossed */
+  maker:  [{ d: 'M3.4 4.8h17.2' }, { d: 'M6.8 20.6V8.4' }, { d: 'M6.8 8.4h10l-2.6 3 2.6 3h-10z' }],
+  /* the same price, with the capital walking out to work while it waits */
+  lent:   [{ d: 'M6.6 20.6V6.6' }, { d: 'M6.6 6.6h9l-2.4 2.6 2.4 2.6h-9z' },
+           { d: 'M6.6 17.2H19' }, { d: 'm16.6 14.8 2.4 2.4-2.4 2.4' }],
+  /* collateral shut in a box, and cash on the other side of it */
+  borrow: [{ d: 'M8.4 10.6V7.9a3.6 3.6 0 0 1 7.2 0v2.7' },
+           { d: 'M6.5 10.6h11a2.3 2.3 0 0 1 2.3 2.3v5.4a2.3 2.3 0 0 1-2.3 2.3h-11a2.3 2.3 0 0 1-2.3-2.3v-5.4a2.3 2.3 0 0 1 2.3-2.3z' },
+           { d: 'M12 14.3v2.6' }],
+  /* the loop, tightening on itself until it stops paying */
+  lev:    [{ d: 'M12 3.8a8.2 8.2 0 1 1-8.2 8.2' }, { d: 'M12 8.2a3.8 3.8 0 1 1-3.8 3.8' },
+           { d: 'm1.6 9.8 2.2 2.2 2.2-2.2' }],
+  /* three tranches, and the one at the bottom that takes the loss */
+  lp:     [{ d: 'M3.6 4.9h16.8v3.1H3.6z' }, { d: 'M3.6 10.4h16.8v3.1H3.6z' },
+           { d: 'M3.6 15.9h16.8v4.2H3.6z', f: 1 }]
+};
+const MARK = id => `<svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${
+  (MARKD[id] || []).map(p => `<path d="${p.d}"${p.f ? ' fill="currentColor" stroke="none"' : ''}/>`).join('')}</svg>`;
+/* the same marks, onto a canvas, for the share cards */
+function drawMark(c, id, cx, cy, size, colour) {
+  const k = size / 24;
+  c.save();
+  c.translate(cx - size / 2, cy - size / 2); c.scale(k, k);
+  c.strokeStyle = colour; c.fillStyle = colour;
+  c.lineWidth = 1.7; c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const p of (MARKD[id] || [])) {
+    const path = new Path2D(p.d);
+    if (p.f) c.fill(path); else c.stroke(path);
+  }
+  c.restore();
+}
+
 const CAST = [
   { k:'B', id:'trader', n:'Bob',   r:[['Taker','Taker']],
     g:['wants 50,000 USDC turned into EV, right now, and does not care how',
@@ -383,7 +425,7 @@ V.push({
     "Chaque vue après celle-ci suit l'un d'eux dans une situation concrète, pas à pas, avec de vrais chiffres. Cliquez sur une carte pour y aller directement."])}</p>
   <div class="cast">${CAST.map(c => `
     <button class="castcard" type="button" data-goto="${c.id}">
-      <span class="av">${c.k}</span>
+      <span class="av">${MARK(c.id)}</span>
       <span class="cc">
         <span class="nm">${c.n}</span>
         <span class="rl">${T(c.r[0])}</span>
@@ -3362,7 +3404,7 @@ V.push({
       const c = CAST.find(x => x.id === who), r = WRES[who], w = WHO[who];
       res.innerHTML = `<div class="wres">
         <div class="whead">
-          <span class="av3">${c.k}</span>
+          <span class="av3">${MARK(c.id)}</span>
           <div>
             <div class="weyebrow">${T(WQ.youare)}</div>
             <div class="wname">${w.n}</div>
@@ -3428,8 +3470,7 @@ V.push({
       // the initial, big
       c.fillStyle = ACC;
       c.beginPath(); c.arc(160, 240, 74, 0, 7); c.fill();
-      c.fillStyle = FG; c.font = F(70, '700'); c.textAlign = 'center';
-      c.fillText(w.k, 160, 266); c.textAlign = 'left';
+      drawMark(c, who, 160, 240, 78, FG);
       c.fillStyle = MUT; c.font = F(26, '600');
       c.fillText(T(WQ.youare).toUpperCase(), 262, 208);
       c.fillStyle = FG; c.font = F(78, '800');
@@ -3873,7 +3914,7 @@ function renderView(v) {
       <div class="idcard">${v.id_card.map(([k, val, c]) =>
         `<div class="stat"><div class="k">${T(k)}</div><div class="v ${c}">${T(val)}</div></div>`).join('')}</div>
     </div>
-    ${who ? `<div class="persona"><span class="av">${who.k}</span><div>
+    ${who ? `<div class="persona"><span class="av">${MARK(v.id)}</span><div>
         <span class="nm">${T(UI.meet)} ${who.n}</span><p>${T(who.l)}</p></div></div>` : ''}
     <div class="work">
       <div class="card">
@@ -4103,7 +4144,7 @@ function show(id, keepScroll, fromPop) {
   const n = ORDER.indexOf(id) + 1;
   document.getElementById('prog').innerHTML = `${T(UI.view)} <b>${String(n).padStart(2, '0')}</b> / ${ORDER.length}`;
   // the whitepaper attribution belongs under the guide, not under the tests
-  document.getElementById('foot').hidden = (id === 'quiz');
+  document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   writePath(!fromPop);
 }

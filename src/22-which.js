@@ -129,7 +129,7 @@ V.push({
       const c = CAST.find(x => x.id === who), r = WRES[who], w = WHO[who];
       res.innerHTML = `<div class="wres">
         <div class="whead">
-          <span class="av3">${c.k}</span>
+          <span class="av3">${MARK(c.id)}</span>
           <div>
             <div class="weyebrow">${T(WQ.youare)}</div>
             <div class="wname">${w.n}</div>
@@ -195,8 +195,7 @@ V.push({
       // the initial, big
       c.fillStyle = ACC;
       c.beginPath(); c.arc(160, 240, 74, 0, 7); c.fill();
-      c.fillStyle = FG; c.font = F(70, '700'); c.textAlign = 'center';
-      c.fillText(w.k, 160, 266); c.textAlign = 'left';
+      drawMark(c, who, 160, 240, 78, FG);
       c.fillStyle = MUT; c.font = F(26, '600');
       c.fillText(T(WQ.youare).toUpperCase(), 262, 208);
       c.fillStyle = FG; c.font = F(78, '800');

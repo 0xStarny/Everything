@@ -22,6 +22,12 @@ Pass all six at 75 % or better and the badge unlocks. The coin lives at `assets/
 
 The mint button is inert until a contract exists. Set `BADGE_CONTRACT` at the top of `src/21-quizui.js` to `{ chain, address }` and wire the call; everything above it is already gated on a real signature from a real address.
 
+## The six figures
+
+Everyone in the guide is drawn from the same head and the same pair of shoulders. No features, no hair, no skin, nothing that stands in for a kind of person. What tells them apart is the thing they are carrying: an order that goes straight through, a price planted and waited on, the same price with the capital still working, collateral shut in a box, a position doubled and doubled again, three tranches with the junior one filled in.
+
+One 24 × 24 grid and one set of paths in `src/05-start.js` serve all of it: `MARK()` renders inline SVG for the cast grid, the persona strip and the result card, `MARKG()` places the same paths inside the recap's swimlanes, and `drawMark()` runs them through `Path2D` onto the canvas share cards.
+
 ## Navigation
 
 A left sidebar carries both levels at once: the fifteen views grouped by part, and the steps of whichever view is open nested underneath it. That replaces the old top strip, which could not show twelve items without scrolling, and the old right-hand step rail. The stage ends up wider than it was, not narrower.
@@ -50,7 +56,7 @@ app.js              generated — do not edit by hand
 build.mjs           concatenates src/*.js into app.js
 src/
   00-core.js        i18n helper, glossary data, SVG building blocks
-  05-start.js       the two-minute opening view
+  05-start.js       the six figures, and the two-minute opening view
   06-guide.js       the plain-language layer and the six personas
   07-wallet.js      the EIP-1193 connection, read-only plus personal_sign
   08-share.js       svg to png, the tracked share links, the per-view quotes

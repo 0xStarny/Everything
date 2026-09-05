@@ -1,29 +1,33 @@
 /* ══════════════ START HERE · the whole thing in two minutes ══════════════ */
-/* ══════════════ THE SIX MARKS ══════════════
-   An initial in a circle says nothing about what someone does. Each of the six
-   gets a mark of their own instead, drawn from the mechanic that defines them:
-   a flow, a resting price, a price that works while it rests, locked
-   collateral, a tightening loop, a stack of tranches. No faces, no bodies,
-   nothing that stands in for a person. One 24 × 24 grid, one set of paths,
-   rendered inline in the DOM and through Path2D onto the share cards. */
+/* ══════════════ THE SIX ══════════════
+   Six figures, one drawing. Every one is the same head and the same pair of
+   shoulders — no features, no hair, no skin, nothing that stands in for a
+   kind of person. What tells them apart is the thing they are carrying: an
+   order that goes straight through, a price planted and waited on, the same
+   price with the capital still working, collateral shut in a box, a position
+   doubled and doubled again, three tranches with the junior one filled.
+   One 24 × 24 grid, one set of paths, rendered inline in the DOM, into the
+   swimlanes of the recap, and through Path2D onto the share cards. */
+const FIGURE = [
+  { d: 'M10.3 9.6a2.7 2.7 0 1 1-5.4 0 2.7 2.7 0 1 1 5.4 0' },   /* the head */
+  { d: 'M2.4 20.8v-.9a5.2 5.2 0 0 1 10.4 0v.9' }                /* the shoulders */
+];
 const MARKD = {
-  /* an order that arrives and goes straight through the wall */
-  trader: [{ d: 'M3.4 12H15' }, { d: 'm11.4 8.2 3.8 3.8-3.8 3.8' }, { d: 'M19.4 4.6v14.8' }],
-  /* a price planted below the market, waiting to be crossed */
-  maker:  [{ d: 'M3.4 4.8h17.2' }, { d: 'M6.8 20.6V8.4' }, { d: 'M6.8 8.4h10l-2.6 3 2.6 3h-10z' }],
-  /* the same price, with the capital walking out to work while it waits */
-  lent:   [{ d: 'M6.6 20.6V6.6' }, { d: 'M6.6 6.6h9l-2.4 2.6 2.4 2.6h-9z' },
-           { d: 'M6.6 17.2H19' }, { d: 'm16.6 14.8 2.4 2.4-2.4 2.4' }],
-  /* collateral shut in a box, and cash on the other side of it */
-  borrow: [{ d: 'M8.4 10.6V7.9a3.6 3.6 0 0 1 7.2 0v2.7' },
-           { d: 'M6.5 10.6h11a2.3 2.3 0 0 1 2.3 2.3v5.4a2.3 2.3 0 0 1-2.3 2.3h-11a2.3 2.3 0 0 1-2.3-2.3v-5.4a2.3 2.3 0 0 1 2.3-2.3z' },
-           { d: 'M12 14.3v2.6' }],
-  /* the loop, tightening on itself until it stops paying */
-  lev:    [{ d: 'M12 3.8a8.2 8.2 0 1 1-8.2 8.2' }, { d: 'M12 8.2a3.8 3.8 0 1 1-3.8 3.8' },
-           { d: 'm1.6 9.8 2.2 2.2 2.2-2.2' }],
-  /* three tranches, and the one at the bottom that takes the loss */
-  lp:     [{ d: 'M3.6 4.9h16.8v3.1H3.6z' }, { d: 'M3.6 10.4h16.8v3.1H3.6z' },
-           { d: 'M3.6 15.9h16.8v4.2H3.6z', f: 1 }]
+  /* an order that arrives and goes straight through */
+  trader: [...FIGURE, { d: 'M14.4 6.4h6.6' }, { d: 'm18.4 3.8 2.6 2.6-2.6 2.6' }],
+  /* a price planted, and waited on */
+  maker:  [...FIGURE, { d: 'M15 10.8V2.6' }, { d: 'M15 2.6h5.8l-1.6 2 1.6 2H15z' }],
+  /* the same price, with the capital still out working */
+  lent:   [...FIGURE, { d: 'M14.9 10.8V2.5' }, { d: 'M14.9 2.5h5.4l-1.5 1.8 1.5 1.8h-5.4z' },
+           { d: 'M20.3 9.5a1.7 1.7 0 1 1-3.4 0 1.7 1.7 0 1 1 3.4 0', f: 1 }],
+  /* collateral shut in a box */
+  borrow: [...FIGURE, { d: 'M16 6.3V5a2 2 0 0 1 4 0v1.3' },
+           { d: 'M15 6.3h6a.9.9 0 0 1 .9.9v3.4a.9.9 0 0 1-.9.9h-6a.9.9 0 0 1-.9-.9V7.2a.9.9 0 0 1 .9-.9z' }],
+  /* the position, doubled and doubled again */
+  lev:    [...FIGURE, { d: 'm14.6 10 3.4-3.4 3.4 3.4' }, { d: 'm14.6 6 3.4-3.4 3.4 3.4' }],
+  /* three tranches, and the junior one that takes the loss */
+  lp:     [...FIGURE, { d: 'M14.4 3.4h7.2' }, { d: 'M14.4 6.4h7.2' },
+           { d: 'M14.4 8.7h7.2v2.1h-7.2z', f: 1 }]
 };
 const MARK = id => `<svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${
   (MARKD[id] || []).map(p => `<path d="${p.d}"${p.f ? ' fill="currentColor" stroke="none"' : ''}/>`).join('')}</svg>`;

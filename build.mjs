@@ -4,6 +4,7 @@
 // Run: node build.mjs
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 
 /* ── 0 · the route table, from views.json ─────────────────────── */
 const meta = JSON.parse(readFileSync('views.json', 'utf8'));
@@ -22,7 +23,10 @@ const SRC = 'src';
 const files = readdirSync(SRC).filter(f => f.endsWith('.js')).sort();
 const out = files.map(f => readFileSync(join(SRC, f), 'utf8').replace(/\s+$/, '')).join('\n\n');
 writeFileSync('app.js', out + '\n');
-console.log(`app.js   ${files.length} modules  ${(out.length / 1024).toFixed(1)} kB`);
+// Every page asks for the script by its content hash, so a deploy can never be
+// served against a browser's copy of the previous one.
+const stamp = createHash('sha256').update(out).digest('hex').slice(0, 10);
+console.log(`app.js   ${files.length} modules  ${(out.length / 1024).toFixed(1)} kB  build ${stamp}`);
 
 /* ── 2 · one page per view ────────────────────────────────────── */
 const shell = readFileSync('index.html', 'utf8');
@@ -47,6 +51,7 @@ const page = v => {
   h = set(h, /(<meta property="og:type" content=")[^"]*(">)/, `$1${v.path ? 'article' : 'website'}$2`);
   h = set(h, /(<meta property="og:url" content=")[^"]*(">)/, `$1${url}$2`);
   h = set(h, /(<link rel="canonical" href=")[^"]*(">)/, `$1${url}$2`);
+  h = set(h, /(<script src="\/app\.js)(\?b=[a-z0-9]+)?(">)/, `$1?b=${stamp}$3`);
   return h;
 };
 

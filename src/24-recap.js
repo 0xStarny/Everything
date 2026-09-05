@@ -45,8 +45,8 @@ V.push({
       <text class="cap" x="210" y="30">${T(['THE PRICE OF EV, ALL DAY','LE PRIX DE EV, TOUTE LA JOURNÉE'])}</text>
 
       ${RL.map(l => { const [nm, role] = T(TABLABEL[l.id]).split(' · '); return `<g>
-        <circle cx="100" cy="${l.y}" r="12" fill="var(--accent-soft)"/>
-        ${MARKG(l.id, 100, l.y, 14, 'var(--accent-text)')}
+        <circle cx="100" cy="${l.y}" r="13" fill="var(--accent-soft)"/>
+        ${MARKG(l.id, 100, l.y, 17, 'var(--accent-text)')}
         <text class="sm" x="118" y="${l.y - 1}" fill="var(--primary)">${nm}</text>
         <text class="cap" x="118" y="${l.y + 11}">${(role || '').toUpperCase()}</text>
         <line x1="210" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`; }).join('')}

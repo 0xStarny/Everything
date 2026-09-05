@@ -265,7 +265,7 @@ function buildTabs() {
   TABBAR.innerHTML = GROUPS.map((g, gi) =>
     (gi ? '<div class="tabsep"></div>' : '') +
     (T(g.label).trim() ? `<span class="tabgroup">${T(g.label)}</span>` : '') +
-    g.ids.map(id => `<button class="tab" role="tab" id="t-${id}" aria-controls="p-${id}" aria-selected="false"><span class="idx">${String(n++).padStart(2, '0')}</span>${T(TABLABEL[id])}</button>`).join('')
+    g.ids.map(id => `<button class="tab${id === 'quiz' ? ' tabcta' : ''}" role="tab" id="t-${id}" aria-controls="p-${id}" aria-selected="false"><span class="idx">${String(n++).padStart(2, '0')}</span>${T(TABLABEL[id])}</button>`).join('')
   ).join('');
   TABBAR.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => show(t.id.slice(2))));
 }
@@ -333,6 +333,7 @@ function build() {
   show(STATE.tab, true);
   document.getElementById('kicker').textContent = T(UI.kicker);
   document.getElementById('foot').innerHTML = T(UI.foot);
+  paintWallet();
   document.title = LANG === 'fr' ? 'Everything, le guide' : 'Everything, the guide';
 }
 
@@ -366,6 +367,13 @@ TABBAR.addEventListener('keydown', e => {
   tabs[nxt].focus();
 });
 
+document.getElementById('wallet').addEventListener('click', () => {
+  if (WALLET.addr) WALLET.disconnect(); else WALLET.connect();
+});
+if (WALLET.has()) {
+  WALLET.provider.on && WALLET.provider.on('accountsChanged', a => WALLET._set(a && a[0]));
+}
 readHash();
 syncToggles();
 build();
+WALLET.restore();

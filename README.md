@@ -10,13 +10,15 @@ Every view is a scenario you step through. Each step animates the diagram and ex
 
 Any term that might not be obvious is underlined the first time it appears in a panel; click it for a one-sentence definition. The full glossary sits at the bottom of the first view.
 
-## Take the quiz
+## The tests, and the badge
 
-The last view is a quiz: fifteen questions drawn at random from a bank of thirty-nine, four options each, shuffled every run. Every answer is somewhere in the guide, every explanation says which view covers it, and a wrong answer gets a button that opens that view.
+The last view is six tests, one per part of the guide: the idea, the price, order flow, lending, borrowing and leverage, under the hood. Forty-nine questions in total, eight or nine per test, options shuffled every run. Every answer is somewhere in the guide, every explanation names the view that covers it, and a wrong answer gets a button that opens it.
 
-At the end you get a score, a rank, and a share card drawn on a `<canvas>` at 1200×675. **Copy image** puts the PNG on the clipboard, **Share on X** opens the post: X cannot pull an image from a link, so the flow is copy then paste. **Download** is there for browsers that refuse clipboard image writes.
+Taking a test requires a connected wallet, and finishing one requires a signature. The signed message is plain text naming the test, the score and the address; it sends no transaction and moves nothing. Scores are stored per address, so switching wallets switches scoreboards.
 
-The card is always dark, whatever the site theme, because that is what reads on a timeline.
+Pass all six at 75 % or better and the badge unlocks: a medallion, a claim code derived from the address and the score vector, and a 1200x675 card drawn on a canvas. **Copy image** puts the PNG on the clipboard, **Share on X** opens the post — X cannot pull an image from a link, so the flow is copy then paste. **Download** covers browsers that refuse clipboard image writes.
+
+The mint button is inert until a contract exists. Set `BADGE_CONTRACT` at the top of `src/21-quizui.js` to `{ chain, address }` and wire the call; everything above it is already gated on a real signature from a real address.
 
 ## Deep links
 

@@ -1,15 +1,12 @@
 /* ══════════════ SHARING ══════════════
-   Turning what is on screen into something postable: a diagram as a PNG, a
-   line of the argument as a quote card. Both go through a canvas, both come
-   out branded, and both are one click. */
+   A diagram, off the page and onto the clipboard as a branded PNG. Posting to
+   X lives only where someone actually has something to post: the badge at the
+   end of the six tests, and the which-of-the-six result. */
 
 const SH = {
   copyDiagram: ['Copy diagram', 'Copier le schéma'],
   copied:  ['Copied', 'Copié'],
   failed:  ['Copy failed', 'Échec'],
-  copyQuote: ['Copy as image', 'Copier en image'],
-  post:    ['Post it', 'Poster'],
-  quote:   ['Worth arguing about', 'À débattre']
 };
 
 const QUOTES = {
@@ -97,48 +94,4 @@ function flash(btn, ok) {
   btn.dataset.was = was;
   btn.innerHTML = T(ok ? SH.copied : SH.failed);
   setTimeout(() => { btn.innerHTML = was; }, 2200);
-}
-
-/* ── a line of the argument, on a card ────────────────────────── */
-function quoteCard(cv, text, attribution) {
-  const W = 1200, H = 675, c = cv.getContext('2d');
-  const BG = '#1d2029', FG = '#fff', MUT = '#a0a9bb', ACC = '#387efc';
-  const F = (px, w) => `${w} ${px}px "Geist", ui-sans-serif, system-ui, sans-serif`;
-  c.fillStyle = BG; c.fillRect(0, 0, W, H);
-  c.fillStyle = ACC; c.fillRect(0, H - 8, W, 8);
-  c.fillStyle = '#2c303c';
-  for (let i = 0; i < 4; i++) c.fillRect(1120 - i * 60, 620 - i * 12, 60 + i * 60, 3);
-  // the mark
-  const mx = 80, my = 68, s = 2.2;
-  const bar = pts => { c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](mx + x * s, my + y * s)); c.closePath(); c.fill(); };
-  c.fillStyle = FG;
-  bar([[0, 4.5], [11.7, 0.1], [11.7, 4.2], [0, 8.6]]);
-  bar([[0, 10.9], [11.7, 6.7], [11.7, 10.8], [6, 13.1]]);
-  bar([[0, 10.9], [11.7, 15.2], [11.7, 19.5], [0, 15.2]]);
-  c.fillStyle = MUT; c.font = F(22, '600');
-  c.fillText(T(['Everything, the guide', 'Everything, le guide']), 118, 84);
-
-  // the quote, wrapped and auto-sized
-  let size = 60;
-  const fit = () => {
-    c.font = F(size, '800');
-    const words = text.split(' ');
-    const lines = []; let line = '';
-    for (const w of words) {
-      if (c.measureText(line + ' ' + w).width > 1040 && line) { lines.push(line); line = w; }
-      else line = line ? line + ' ' + w : w;
-    }
-    lines.push(line);
-    return lines;
-  };
-  let lines = fit();
-  while (lines.length > 6 && size > 30) { size -= 5; lines = fit(); }
-  let y = 340 - ((lines.length - 1) * (size + 12)) / 2;
-  c.fillStyle = FG;
-  for (const l of lines) { c.fillText(l, 80, y); y += size + 12; }
-
-  c.fillStyle = ACC; c.font = F(24, '600');
-  c.fillText(attribution, 80, 566);
-  c.fillStyle = MUT; c.font = F(22, '500');
-  c.fillText(ROUTES.site.url.replace(/^https?:\/\//, ''), 80, 606);
 }

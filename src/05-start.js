@@ -27,6 +27,12 @@ const MARKD = {
 };
 const MARK = id => `<svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${
   (MARKD[id] || []).map(p => `<path d="${p.d}"${p.f ? ' fill="currentColor" stroke="none"' : ''}/>`).join('')}</svg>`;
+/* the same marks, placed inside an SVG that already exists (the swimlanes) */
+const MARKG = (id, cx, cy, size, colour) => {
+  const k = (size / 24).toFixed(3), x = (cx - size / 2).toFixed(1), y = (cy - size / 2).toFixed(1);
+  return `<g transform="translate(${x} ${y}) scale(${k})" fill="none" stroke="${colour}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${
+    (MARKD[id] || []).map(pt => `<path d="${pt.d}"${pt.f ? ` fill="${colour}" stroke="none"` : ''}/>`).join('')}</g>`;
+};
 /* the same marks, onto a canvas, for the share cards */
 function drawMark(c, id, cx, cy, size, colour) {
   const k = size / 24;

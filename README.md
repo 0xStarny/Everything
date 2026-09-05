@@ -38,7 +38,7 @@ The URL tracks where you are: `/borrowing/5` opens David's view at step 5. Real 
 
 Every stage header has a **Copy diagram** button: the live SVG is cloned, its computed styles inlined onto every node, drawn to a canvas at 2x, footed with the view title and the site URL, and put on the clipboard as a PNG. It survives leaving the document because computed styles carry the CSS variables already resolved — the only thing that cannot follow is the font, hence the explicit family on every node.
 
-Each view also ends on a pull quote, copyable as a 1200×675 card or postable straight to X. `src/08-share.js` holds both, plus the quote text per view.
+Posting to X exists in exactly two places, both of which are a result someone has a reason to post: the badge at the end of the six tests, and the which-of-the-six card. Every view still closes on a pull quote, but as a conclusion to read, not a share button to press.
 
 ## Stack
 
@@ -53,7 +53,7 @@ src/
   05-start.js       the two-minute opening view
   06-guide.js       the plain-language layer and the six personas
   07-wallet.js      the EIP-1193 connection, read-only plus personal_sign
-  08-share.js       svg to png, the quote card, the per-view quotes
+  08-share.js       svg to png, the tracked share links, the per-view quotes
   10..19-*.js       one file per profile view
   20-quiz.js        the question bank
   20b, 20c          the rest of the bank, twelve per test

@@ -89,7 +89,7 @@ V.push({
     <div class="quizwrap">
       <div class="card quizcard" data-wintro>
         <div class="quizhero">
-          <div class="castrow">${CAST.map(c => `<span class="av2">${c.k}</span>`).join('')}</div>
+          <div class="castrow">${CAST.map(c => `<span class="av2">${MARK(c.id)}</span>`).join('')}</div>
           <div class="qbig">${T(['Which of the six are you?', 'Lequel des six êtes-vous ?'])}</div>
           <p class="qlead">${T(WQ.lead)}</p>
           <button class="btn primary qstart" type="button" data-wstart>${T(WQ.start)} &rarr;</button>
@@ -177,7 +177,7 @@ V.push({
           `I'm ${nm}. ${T(WRES[who].line)}\n\nSix people use the same pool for six different reasons. Which one are you?`,
           `Je suis ${nm}. ${T(WRES[who].line)}\n\nSix personnes utilisent la même réserve pour six raisons différentes. Et vous ?`
         ]);
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(ROUTES.site.url + '/which')}`,
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(shareUrl('/which'))}`,
           '_blank', 'noopener,noreferrer');
       });
       only(res);

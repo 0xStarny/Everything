@@ -12,6 +12,10 @@ class H(http.server.SimpleHTTPRequestHandler):
         if m and os.path.isdir(os.path.join(ROOT, m.group(1))):
             path = '/' + m.group(1) + '/'
         return super().translate_path(path)
+    def end_headers(self):
+        # a dev server that caches is a dev server that lies about your last edit
+        self.send_header('Cache-Control', 'no-store, must-revalidate')
+        super().end_headers()
     def log_message(self, *a): pass
 
 port = int(sys.argv[1]) if len(sys.argv) > 1 else 8803

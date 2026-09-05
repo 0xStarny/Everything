@@ -16,6 +16,10 @@ const UI = {
   glossary: ['Glossary', 'Glossaire'],
   searchPh: ['Search views, steps and terms\u2026', 'Chercher une vue, une \u00e9tape, un terme\u2026'],
   searchNone: ['Nothing here', 'Rien ici'],
+  palMove: ['to move', 'naviguer'],
+  palOpen: ['to open', 'ouvrir'],
+  palClose: ['to close', 'fermer'],
+  skip: ['Skip to the guide', 'Aller au guide'],
   gMech: ['Mechanics', 'Mécanique'],
   gProf: ['Profiles', 'Profils'],
   gHood: ['Under the hood', 'Sous le capot'],
@@ -266,6 +270,12 @@ const MARKD = {
 };
 const MARK = id => `<svg class="mk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${
   (MARKD[id] || []).map(p => `<path d="${p.d}"${p.f ? ' fill="currentColor" stroke="none"' : ''}/>`).join('')}</svg>`;
+/* the same marks, placed inside an SVG that already exists (the swimlanes) */
+const MARKG = (id, cx, cy, size, colour) => {
+  const k = (size / 24).toFixed(3), x = (cx - size / 2).toFixed(1), y = (cy - size / 2).toFixed(1);
+  return `<g transform="translate(${x} ${y}) scale(${k})" fill="none" stroke="${colour}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${
+    (MARKD[id] || []).map(pt => `<path d="${pt.d}"${pt.f ? ` fill="${colour}" stroke="none"` : ''}/>`).join('')}</g>`;
+};
 /* the same marks, onto a canvas, for the share cards */
 function drawMark(c, id, cx, cy, size, colour) {
   const k = size / 24;
@@ -733,17 +743,14 @@ function paintWallet() {
 }
 
 /* ══════════════ SHARING ══════════════
-   Turning what is on screen into something postable: a diagram as a PNG, a
-   line of the argument as a quote card. Both go through a canvas, both come
-   out branded, and both are one click. */
+   A diagram, off the page and onto the clipboard as a branded PNG. Posting to
+   X lives only where someone actually has something to post: the badge at the
+   end of the six tests, and the which-of-the-six result. */
 
 const SH = {
   copyDiagram: ['Copy diagram', 'Copier le schéma'],
   copied:  ['Copied', 'Copié'],
   failed:  ['Copy failed', 'Échec'],
-  copyQuote: ['Copy as image', 'Copier en image'],
-  post:    ['Post it', 'Poster'],
-  quote:   ['Worth arguing about', 'À débattre']
 };
 
 const QUOTES = {
@@ -831,50 +838,6 @@ function flash(btn, ok) {
   btn.dataset.was = was;
   btn.innerHTML = T(ok ? SH.copied : SH.failed);
   setTimeout(() => { btn.innerHTML = was; }, 2200);
-}
-
-/* ── a line of the argument, on a card ────────────────────────── */
-function quoteCard(cv, text, attribution) {
-  const W = 1200, H = 675, c = cv.getContext('2d');
-  const BG = '#1d2029', FG = '#fff', MUT = '#a0a9bb', ACC = '#387efc';
-  const F = (px, w) => `${w} ${px}px "Geist", ui-sans-serif, system-ui, sans-serif`;
-  c.fillStyle = BG; c.fillRect(0, 0, W, H);
-  c.fillStyle = ACC; c.fillRect(0, H - 8, W, 8);
-  c.fillStyle = '#2c303c';
-  for (let i = 0; i < 4; i++) c.fillRect(1120 - i * 60, 620 - i * 12, 60 + i * 60, 3);
-  // the mark
-  const mx = 80, my = 68, s = 2.2;
-  const bar = pts => { c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](mx + x * s, my + y * s)); c.closePath(); c.fill(); };
-  c.fillStyle = FG;
-  bar([[0, 4.5], [11.7, 0.1], [11.7, 4.2], [0, 8.6]]);
-  bar([[0, 10.9], [11.7, 6.7], [11.7, 10.8], [6, 13.1]]);
-  bar([[0, 10.9], [11.7, 15.2], [11.7, 19.5], [0, 15.2]]);
-  c.fillStyle = MUT; c.font = F(22, '600');
-  c.fillText(T(['Everything, the guide', 'Everything, le guide']), 118, 84);
-
-  // the quote, wrapped and auto-sized
-  let size = 60;
-  const fit = () => {
-    c.font = F(size, '800');
-    const words = text.split(' ');
-    const lines = []; let line = '';
-    for (const w of words) {
-      if (c.measureText(line + ' ' + w).width > 1040 && line) { lines.push(line); line = w; }
-      else line = line ? line + ' ' + w : w;
-    }
-    lines.push(line);
-    return lines;
-  };
-  let lines = fit();
-  while (lines.length > 6 && size > 30) { size -= 5; lines = fit(); }
-  let y = 340 - ((lines.length - 1) * (size + 12)) / 2;
-  c.fillStyle = FG;
-  for (const l of lines) { c.fillText(l, 80, y); y += size + 12; }
-
-  c.fillStyle = ACC; c.font = F(24, '600');
-  c.fillText(attribution, 80, 566);
-  c.fillStyle = MUT; c.font = F(22, '500');
-  c.fillText(ROUTES.site.url.replace(/^https?:\/\//, ''), 80, 606);
 }
 
 /* ══════════════ 00 · THE PROTOCOL ══════════════ */
@@ -3364,7 +3327,7 @@ V.push({
     <div class="quizwrap">
       <div class="card quizcard" data-wintro>
         <div class="quizhero">
-          <div class="castrow">${CAST.map(c => `<span class="av2">${c.k}</span>`).join('')}</div>
+          <div class="castrow">${CAST.map(c => `<span class="av2">${MARK(c.id)}</span>`).join('')}</div>
           <div class="qbig">${T(['Which of the six are you?', 'Lequel des six êtes-vous ?'])}</div>
           <p class="qlead">${T(WQ.lead)}</p>
           <button class="btn primary qstart" type="button" data-wstart>${T(WQ.start)} &rarr;</button>
@@ -3452,7 +3415,7 @@ V.push({
           `I'm ${nm}. ${T(WRES[who].line)}\n\nSix people use the same pool for six different reasons. Which one are you?`,
           `Je suis ${nm}. ${T(WRES[who].line)}\n\nSix personnes utilisent la même réserve pour six raisons différentes. Et vous ?`
         ]);
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(ROUTES.site.url + '/which')}`,
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(shareUrl('/which'))}`,
           '_blank', 'noopener,noreferrer');
       });
       only(res);
@@ -3670,7 +3633,7 @@ V.push({
 
       ${RL.map(l => { const [nm, role] = T(TABLABEL[l.id]).split(' · '); return `<g>
         <circle cx="100" cy="${l.y}" r="12" fill="var(--accent-soft)"/>
-        <text class="num" x="100" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
+        ${MARKG(l.id, 100, l.y, 14, 'var(--accent-text)')}
         <text class="sm" x="118" y="${l.y - 1}" fill="var(--primary)">${nm}</text>
         <text class="cap" x="118" y="${l.y + 11}">${(role || '').toUpperCase()}</text>
         <line x1="210" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`; }).join('')}
@@ -3924,7 +3887,7 @@ function renderView(v) {
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
               ${T(SH.copyDiagram)}</button>
             <span class="tag">${T(st.tag)}</span></span></div>
-        <div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div>
+        <div class="stagewrap"><div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div></div>
         <div class="caption" data-cap aria-live="polite">
           <div class="ct"></div>
           <div class="cp"><span class="cplabel">${T(UI.inPlain)}</span><span class="cptext"></span></div>
@@ -3946,14 +3909,6 @@ function renderView(v) {
     ${v.extra ? v.extra() : ''}
     ${QUOTES[v.id] ? `<figure class="pull">
       <blockquote>${T(QUOTES[v.id])}</blockquote>
-      <figcaption>
-        <span>${T(SH.quote)}</span>
-        <button class="btn" type="button" data-qcopyimg>${T(SH.copyQuote)}</button>
-        <button class="btn xbtn" type="button" data-qpost>
-          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.66l7.73-8.84L1.24 2.25H8.07l4.71 6.23 5.46-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z"/></svg>
-          ${T(SH.post)}</button>
-      </figcaption>
-      <canvas hidden data-qcanvasimg width="1200" height="675"></canvas>
     </figure>` : ''}
     <nav class="viewnav">
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
@@ -3969,18 +3924,6 @@ function wireShare(p, v) {
       await copyBlob(await svgToPng(p.querySelector('svg.stage'), { footer: T(v.title) }));
       flash(cs, true);
     } catch (e) { flash(cs, false); }
-  });
-  const qc = p.querySelector('[data-qcopyimg]'), qp = p.querySelector('[data-qpost]');
-  if (qc) qc.addEventListener('click', async () => {
-    const cv = p.querySelector('[data-qcanvasimg]');
-    quoteCard(cv, T(QUOTES[v.id]), T(v.title));
-    try { await copyBlob(await new Promise(r => cv.toBlob(r, 'image/png'))); flash(qc, true); }
-    catch (e) { flash(qc, false); }
-  });
-  if (qp) qp.addEventListener('click', () => {
-    const txt = `"${T(QUOTES[v.id])}"\n\n${T(v.title)} —`;
-    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(txt) +
-      '&url=' + encodeURIComponent(shareUrl(urlFor(v.id, 0))), '_blank', 'noopener,noreferrer');
   });
 }
 
@@ -4055,6 +3998,14 @@ function wire(p, v) {
   });
   render(STATE.step[v.id] || 0, true);
   decorate(p);
+  /* the fade on the right of a scrolling diagram, only while there is more */
+  const sw = p.querySelector('.stagewrap'), sb = p.querySelector('.stagebox');
+  if (sw && sb) {
+    const edge = () => sw.classList.toggle('atend', sb.scrollLeft >= sb.scrollWidth - sb.clientWidth - 2);
+    sb.addEventListener('scroll', edge, { passive: true });
+    addEventListener('resize', edge);
+    requestAnimationFrame(edge);
+  }
   if (v.wireExtra) v.wireExtra(p);
   return { stop, render };
 }
@@ -4146,6 +4097,7 @@ function show(id, keepScroll, fromPop) {
   // the whitepaper attribution belongs under the guide, not under the tests
   document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  requestAnimationFrame(paintScroll);
   writePath(!fromPop);
 }
 
@@ -4154,6 +4106,16 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-goto]');
   if (b) show(b.dataset.goto);
 });
+
+/* ── how far down the page you are ──────────────────────────── */
+const SCROLLBAR = document.getElementById('scrollbar');
+function paintScroll() {
+  const d = document.documentElement;
+  const max = d.scrollHeight - d.clientHeight;
+  SCROLLBAR.style.transform = `scaleX(${max > 40 ? Math.min(1, d.scrollTop / max) : 0})`;
+}
+addEventListener('scroll', paintScroll, { passive: true });
+addEventListener('resize', paintScroll);
 
 /* ── search ─────────────────────────────────────────────────── */
 function searchIndex() {
@@ -4173,7 +4135,8 @@ function openSearch() {
     box.id = 'pal';
     box.innerHTML = `<div class="palbox" role="dialog" aria-modal="true">
       <input class="palin" type="search" autocomplete="off" spellcheck="false" placeholder="${T(UI.searchPh)}">
-      <div class="palout"></div></div>`;
+      <div class="palout"></div>
+      <div class="palfoot"><span><kbd>&uarr;</kbd><kbd>&darr;</kbd> ${T(UI.palMove)}</span><span><kbd>&crarr;</kbd> ${T(UI.palOpen)}</span><span><kbd>esc</kbd> ${T(UI.palClose)}</span></div></div>`;
     document.body.appendChild(box);
     box.addEventListener('click', e => { if (e.target === box) closeSearch(); });
   }
@@ -4279,6 +4242,7 @@ function build() {
   show(STATE.tab, true);
   document.getElementById('kicker').textContent = T(UI.kicker);
   document.getElementById('foot').innerHTML = T(UI.foot);
+  document.querySelector('.skip').textContent = T(UI.skip);
   paintWallet();
   setTitle();
 }

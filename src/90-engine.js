@@ -163,7 +163,7 @@ function renderView(v) {
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
               ${T(SH.copyDiagram)}</button>
             <span class="tag">${T(st.tag)}</span></span></div>
-        <div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div>
+        <div class="stagewrap"><div class="stagebox"><svg class="stage" viewBox="${st.vb}" role="img" aria-label="${T(st.title).replace(/"/g, '')}">${st.svg()}</svg></div></div>
         <div class="caption" data-cap aria-live="polite">
           <div class="ct"></div>
           <div class="cp"><span class="cplabel">${T(UI.inPlain)}</span><span class="cptext"></span></div>
@@ -185,14 +185,6 @@ function renderView(v) {
     ${v.extra ? v.extra() : ''}
     ${QUOTES[v.id] ? `<figure class="pull">
       <blockquote>${T(QUOTES[v.id])}</blockquote>
-      <figcaption>
-        <span>${T(SH.quote)}</span>
-        <button class="btn" type="button" data-qcopyimg>${T(SH.copyQuote)}</button>
-        <button class="btn xbtn" type="button" data-qpost>
-          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.66l7.73-8.84L1.24 2.25H8.07l4.71 6.23 5.46-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z"/></svg>
-          ${T(SH.post)}</button>
-      </figcaption>
-      <canvas hidden data-qcanvasimg width="1200" height="675"></canvas>
     </figure>` : ''}
     <nav class="viewnav">
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
@@ -208,18 +200,6 @@ function wireShare(p, v) {
       await copyBlob(await svgToPng(p.querySelector('svg.stage'), { footer: T(v.title) }));
       flash(cs, true);
     } catch (e) { flash(cs, false); }
-  });
-  const qc = p.querySelector('[data-qcopyimg]'), qp = p.querySelector('[data-qpost]');
-  if (qc) qc.addEventListener('click', async () => {
-    const cv = p.querySelector('[data-qcanvasimg]');
-    quoteCard(cv, T(QUOTES[v.id]), T(v.title));
-    try { await copyBlob(await new Promise(r => cv.toBlob(r, 'image/png'))); flash(qc, true); }
-    catch (e) { flash(qc, false); }
-  });
-  if (qp) qp.addEventListener('click', () => {
-    const txt = `"${T(QUOTES[v.id])}"\n\n${T(v.title)} —`;
-    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(txt) +
-      '&url=' + encodeURIComponent(shareUrl(urlFor(v.id, 0))), '_blank', 'noopener,noreferrer');
   });
 }
 
@@ -294,6 +274,14 @@ function wire(p, v) {
   });
   render(STATE.step[v.id] || 0, true);
   decorate(p);
+  /* the fade on the right of a scrolling diagram, only while there is more */
+  const sw = p.querySelector('.stagewrap'), sb = p.querySelector('.stagebox');
+  if (sw && sb) {
+    const edge = () => sw.classList.toggle('atend', sb.scrollLeft >= sb.scrollWidth - sb.clientWidth - 2);
+    sb.addEventListener('scroll', edge, { passive: true });
+    addEventListener('resize', edge);
+    requestAnimationFrame(edge);
+  }
   if (v.wireExtra) v.wireExtra(p);
   return { stop, render };
 }
@@ -385,6 +373,7 @@ function show(id, keepScroll, fromPop) {
   // the whitepaper attribution belongs under the guide, not under the tests
   document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  requestAnimationFrame(paintScroll);
   writePath(!fromPop);
 }
 
@@ -393,6 +382,16 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-goto]');
   if (b) show(b.dataset.goto);
 });
+
+/* ── how far down the page you are ──────────────────────────── */
+const SCROLLBAR = document.getElementById('scrollbar');
+function paintScroll() {
+  const d = document.documentElement;
+  const max = d.scrollHeight - d.clientHeight;
+  SCROLLBAR.style.transform = `scaleX(${max > 40 ? Math.min(1, d.scrollTop / max) : 0})`;
+}
+addEventListener('scroll', paintScroll, { passive: true });
+addEventListener('resize', paintScroll);
 
 /* ── search ─────────────────────────────────────────────────── */
 function searchIndex() {
@@ -412,7 +411,8 @@ function openSearch() {
     box.id = 'pal';
     box.innerHTML = `<div class="palbox" role="dialog" aria-modal="true">
       <input class="palin" type="search" autocomplete="off" spellcheck="false" placeholder="${T(UI.searchPh)}">
-      <div class="palout"></div></div>`;
+      <div class="palout"></div>
+      <div class="palfoot"><span><kbd>&uarr;</kbd><kbd>&darr;</kbd> ${T(UI.palMove)}</span><span><kbd>&crarr;</kbd> ${T(UI.palOpen)}</span><span><kbd>esc</kbd> ${T(UI.palClose)}</span></div></div>`;
     document.body.appendChild(box);
     box.addEventListener('click', e => { if (e.target === box) closeSearch(); });
   }
@@ -518,6 +518,7 @@ function build() {
   show(STATE.tab, true);
   document.getElementById('kicker').textContent = T(UI.kicker);
   document.getElementById('foot').innerHTML = T(UI.foot);
+  document.querySelector('.skip').textContent = T(UI.skip);
   paintWallet();
   setTitle();
 }

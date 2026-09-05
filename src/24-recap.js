@@ -46,7 +46,7 @@ V.push({
 
       ${RL.map(l => { const [nm, role] = T(TABLABEL[l.id]).split(' · '); return `<g>
         <circle cx="100" cy="${l.y}" r="12" fill="var(--accent-soft)"/>
-        <text class="num" x="100" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
+        ${MARKG(l.id, 100, l.y, 14, 'var(--accent-text)')}
         <text class="sm" x="118" y="${l.y - 1}" fill="var(--primary)">${nm}</text>
         <text class="cap" x="118" y="${l.y + 11}">${(role || '').toUpperCase()}</text>
         <line x1="210" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`; }).join('')}

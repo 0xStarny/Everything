@@ -61,6 +61,8 @@ a:hover{text-decoration:underline}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 .topbar{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;background:var(--canvas);border-bottom:1px solid var(--hairline)}
+.topbar > *{flex:none}
+.topbar .spacer{flex:1 1 auto;min-width:0}
 .logo{height:18px;width:auto;color:var(--primary);display:block}
 .pill-beta{display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:var(--r-sm);background:var(--accent-soft);color:var(--accent-text);font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
 .topbar .spacer{flex:1}
@@ -70,6 +72,10 @@ a:hover{text-decoration:underline}
   border:1px solid var(--hairline);border-radius:var(--r-md);padding:4px 9px;white-space:nowrap}
 .prog b{color:var(--accent-text);font-weight:600}
 @media (max-width:720px){.topbar .crumb{display:none}}
+@media (max-width:620px){
+  .topbar{gap:8px;padding:0 10px}
+  .topbar .pill-beta,.topbar .prog{display:none}
+}
 
 .seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
 .seg button{appearance:none;border:0;background:none;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--muted);padding:5px 10px;cursor:pointer;transition:background .15s,color .15s}
@@ -130,7 +136,7 @@ a:hover{text-decoration:underline}
 @media (max-width:1000px){
   .menubtn{display:inline-flex}
   .shell{grid-template-columns:minmax(0,1fr)}
-  .sidenav{position:fixed;top:48px;left:0;width:280px;z-index:90;background:var(--canvas);
+  .sidenav{position:fixed;top:48px;left:0;width:300px;z-index:90;background:var(--canvas);
     transform:translateX(-101%);transition:transform .22s var(--ease);box-shadow:0 12px 40px rgba(0,0,0,.18)}
   .sidenav.open{transform:none}
   .navveil{display:block;position:fixed;inset:48px 0 0;z-index:85;background:var(--overlay,rgba(0,0,0,.35))}
@@ -153,7 +159,8 @@ a:hover{text-decoration:underline}
 
 .work{display:block}
 .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-lg)}
-.card > .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--hairline)}
+.card > .hd{display:flex;align-items:center;justify-content:space-between;gap:10px 12px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--hairline)}
+.card > .hd h3{min-width:0}
 .hd h3{font-size:13px;font-weight:700;letter-spacing:0}
 .hd .tag{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--hairline);border-radius:var(--r-sm);padding:1px 6px;white-space:nowrap}
 .stagebox{padding:14px}
@@ -348,9 +355,9 @@ td b{color:var(--primary);font-weight:600}
 
 /* ── which of the six ─────────────────────────────────────────── */
 .castrow{display:flex;justify-content:center;gap:-6px;margin-bottom:18px}
-.av2{width:40px;height:40px;margin-left:-8px;border-radius:50%;display:grid;place-items:center;
-  background:var(--accent-soft);color:var(--accent-text);border:2px solid var(--surface);
-  font-family:var(--mono);font-size:15px;font-weight:600}
+.av2{width:42px;height:42px;margin-left:-8px;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent-soft);color:var(--accent-text);border:2px solid var(--surface)}
+.av2 .mk{width:58%;height:58%}
 .av2:first-child{margin-left:0}
 .wres{padding:26px 24px}
 .whead{display:flex;gap:18px;align-items:center;margin-bottom:20px}
@@ -465,6 +472,11 @@ td b{color:var(--primary);font-weight:600}
 @media (max-width:700px){
   /* the stages are wide diagrams: let them scroll inside their own card
      instead of shrinking the labels into illegibility */
+  /* a fade on the right edge, so it is obvious the diagram continues */
+  .stagewrap{position:relative}
+  .stagewrap::after{content:'';position:absolute;top:1px;right:0;bottom:1px;width:34px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--canvas));opacity:1;transition:opacity .18s}
+  .stagewrap.atend::after{opacity:0}
   .stagebox{overflow-x:auto;-webkit-overflow-scrolling:touch}
   svg.stage{min-width:620px}
   .rolehead h2{font-size:24px}
@@ -484,19 +496,10 @@ td b{color:var(--primary);font-weight:600}
   transition:color .15s,border-color .15s,background .15s}
 .ghost:hover{color:var(--accent-text);border-color:var(--hairline);background:var(--surface)}
 .ghost svg{flex:none;opacity:.8}
+@media (max-width:620px){.ghost{font-size:0;gap:0;padding:5px 6px}.ghost svg{opacity:1}}
 
 /* ── the pull quote ─────────────────────────────────────────── */
-.pull{margin:26px 0 4px;padding:20px 22px 16px;border:1px solid var(--hairline);
-  border-left:3px solid var(--accent);border-radius:var(--r-md);background:var(--surface)}
-.pull blockquote{margin:0;font:600 17.5px/1.45 var(--sans);letter-spacing:-.012em;color:var(--primary);
-  text-wrap:balance}
-.pull figcaption{display:flex;align-items:center;gap:9px;margin-top:14px;flex-wrap:wrap}
-.pull figcaption > span{font-family:var(--mono);font-size:10px;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--muted);margin-right:auto}
-.pull .btn{padding:5px 11px;font-size:11.5px}
 .xbtn{display:inline-flex;align-items:center;gap:6px}
-@media (max-width:640px){.pull{padding:16px}.pull blockquote{font-size:15.5px}
-  .pull figcaption > span{width:100%;margin:0 0 2px}}
 
 /* ── the search palette ─────────────────────────────────────── */
 #pal{position:fixed;inset:0;z-index:120;background:rgba(9,11,16,.44);
@@ -535,7 +538,8 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
 .hero .facts span{display:block;margin-top:5px;font-family:var(--mono);font-size:10px;
   letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .hero .ghostmark{position:absolute;right:-40px;top:-30px;width:260px;opacity:.05;pointer-events:none;color:var(--primary)}
-@media (max-width:640px){.hero{padding:22px 20px}.hero .facts{gap:18px}}
+@media (max-width:640px){.hero{padding:22px 20px}.hero .facts{gap:18px}
+  .hero .ghostmark{width:150px;right:-26px;top:-16px;opacity:.035}}
 /* ── badge panel footnotes ──────────────────────────────────── */
 .notify{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:18px 0 0;padding:15px 17px;
   border:1px solid var(--hairline);border-radius:var(--r-md);background:var(--surface)}
@@ -584,6 +588,37 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
 .av .mk{width:60%;height:60%}
 .persona .av .mk{width:59%;height:59%}
 .av3 .mk{width:56%;height:56%}
+/* ── a rule that fills as you read ──────────────────────────── */
+.scrollrule{position:sticky;top:48px;z-index:79;height:2px;background:var(--accent);
+  transform:scaleX(0);transform-origin:0 50%;transition:transform .08s linear}
+@media (prefers-reduced-motion: reduce){.scrollrule{transition:none}}
+
+/* ── skip link ──────────────────────────────────────────────── */
+.skip{position:fixed;top:6px;left:6px;z-index:200;transform:translateY(-160%);
+  background:var(--accent);color:#fff;border-radius:var(--r-md);padding:9px 14px;
+  font:600 13px/1 var(--sans);text-decoration:none;transition:transform .16s var(--ease)}
+.skip:focus{transform:none}
+
+/* ── palette footnote ───────────────────────────────────────── */
+.palfoot{display:flex;gap:16px;flex-wrap:wrap;padding:9px 14px;border-top:1px solid var(--hairline);
+  font-size:11px;color:var(--muted)}
+.palfoot span{display:inline-flex;align-items:center;gap:5px}
+.palfoot kbd{font-family:var(--mono);font-size:10px;line-height:1;padding:3px 5px;color:var(--secondary);
+  border:1px solid var(--hairline);border-bottom-width:2px;border-radius:4px;background:var(--surface)}
+
+/* ── the closing quote ──────────────────────────────────────── */
+.pull{position:relative;margin:30px 0 4px;padding:26px 30px 24px 34px}
+.pull::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:2px;
+  background:var(--accent)}
+.pull blockquote{margin:0;font:600 19px/1.42 var(--sans);letter-spacing:-.016em;color:var(--primary);
+  text-wrap:balance;max-width:56ch}
+@media (max-width:640px){.pull{padding:20px 4px 18px 20px}.pull blockquote{font-size:16.5px}}
+
+::selection{background:var(--accent-soft);color:var(--accent-text)}
+.castcard{position:relative}
+.castcard::after{content:'\2192';position:absolute;right:13px;top:13px;color:var(--accent-text);
+  opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s;font-size:14px}
+.castcard:hover::after{opacity:1;transform:none}
 </style>
 </head>
 <body>
@@ -598,6 +633,7 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
 })();
 </script>
 
+<a class="skip" href="#main">Skip to the guide</a>
 <header class="topbar">
   <button class="menubtn" id="menu" type="button" aria-label="Contents" aria-expanded="false">
     <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M18 14.5H2V13.5H18V14.5ZM18 10.5H2V9.5H18V10.5ZM18 6.5H2V5.5H18V6.5Z" fill="currentColor"/></svg>
@@ -634,6 +670,7 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
     <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.2A8.2 8.2 0 1 1 9.8 4a6.6 6.6 0 0 0 10.2 10.2z"/></svg>
   </button>
 </header>
+<div class="scrollrule" id="scrollbar" aria-hidden="true"></div>
 
 <div class="shell">
   <aside class="sidenav" id="nav" aria-label="Contents"></aside>

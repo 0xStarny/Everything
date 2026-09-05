@@ -22,6 +22,16 @@ Pass all six at 75 % or better and the badge unlocks. The coin lives at `assets/
 
 The mint button is inert until a contract exists. Set `BADGE_CONTRACT` at the top of `src/21-quizui.js` to `{ chain, address }` and wire the call; everything above it is already gated on a real signature from a real address.
 
+## The look
+
+Every view opens on the same block — eyebrow, title, one line of explanation, the id card beneath a hairline, and the view's own figure ghosted into the corner at a size no icon would be used at. Views with nobody in them borrow the mark instead. Arriving anywhere in the guide should feel like arriving at the front of it.
+
+The opening block stands on the protocol's own ruler: a faint tick ladder, minor lines every 6.75 px and a major one every fourth, masked in diagonally from the right so it never competes with the text.
+
+The end of a view is a decision point and is given the weight of one: two cards naming where you would land, each carrying the figure that lives there, the forward one accented.
+
+Dark mode is not the light palette inverted. White at 5 % on a dark ground carries much further than near-black at 5 % on a white one, so every ghosted mark is dialled back under `[data-theme="dark"]` rather than left to shout.
+
 ## The six figures
 
 Everyone in the guide is drawn from the same head and the same pair of shoulders. No features, no hair, no skin, nothing that stands in for a kind of person. What tells them apart is the thing they are carrying: an order that goes straight through, a price planted and waited on, the same price with the capital still working, collateral shut in a box, a position doubled and doubled again, three tranches with the junior one filled in.
@@ -33,6 +43,12 @@ One 24 × 24 grid and one set of paths in `src/05-start.js` serve all of it: `MA
 A left sidebar carries both levels at once: the fifteen views grouped by part, and the steps of whichever view is open nested underneath it. That replaces the old top strip, which could not show twelve items without scrolling, and the old right-hand step rail. The stage ends up wider than it was, not narrower.
 
 Views you have opened get a tick. The tests item carries a live pass count. The call to action is pinned to the bottom of the sidebar so it stays reachable however long the step list gets. Under 1000 px the sidebar becomes a drawer behind a menu button.
+
+## Responsive
+
+What decides whether a 900-unit diagram's 10.5 px captions are readable is the width of the **column**, not the width of the window: at 1024 px the sidebar is still there and the column is only 709 px, which a viewport media query cannot see. So `.col` is a container, the diagram is held at a legible 720 px inside it, and it scrolls in its own card with a fade on the right edge while there is more to see. A `@supports` fallback covers browsers without container queries.
+
+Verified with no horizontal overflow and no overlapping label at 320, 375, 414, 768, 1024, 1280 and 1600 px, in both languages, in both themes. At 320 px the wordmark is sliced back to its mark with `preserveAspectRatio="xMinYMid slice"`, because below about 350 px it genuinely will not fit next to the controls that do something.
 
 ## Deep links
 

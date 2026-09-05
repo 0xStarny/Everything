@@ -1,4 +1,12 @@
 /* ══════════════ START HERE · the whole thing in two minutes ══════════════ */
+/* The three bars of the Everything mark, for use as a graphic rather than a
+   logo: ghosted behind a masthead, ruled across a section heading. */
+const LOGOMARK = `<svg viewBox="0 0 12 20" fill="currentColor" aria-hidden="true">
+  <path d="M11.72.11.14 4.32a.21.21 0 0 0-.14.21v3.9c0 .16.15.26.29.21L11.87 4.43a.21.21 0 0 0 .14-.21V.32c0-.15-.15-.26-.29-.21Z"/>
+  <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13a.21.21 0 0 0 .14-.21Z" opacity=".55"/>
+  <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.58 4.22c.14.05.29-.06.29-.21v-3.9a.21.21 0 0 0-.14-.21Z"/>
+</svg>`;
+
 /* ══════════════ THE SIX ══════════════
    Six figures, one drawing. Every one is the same head and the same pair of
    shoulders — no features, no hair, no skin, nothing that stands in for a
@@ -167,11 +175,7 @@ V.push({
   pnl: null,
   top: () => `
   <section class="hero">
-    <svg class="ghostmark" viewBox="0 0 12 20" fill="currentColor" aria-hidden="true">
-      <path d="M11.72.11.14 4.32a.21.21 0 0 0-.14.21v3.9c0 .16.15.26.29.21L11.87 4.43a.21.21 0 0 0 .14-.21V.32c0-.15-.15-.26-.29-.21Z"/>
-      <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13a.21.21 0 0 0 .14-.21Z" opacity=".55"/>
-      <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.58 4.22c.14.05.29-.06.29-.21v-3.9a.21.21 0 0 0-.14-.21Z"/>
-    </svg>
+    <span class="ghostmark">${LOGOMARK}</span>
     <p class="herokick">${T(['A guide, not advice', 'Un guide, pas un conseil'])}</p>
     <h1>${T(['One reserve. Three markets. No oracle.',
              'Une seule réserve. Trois marchés. Aucun oracle.'])}</h1>

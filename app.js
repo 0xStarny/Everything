@@ -242,6 +242,14 @@ const ROUTES = {
 };
 
 /* ══════════════ START HERE · the whole thing in two minutes ══════════════ */
+/* The three bars of the Everything mark, for use as a graphic rather than a
+   logo: ghosted behind a masthead, ruled across a section heading. */
+const LOGOMARK = `<svg viewBox="0 0 12 20" fill="currentColor" aria-hidden="true">
+  <path d="M11.72.11.14 4.32a.21.21 0 0 0-.14.21v3.9c0 .16.15.26.29.21L11.87 4.43a.21.21 0 0 0 .14-.21V.32c0-.15-.15-.26-.29-.21Z"/>
+  <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13a.21.21 0 0 0 .14-.21Z" opacity=".55"/>
+  <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.58 4.22c.14.05.29-.06.29-.21v-3.9a.21.21 0 0 0-.14-.21Z"/>
+</svg>`;
+
 /* ══════════════ THE SIX ══════════════
    Six figures, one drawing. Every one is the same head and the same pair of
    shoulders — no features, no hair, no skin, nothing that stands in for a
@@ -410,11 +418,7 @@ V.push({
   pnl: null,
   top: () => `
   <section class="hero">
-    <svg class="ghostmark" viewBox="0 0 12 20" fill="currentColor" aria-hidden="true">
-      <path d="M11.72.11.14 4.32a.21.21 0 0 0-.14.21v3.9c0 .16.15.26.29.21L11.87 4.43a.21.21 0 0 0 .14-.21V.32c0-.15-.15-.26-.29-.21Z"/>
-      <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13a.21.21 0 0 0 .14-.21Z" opacity=".55"/>
-      <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.58 4.22c.14.05.29-.06.29-.21v-3.9a.21.21 0 0 0-.14-.21Z"/>
-    </svg>
+    <span class="ghostmark">${LOGOMARK}</span>
     <p class="herokick">${T(['A guide, not advice', 'Un guide, pas un conseil'])}</p>
     <h1>${T(['One reserve. Three markets. No oracle.',
              'Une seule réserve. Trois marchés. Aucun oracle.'])}</h1>
@@ -3853,8 +3857,15 @@ function renderView(v) {
   const i = ORDER.indexOf(v.id);
   const prev = i > 0 ? ORDER[i - 1] : null;
   const next = i < ORDER.length - 1 ? ORDER[i + 1] : null;
+  /* Every view opens on the same block: an eyebrow, a title, a line of
+     explanation, the id card underneath, and the view's own figure ghosted
+     into the corner. Views with nobody in them borrow the mark instead. The
+     first view already has the hero, so it takes the plain variant. */
+  const ART = v.id === 'start' ? ''
+    : `<span class="mh-art${who ? '' : ' logo'}">${who ? MARK(v.id) : LOGOMARK}</span>`;
   const HEAD = `
-    <div class="rolehead">
+    <header class="masthead${v.id === 'start' ? ' bare' : ''}">
+      ${ART}
       <div class="lead">
         <div class="eyebrow">${T(v.eyebrow)}</div>
         <h2>${T(v.title)}</h2>
@@ -3862,25 +3873,20 @@ function renderView(v) {
       </div>
       <div class="idcard">${v.id_card.map(([k, val, c]) =>
         `<div class="stat"><div class="k">${T(k)}</div><div class="v ${c}">${T(val)}</div></div>`).join('')}</div>
-    </div>`;
+    </header>`;
   const NAV = `
     <nav class="viewnav">
-      ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
-      ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
+      ${[[prev, 'prev'], [next, 'next']].map(([id, dir]) => id ? `
+        <button class="navcard ${dir}" type="button" data-goto="${id}">
+          <span class="nc-art">${WHO[id] ? MARK(id) : LOGOMARK}</span>
+          <span class="nc-dir">${dir === 'prev' ? '&larr; ' : ''}${T(dir === 'prev' ? UI.prevView : UI.nextView)}${dir === 'next' ? ' &rarr;' : ''}</span>
+          <span class="nc-t">${T(TABLABEL[id])}</span>
+        </button>` : '<span></span>').join('')}
     </nav>`;
   // the tests are a destination, not a step in the reading sequence
   const TOP = v.top ? v.top() : '';
   if (v.custom) { p.innerHTML = TOP + HEAD + v.custom(); return p; }
-  p.innerHTML = TOP + `
-    <div class="rolehead">
-      <div class="lead">
-        <div class="eyebrow">${T(v.eyebrow)}</div>
-        <h2>${T(v.title)}</h2>
-        <p class="sub">${T(v.sub)}</p>
-      </div>
-      <div class="idcard">${v.id_card.map(([k, val, c]) =>
-        `<div class="stat"><div class="k">${T(k)}</div><div class="v ${c}">${T(val)}</div></div>`).join('')}</div>
-    </div>
+  p.innerHTML = TOP + HEAD + `
     ${who ? `<div class="persona"><span class="av">${MARK(v.id)}</span><div>
         <span class="nm">${T(UI.meet)} ${who.n}</span><p>${T(who.l)}</p></div></div>` : ''}
     <div class="work">
@@ -3915,8 +3921,12 @@ function renderView(v) {
       <blockquote>${T(QUOTES[v.id])}</blockquote>
     </figure>` : ''}
     <nav class="viewnav">
-      ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
-      ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
+      ${[[prev, 'prev'], [next, 'next']].map(([id, dir]) => id ? `
+        <button class="navcard ${dir}" type="button" data-goto="${id}">
+          <span class="nc-art">${WHO[id] ? MARK(id) : LOGOMARK}</span>
+          <span class="nc-dir">${dir === 'prev' ? '&larr; ' : ''}${T(dir === 'prev' ? UI.prevView : UI.nextView)}${dir === 'next' ? ' &rarr;' : ''}</span>
+          <span class="nc-t">${T(TABLABEL[id])}</span>
+        </button>` : '<span></span>').join('')}
     </nav>`;
   return p;
 }
@@ -4102,6 +4112,8 @@ function show(id, keepScroll, fromPop) {
   document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   requestAnimationFrame(paintScroll);
+  const panel = document.getElementById('p-' + id);
+  if (panel) { panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter'); }
   writePath(!fromPop);
 }
 

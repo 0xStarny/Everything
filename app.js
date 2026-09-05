@@ -2271,6 +2271,15 @@ const PASS = 0.75;
 /* Set this to { chain: 8453, address: '0x…' } once the badge contract is live,
    and the mint button below stops being inert. */
 const BADGE_CONTRACT = null;
+const BADGE_IMG = 'assets/badge.webp';
+const COIN = { img: null };
+const loadCoin = () => new Promise(res => {
+  if (COIN.img) return res(COIN.img);
+  const im = new Image();
+  im.onload = () => { COIN.img = im; res(im); };
+  im.onerror = () => res(null);
+  im.src = BADGE_IMG;
+});
 
 const QUIZZES = [
   { id:'idea',   n:'01', views:['overview'],        t:['The idea', "L'idée"],
@@ -2457,7 +2466,7 @@ V.push({
         const left = QUIZZES.filter(q => { const r = myProg()[q.id]; return !r || r.s < needOf(q); });
         return `<div class="card quizcard badgecard">
           <div class="bwrap">
-            <div class="bmedal locked">${medalSVG()}</div>
+            <div class="coin locked">${coinIMG()}${lockSVG()}</div>
             <div class="binfo">
               <div class="bhead">${T(QI.bLocked)}</div>
               <p class="qlead">${done} / ${QUIZZES.length} &middot; <b>${left.length} ${T(QI.bLeft)}</b></p>
@@ -2467,7 +2476,7 @@ V.push({
       }
       return `<div class="card quizcard badgecard open">
         <div class="bwrap">
-          <div class="bmedal">${medalSVG()}</div>
+          <div class="coin on">${coinIMG()}</div>
           <div class="binfo">
             <div class="bhead">${T(QI.bOpen)}</div>
             <p class="qlead">${T(QI.bSub)}</p>
@@ -2487,14 +2496,8 @@ V.push({
         ${BADGE_CONTRACT ? '' : `<p class="qnote">${T(QI.soon)}</p>`}</div>`;
     }
 
-    const medalSVG = () => `<svg viewBox="0 0 96 96" width="76" height="76" aria-hidden="true">
-      <circle cx="48" cy="48" r="45" fill="none" stroke="currentColor" stroke-width="2" opacity=".35"/>
-      <circle cx="48" cy="48" r="36" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".6" stroke-dasharray="4 5"/>
-      <g transform="translate(42 38) scale(1.05)" fill="currentColor">
-        <path d="M11.72.11 .14 4.32C.06 4.36 0 4.44 0 4.53v3.9c0 .16.15.26.29.21L11.87 4.43c.08-.03.14-.11.14-.21V.32c0-.15-.15-.26-.29-.21z"/>
-        <path d="M12.01 10.78V6.87c0-.15-.15-.26-.29-.2L0 10.93l6 2.19 5.87-2.13c.08-.03.14-.11.14-.21z" opacity=".7"/>
-        <path d="M11.87 15.25 0 10.93v4.22c0 .09.06.17.14.2l11.57 4.22c.14.05.29-.06.29-.21v-3.91c0-.09-.06-.17-.14-.2z"/>
-      </g></svg>`;
+    const coinIMG = () => `<img src="${BADGE_IMG}" alt="" width="640" height="640" draggable="false">`;
+    const lockSVG = () => `<span class="lock"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.4"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>`;
 
     /* ── playing ─────────────────────────────────────────────── */
     function begin(quiz) {
@@ -2601,20 +2604,11 @@ V.push({
       const prog = myProg();
       c.fillStyle = BG; c.fillRect(0, 0, W, H);
       c.fillStyle = ACC; c.fillRect(0, H - 8, W, 8);
-      // medallion
-      const cx = 230, cy = 320;
-      c.strokeStyle = ACC; c.lineWidth = 3;
-      c.beginPath(); c.arc(cx, cy, 132, 0, 7); c.stroke();
-      c.strokeStyle = MUT; c.lineWidth = 1.6; c.setLineDash([5, 7]);
-      c.beginPath(); c.arc(cx, cy, 108, 0, 7); c.stroke(); c.setLineDash([]);
-      const mx = cx - 22, my = cy - 40, s = 3.6;
-      const bar = pts => { c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](mx + x * s, my + y * s)); c.closePath(); c.fill(); };
-      c.fillStyle = FG;
-      bar([[0, 4.5], [11.7, 0.1], [11.7, 4.2], [0, 8.6]]);
-      bar([[0, 10.9], [11.7, 6.7], [11.7, 10.8], [6, 13.1]]);
-      bar([[0, 10.9], [11.7, 15.2], [11.7, 19.5], [0, 15.2]]);
-      c.fillStyle = ACC; c.font = F(20, '800'); c.textAlign = 'center';
-      c.fillText(T(['CERTIFIED', 'CERTIFIÉ']), cx, cy + 96);
+      // the coin, struck onto the card
+      const cx = 234, cy = 300, R = 138;
+      if (COIN.img) c.drawImage(COIN.img, cx - R, cy - R, R * 2, R * 2);
+      c.fillStyle = ACC; c.font = F(21, '800'); c.textAlign = 'center';
+      c.fillText(T(['CERTIFIED', 'CERTIFIÉ']), cx, cy + R + 44);
       c.textAlign = 'left';
       // right column
       c.fillStyle = MUT; c.font = F(24, '600');
@@ -2645,7 +2639,7 @@ V.push({
     function wireBadge() {
       const cv = home.querySelector('[data-bcanvas]');
       if (!cv) return;
-      drawBadge(cv);
+      loadCoin().then(() => drawBadge(cv));
       home.querySelector('[data-bcopy]').addEventListener('click', async e => {
         const b = e.currentTarget;
         try {
@@ -2817,7 +2811,8 @@ function renderView(v) {
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
       ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
     </nav>`;
-  if (v.custom) { p.innerHTML = HEAD + v.custom() + NAV; return p; }
+  // the tests are a destination, not a step in the reading sequence
+  if (v.custom) { p.innerHTML = HEAD + v.custom(); return p; }
   p.innerHTML = `
     <div class="rolehead">
       <div class="lead">

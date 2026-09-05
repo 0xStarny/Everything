@@ -328,8 +328,6 @@ td b{color:var(--primary);font-weight:600}
 /* ── badge ────────────────────────────────────────────────────── */
 .badgecard{margin-top:12px}
 .bwrap{display:flex;gap:20px;align-items:center;padding:20px;flex-wrap:wrap}
-.bmedal{flex:none;color:var(--accent);display:grid;place-items:center}
-.bmedal.locked{color:var(--disabled);opacity:.55}
 .bhead{font-size:19px;font-weight:800;letter-spacing:-0.01em;margin-bottom:4px}
 .badgecard.open .bhead{color:var(--ok-text)}
 .binfo{min-width:220px;flex:1}
@@ -343,6 +341,30 @@ td b{color:var(--primary);font-weight:600}
 .badgecard .qactions{padding-bottom:6px}
 .badgecard .qnote{padding-bottom:20px}
 .mintbtn:disabled{opacity:.45}
+
+
+/* ── the badge coin ───────────────────────────────────────────── */
+.coin{position:relative;flex:none;width:172px;height:172px;display:grid;place-items:center}
+.coin img{width:100%;height:100%;display:block;position:relative;z-index:1}
+.coin.on::before{content:"";position:absolute;inset:-22px;border-radius:50%;z-index:0;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent) 46%,transparent) 0%,transparent 66%);
+  animation:coinPulse 3.8s ease-in-out infinite}
+.coin.on img{animation:coinIn 1s var(--ease) both;
+  filter:drop-shadow(0 10px 26px rgba(0,0,0,.45))}
+.coin.locked img{filter:grayscale(1) brightness(.42) contrast(.9);opacity:.55}
+.coin .lock{position:absolute;z-index:2;width:38px;height:38px;color:var(--canvas);
+  background:var(--strong);border-radius:50%;display:grid;place-items:center;
+  box-shadow:0 3px 12px rgba(0,0,0,.35)}
+@keyframes coinIn{
+  from{transform:rotateY(-170deg) scale(.5);opacity:0}
+  55%{opacity:1}
+  to{transform:none;opacity:1}}
+@keyframes coinPulse{0%,100%{opacity:.45;transform:scale(.92)}50%{opacity:1;transform:scale(1.05)}}
+@media (prefers-reduced-motion: reduce){.coin.on::before,.coin.on img{animation:none}}
+.badgecard.open{border-color:var(--accent-line);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent-soft) 42%,transparent),var(--surface) 240px)}
+.bwrap{align-items:center;gap:26px}
+@media (max-width:600px){.coin{width:132px;height:132px}.bwrap{gap:16px}}
 
 /* ── signing ──────────────────────────────────────────────────── */
 .signmsg{font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--secondary);

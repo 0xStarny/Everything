@@ -16,7 +16,7 @@ The last view is six tests, one per part of the guide: the idea, the price, orde
 
 Taking a test requires a connected wallet, and finishing one requires a signature. The signed message is plain text naming the test, the score and the address; it sends no transaction and moves nothing. Scores are stored per address, so switching wallets switches scoreboards.
 
-Pass all six at 75 % or better and the badge unlocks: a medallion, a claim code derived from the address and the score vector, and a 1200x675 card drawn on a canvas. **Copy image** puts the PNG on the clipboard, **Share on X** opens the post — X cannot pull an image from a link, so the flow is copy then paste. **Download** covers browsers that refuse clipboard image writes.
+Pass all six at 75 % or better and the badge unlocks. The coin lives at `assets/badge.webp` and is the only art on the page that is not drawn in code; it appears greyed with a padlock while the badge is locked, turns and settles when it opens, and is struck into the share card. What comes with it: a claim code derived from the address and the score vector, and a 1200x675 card drawn on a canvas. **Copy image** puts the PNG on the clipboard, **Share on X** opens the post — X cannot pull an image from a link, so the flow is copy then paste. **Download** covers browsers that refuse clipboard image writes.
 
 The mint button is inert until a contract exists. Set `BADGE_CONTRACT` at the top of `src/21-quizui.js` to `{ chain, address }` and wire the call; everything above it is already gated on a real signature from a real address.
 

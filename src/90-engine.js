@@ -136,7 +136,8 @@ function renderView(v) {
       ${prev ? `<button class="btn" type="button" data-goto="${prev}">&larr; ${T(UI.prevView)} · ${T(TABLABEL[prev])}</button>` : '<span></span>'}
       ${next ? `<button class="btn primary" type="button" data-goto="${next}">${T(UI.nextView)} · ${T(TABLABEL[next])} &rarr;</button>` : '<span></span>'}
     </nav>`;
-  if (v.custom) { p.innerHTML = HEAD + v.custom() + NAV; return p; }
+  // the tests are a destination, not a step in the reading sequence
+  if (v.custom) { p.innerHTML = HEAD + v.custom(); return p; }
   p.innerHTML = `
     <div class="rolehead">
       <div class="lead">

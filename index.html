@@ -79,17 +79,63 @@ a:hover{text-decoration:underline}
 :root[data-theme="dark"] .ico-sun{display:none}
 :root:not([data-theme="dark"]) .ico-moon{display:none}
 
-.tabsbar{position:sticky;top:48px;z-index:70;background:var(--canvas);border-bottom:1px solid var(--hairline);overflow-x:auto;scrollbar-width:thin}
-.tabs{display:flex;align-items:stretch;padding:0 12px;min-width:max-content}
-.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:11px 14px 9px;cursor:pointer;white-space:nowrap;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px;transition:color .15s,border-color .15s}
-.tab:hover{color:var(--secondary)}
-.tab[aria-selected="true"]{color:var(--primary);border-bottom-color:var(--accent)}
-.tab .idx{font-family:var(--mono);font-size:10px;color:var(--disabled);border:1px solid var(--hairline);border-radius:var(--r-sm);padding:0 4px;line-height:15px}
-.tab[aria-selected="true"] .idx{color:var(--accent-text);border-color:var(--accent-line)}
-.tabsep{width:1px;background:var(--hairline);margin:10px}
-.tabgroup{display:flex;align-items:center;padding:0 10px 0 4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--disabled);white-space:nowrap}
+.menubtn{appearance:none;border:0;background:none;color:var(--muted);cursor:pointer;
+  padding:6px;margin-left:-6px;border-radius:var(--r-sm);display:none;transition:color .15s}
+.menubtn:hover{color:var(--primary)}
 
-.wrap{max-width:1240px;margin:0 auto;padding:24px 16px 72px}
+/* ── shell ────────────────────────────────────────────────────── */
+.shell{display:grid;grid-template-columns:266px minmax(0,1fr);max-width:1320px;margin:0 auto;align-items:start}
+.col{min-width:0}
+.sidenav{position:sticky;top:48px;height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain;
+  border-right:1px solid var(--hairline);padding:16px 10px 28px;scrollbar-width:thin}
+.navgroup{margin-bottom:18px}
+.navlabel{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--disabled);padding:0 10px 7px}
+.navitem{display:grid;grid-template-columns:22px 1fr auto;gap:9px;align-items:center;width:100%;
+  text-align:left;cursor:pointer;font-family:inherit;border:0;background:none;color:var(--secondary);
+  padding:7px 10px;border-radius:var(--r-md);transition:background .13s,color .13s}
+.navitem:hover{background:var(--shade);color:var(--primary)}
+.navitem .ni{font-size:10px;font-weight:600;color:var(--disabled);text-align:center}
+.navitem .nt{font-size:13.5px;font-weight:500;line-height:1.3}
+.navitem .nk{font-size:11px;color:var(--ok);font-weight:700}
+.navitem[aria-current="true"]{background:var(--accent-soft);color:var(--primary)}
+.navitem[aria-current="true"] .nt{font-weight:700}
+.navitem[aria-current="true"] .ni{color:var(--accent-text)}
+.navitem.seen .ni{color:var(--ok-text)}
+/* the call to action stays reachable however long the list gets */
+.navpin{position:sticky;bottom:-28px;margin-bottom:0;padding-bottom:16px;
+  background:var(--canvas);border-top:1px solid var(--hairline);padding-top:12px;margin-top:6px}
+.navcta{border:1px solid var(--accent-line);background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.navcta .nt{font-weight:700;color:var(--accent-text)}
+.navcta[aria-current="true"]{background:var(--accent-soft)}
+.navcta .nk{font-family:var(--mono);color:var(--accent-text)}
+
+/* the steps of the open view, nested under it */
+.navsteps{display:none;margin:2px 0 6px 21px;padding-left:11px;border-left:1px solid var(--hairline)}
+.navsteps.open{display:block}
+.navstep{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:baseline;width:100%;text-align:left;
+  cursor:pointer;font-family:inherit;border:0;background:none;color:var(--muted);
+  padding:5px 8px;border-radius:var(--r-sm);transition:background .12s,color .12s}
+.navstep:hover{background:var(--shade);color:var(--secondary)}
+.navstep b{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--disabled)}
+.navstep span{font-size:12px;line-height:1.35}
+.navstep[aria-current="true"]{color:var(--primary)}
+.navstep[aria-current="true"] span{font-weight:600}
+.navstep[aria-current="true"] b{color:var(--accent-text)}
+.navstep.done{color:var(--secondary)}
+.navveil{display:none}
+
+@media (max-width:1000px){
+  .menubtn{display:inline-flex}
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidenav{position:fixed;top:48px;left:0;width:280px;z-index:90;background:var(--canvas);
+    transform:translateX(-101%);transition:transform .22s var(--ease);box-shadow:0 12px 40px rgba(0,0,0,.18)}
+  .sidenav.open{transform:none}
+  .navveil{display:block;position:fixed;inset:48px 0 0;z-index:85;background:var(--overlay,rgba(0,0,0,.35))}
+  .navveil[hidden]{display:none}
+}
+
+.wrap{max-width:1060px;margin:0 auto;padding:24px 22px 72px}
 .panel[hidden]{display:none}
 
 .rolehead{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;margin-bottom:20px}
@@ -103,8 +149,7 @@ a:hover{text-decoration:underline}
 .stat .v{font-family:var(--mono);font-size:13.5px;font-weight:600;margin-top:2px}
 .v.g{color:var(--ok-text)}.v.r{color:var(--bad-text)}.v.w{color:var(--warn-text)}.v.b{color:var(--accent-text)}
 
-.work{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
-@media (max-width:980px){.work{grid-template-columns:minmax(0,1fr)}}
+.work{display:block}
 .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r-lg)}
 .card > .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--hairline)}
 .hd h3{font-size:13px;font-weight:700;letter-spacing:0}
@@ -140,16 +185,6 @@ svg.stage .cap:not([fill]){fill:var(--muted)}
 .dot[aria-current="true"]{background:var(--accent);width:30px}
 .dot.done{background:var(--accent-line);opacity:.5}
 
-.rail{position:sticky;top:110px;display:flex;flex-direction:column;padding:6px}
-.step{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:9px 8px;border-radius:var(--r-md);cursor:pointer;border:0;background:none;text-align:left;font-family:inherit;color:var(--muted);transition:background .15s,color .15s;width:100%}
-.step:hover{background:var(--shade);color:var(--secondary)}
-.step .n{font-family:var(--mono);font-size:10px;font-weight:600;line-height:18px;text-align:center;border:1px solid var(--hairline);border-radius:var(--r-sm);height:18px;color:var(--disabled)}
-.step .t{font-size:12.5px;font-weight:500;line-height:1.35}
-.step[aria-current="true"]{background:var(--accent-soft);color:var(--primary)}
-.step[aria-current="true"] .n{border-color:var(--accent-line);color:var(--accent-text)}
-.step[aria-current="true"] .t{font-weight:600}
-.step.done{color:var(--secondary)}
-.step.done .n{border-color:var(--border)}
 
 .caption{padding:12px 14px;border-top:1px solid var(--hairline);min-height:78px}
 .caption .ct{font-size:14px;font-weight:700;margin-bottom:4px;letter-spacing:-0.01em}
@@ -389,8 +424,7 @@ td b{color:var(--primary);font-weight:600}
   .stagebox{overflow-x:auto;-webkit-overflow-scrolling:touch}
   svg.stage{min-width:620px}
   .rolehead h2{font-size:24px}
-  .rail{position:static}
-  .persona{flex-direction:column;gap:10px}
+    .persona{flex-direction:column;gap:10px}
   .viewnav{flex-direction:column}
   .viewnav .btn{justify-content:center}
 }
@@ -413,6 +447,9 @@ td b{color:var(--primary);font-weight:600}
 </script>
 
 <header class="topbar">
+  <button class="menubtn" id="menu" type="button" aria-label="Contents" aria-expanded="false">
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M18 14.5H2V13.5H18V14.5ZM18 10.5H2V9.5H18V10.5ZM18 6.5H2V5.5H18V6.5Z" fill="currentColor"/></svg>
+  </button>
   <svg class="logo" viewBox="0 0 121 20" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Everything">
     <path d="M11.7155 0.112219L0.143333 4.32444C0.0566666 4.35555 0 4.43777 0 4.53V8.43555C0 8.58777 0.151111 8.69333 0.293333 8.64111L11.8655 4.42888C11.9522 4.39777 12.0089 4.31555 12.0089 4.22333V0.317774C12.0089 0.165552 11.8578 0.0599965 11.7155 0.112219Z" fill="currentColor"/>
     <path d="M12.0089 10.78V6.87442C12.0089 6.7222 11.8578 6.61664 11.7155 6.66887L0 10.9333L6.00444 13.1189L11.8655 10.9855C11.9522 10.9544 12.0089 10.8722 12.0089 10.78Z" fill="currentColor" opacity="0.7"/>
@@ -443,9 +480,14 @@ td b{color:var(--primary);font-weight:600}
   </button>
 </header>
 
-<nav class="tabsbar" aria-label="Views"><div class="tabs" role="tablist" id="tabs"></div></nav>
-<main class="wrap" id="main"></main>
-<footer class="wrap foot" id="foot"></footer>
+<div class="shell">
+  <aside class="sidenav" id="nav" aria-label="Contents"></aside>
+  <div class="navveil" id="veil" hidden></div>
+  <div class="col">
+    <main class="wrap" id="main"></main>
+    <footer class="wrap foot" id="foot"></footer>
+  </div>
+</div>
 
 <script src="/app.js"></script>
 </body>

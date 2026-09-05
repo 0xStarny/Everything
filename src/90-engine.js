@@ -25,7 +25,8 @@ const ORDER = GROUPS.flatMap(g => g.ids);
 const STATE = { tab: 'start', step: {} };
 const CTRL = {};
 const MAIN = document.getElementById('main');
-const TABBAR = document.getElementById('tabs');
+const NAV = document.getElementById('nav');
+const SEENKEY = 'ev-seen';
 let POP = null;
 
 /* ── step painting ─────────────────────────────────────────────── */
@@ -164,7 +165,6 @@ function renderView(v) {
           <div class="dots" data-dots></div>
         </div>
       </div>
-      <div class="card rail" data-rail></div>
     </div>
     ${v.pnl ? `<div class="pnl">
       <div class="pnlcard win"><h4>${T(UI.win)}</h4><ul>${v.pnl.win.map(x => `<li>${T(x)}</li>`).join('')}</ul></div>
@@ -190,15 +190,12 @@ function wire(p, v) {
     el.dataset.len = L;
     el.style.strokeDasharray = L + ' ' + L;
   });
-  const rail  = p.querySelector('[data-rail]');
   const dots  = p.querySelector('[data-dots]');
   const cap   = p.querySelector('[data-cap]');
   const bPrev = p.querySelector('[data-prev]');
   const bNext = p.querySelector('[data-next]');
   const bPlay = p.querySelector('[data-play]');
 
-  rail.innerHTML = steps.map((s, i) =>
-    `<button class="step" type="button" data-i="${i}"><span class="n">${String(i + 1).padStart(2, '0')}</span><span class="t">${T(s.t)}</span></button>`).join('');
   dots.innerHTML = steps.map((s, i) =>
     `<button class="dot" type="button" data-i="${i}" aria-label="${T(UI.step)} ${i + 1}/${steps.length}"></button>`).join('');
 
@@ -216,10 +213,7 @@ function wire(p, v) {
     cap.querySelector('.cptext').innerHTML = pt;
     cap.querySelector('.cd').innerHTML = T(s.d);
     decorate(cap);
-    rail.querySelectorAll('.step').forEach((b, k) => {
-      b.setAttribute('aria-current', k === i ? 'true' : 'false');
-      b.classList.toggle('done', k < i);
-    });
+    if (STATE.tab === v.id) paintSteps();
     dots.querySelectorAll('.dot').forEach((b, k) => {
       b.setAttribute('aria-current', k === i ? 'true' : 'false');
       b.classList.toggle('done', k < i);
@@ -247,7 +241,6 @@ function wire(p, v) {
   bPrev.addEventListener('click', () => { stop(); render(i - 1); });
   bNext.addEventListener('click', () => { stop(); render(i + 1); });
   bPlay.addEventListener('click', play);
-  rail.addEventListener('click', e => { const b = e.target.closest('.step'); if (b) { stop(); render(+b.dataset.i); } });
   dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if (b) { stop(); render(+b.dataset.i); } });
   p.addEventListener('keydown', e => {
     if (e.target.closest('.tabs') || e.target.closest('.gl')) return;
@@ -260,26 +253,80 @@ function wire(p, v) {
 }
 
 /* ── chrome ────────────────────────────────────────────────────── */
-function buildTabs() {
+function buildNav() {
   let n = 0;
-  TABBAR.innerHTML = GROUPS.map((g, gi) =>
-    (gi ? '<div class="tabsep"></div>' : '') +
-    (T(g.label).trim() ? `<span class="tabgroup">${T(g.label)}</span>` : '') +
-    g.ids.map(id => `<button class="tab${id === 'quiz' ? ' tabcta' : ''}" role="tab" id="t-${id}" aria-controls="p-${id}" aria-selected="false"><span class="idx">${String(n++).padStart(2, '0')}</span>${T(TABLABEL[id])}</button>`).join('')
-  ).join('');
-  TABBAR.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => show(t.id.slice(2))));
+  NAV.innerHTML = GROUPS.map(g =>
+    `<div class="navgroup${g.ids.includes('quiz') ? ' navpin' : ''}">${T(g.label).trim() ? `<div class="navlabel">${T(g.label)}</div>` : ''}` +
+    g.ids.map(id => {
+      const num = String(n++).padStart(2, '0');
+      return `<button class="navitem${id === 'quiz' ? ' navcta' : ''}" type="button" role="tab"
+        id="n-${id}" aria-controls="p-${id}" aria-selected="false" data-nav="${id}">
+        <span class="ni mono">${num}</span><span class="nt">${T(TABLABEL[id])}</span>
+        <span class="nk" data-tick="${id}"></span></button>
+      <div class="navsteps" data-steps="${id}"></div>`;
+    }).join('') + '</div>').join('');
+  NAV.querySelectorAll('[data-nav]').forEach(b =>
+    b.addEventListener('click', () => { show(b.dataset.nav); closeNav(); }));
+  paintTicks();
+}
+
+function seen() { try { return JSON.parse(localStorage.getItem(SEENKEY) || '[]'); } catch (e) { return []; } }
+function markSeen(id) {
+  const a = seen();
+  if (a.includes(id)) return;
+  a.push(id);
+  try { localStorage.setItem(SEENKEY, JSON.stringify(a)); } catch (e) {}
+}
+function paintTicks() {
+  const a = seen();
+  NAV.querySelectorAll('[data-tick]').forEach(el => {
+    const id = el.dataset.tick;
+    if (id === 'quiz') {
+      const prog = (typeof myProg === 'function') ? myProg() : {};
+      const done = QUIZZES.filter(q => prog[q.id] && prog[q.id].s >= needOf(q)).length;
+      el.textContent = `${done}/${QUIZZES.length}`;
+    } else {
+      el.textContent = a.includes(id) ? '✓' : '';
+      el.closest('.navitem').classList.toggle('seen', a.includes(id));
+    }
+  });
+}
+
+/* the open view's steps, nested under it */
+function paintSteps() {
+  NAV.querySelectorAll('.navsteps').forEach(el => { el.className = 'navsteps'; el.innerHTML = ''; });
+  const v = V.find(x => x.id === STATE.tab);
+  if (!v || !v.stage) return;
+  const box = NAV.querySelector(`[data-steps="${STATE.tab}"]`);
+  if (!box) return;
+  const cur = STATE.step[STATE.tab] || 0;
+  box.className = 'navsteps open';
+  box.innerHTML = v.stage.steps.map((s, i) =>
+    `<button class="navstep${i < cur ? ' done' : ''}" type="button" data-i="${i}" aria-current="${i === cur}">
+      <b>${String(i + 1).padStart(2, '0')}</b><span>${T(s.t)}</span></button>`).join('');
+  box.querySelectorAll('[data-i]').forEach(b =>
+    b.addEventListener('click', () => { const c = CTRL[STATE.tab]; if (c) { c.stop(); c.render(+b.dataset.i); } }));
+}
+
+function closeNav() {
+  NAV.classList.remove('open');
+  document.getElementById('veil').hidden = true;
+  document.getElementById('menu').setAttribute('aria-expanded', 'false');
 }
 
 function show(id, keepScroll) {
   if (!ORDER.includes(id)) id = 'start';
   STATE.tab = id;
   closePop();
-  TABBAR.querySelectorAll('.tab').forEach(t => {
-    const on = t.id === 't-' + id;
+  markSeen(id);
+  NAV.querySelectorAll('.navitem').forEach(t => {
+    const on = t.id === 'n-' + id;
     t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.setAttribute('aria-current', on ? 'true' : 'false');
     t.tabIndex = on ? 0 : -1;
-    if (on) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   });
+  paintTicks();
+  paintSteps();
   V.forEach(v => {
     const panel = document.getElementById('p-' + v.id);
     if (panel) panel.hidden = (v.id !== id);
@@ -287,6 +334,8 @@ function show(id, keepScroll) {
   Object.keys(CTRL).forEach(k => { if (k !== id) CTRL[k].stop(); });
   const n = ORDER.indexOf(id) + 1;
   document.getElementById('prog').innerHTML = `${T(UI.view)} <b>${String(n).padStart(2, '0')}</b> / ${ORDER.length}`;
+  // the whitepaper attribution belongs under the guide, not under the tests
+  document.getElementById('foot').hidden = (id === 'quiz');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   writeHash();
 }
@@ -327,7 +376,7 @@ function build() {
   Object.keys(CTRL).forEach(k => { CTRL[k].stop(); delete CTRL[k]; });
   closePop();
   MAIN.innerHTML = '';
-  buildTabs();
+  buildNav();
   V.forEach(v => MAIN.appendChild(renderView(v)));
   V.forEach(v => { CTRL[v.id] = wire(document.getElementById('p-' + v.id), v); });
   show(STATE.tab, true);
@@ -357,15 +406,22 @@ document.getElementById('theme').addEventListener('click', () => {
   try { localStorage.setItem('ev-theme', next); } catch (e) {}
 });
 
-TABBAR.addEventListener('keydown', e => {
-  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+NAV.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const items = Array.from(NAV.querySelectorAll('.navitem'));
+  if (!items.includes(document.activeElement)) return;
   e.preventDefault();
-  const tabs = Array.from(TABBAR.querySelectorAll('.tab'));
-  const cur = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
-  const nxt = (cur + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-  tabs[nxt].click();
-  tabs[nxt].focus();
+  const cur = items.indexOf(document.activeElement);
+  const nxt = (cur + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+  items[nxt].focus();
 });
+document.getElementById('menu').addEventListener('click', () => {
+  const open = NAV.classList.toggle('open');
+  document.getElementById('veil').hidden = !open;
+  document.getElementById('menu').setAttribute('aria-expanded', String(open));
+});
+document.getElementById('veil').addEventListener('click', closeNav);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
 
 document.getElementById('wallet').addEventListener('click', () => {
   if (WALLET.addr) WALLET.disconnect(); else WALLET.connect();

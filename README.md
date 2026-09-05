@@ -20,6 +20,12 @@ Pass all six at 75 % or better and the badge unlocks: a medallion, a claim code 
 
 The mint button is inert until a contract exists. Set `BADGE_CONTRACT` at the top of `src/21-quizui.js` to `{ chain, address }` and wire the call; everything above it is already gated on a real signature from a real address.
 
+## Navigation
+
+A left sidebar carries both levels at once: the eleven views grouped by part, and the steps of whichever view is open nested underneath it. That replaces the old top strip, which could not show twelve items without scrolling, and the old right-hand step rail. The stage ends up wider than it was, not narrower.
+
+Views you have opened get a tick. The tests item carries a live pass count. The call to action is pinned to the bottom of the sidebar so it stays reachable however long the step list gets. Under 1000 px the sidebar becomes a drawer behind a menu button.
+
 ## Deep links
 
 The URL tracks where you are: `#/borrow/5` opens David's view at step 5. Paste one at someone and they land exactly where you did.

@@ -35,8 +35,17 @@
       "path": "price"
     },
     {
-      "id": "trader",
+      "id": "which",
       "n": "03",
+      "kicker": "THE SIX · 30 SECONDS",
+      "title": "Which of the six are you?",
+      "og": "Which of the six are you?",
+      "desc": "Four questions, no wallet, thirty seconds. Find out whether you are Bob, Alice, Nadia, David, Elena or Farid, and read the view that is about you.",
+      "path": "which"
+    },
+    {
+      "id": "trader",
+      "n": "04",
       "kicker": "BOB · TAKER",
       "title": "A swap does not go to the curve first",
       "og": "Bob just presses swap",
@@ -45,7 +54,7 @@
     },
     {
       "id": "maker",
-      "n": "04",
+      "n": "05",
       "kicker": "ALICE · MAKER",
       "title": "The safest seat in the protocol",
       "og": "Nothing can block Alice",
@@ -54,7 +63,7 @@
     },
     {
       "id": "lent",
-      "n": "05",
+      "n": "06",
       "kicker": "NADIA · LENT MAKER",
       "title": "Yield, bought with your freedom to leave",
       "og": "Nadia's money works while it waits",
@@ -63,7 +72,7 @@
     },
     {
       "id": "borrow",
-      "n": "06",
+      "n": "07",
       "kicker": "DAVID · BORROWER",
       "title": "Your liquidation price moves on its own",
       "og": "David gets liquidated by the clock",
@@ -72,7 +81,7 @@
     },
     {
       "id": "lev",
-      "n": "07",
+      "n": "08",
       "kicker": "ELENA · LEVERAGE",
       "title": "Leverage with no cap and no stop-loss",
       "og": "Elena's leverage has no slider",
@@ -81,7 +90,7 @@
     },
     {
       "id": "lp",
-      "n": "08",
+      "n": "09",
       "kicker": "FARID · LP",
       "title": "The LPs are the insurance fund",
       "og": "Farid is the one who pays",
@@ -90,7 +99,7 @@
     },
     {
       "id": "band",
-      "n": "09",
+      "n": "10",
       "kicker": "UNDER THE HOOD",
       "title": "A band, not an oracle",
       "og": "Manipulation only makes it worse",
@@ -99,7 +108,7 @@
     },
     {
       "id": "liq",
-      "n": "10",
+      "n": "11",
       "kicker": "UNDER THE HOOD",
       "title": "Nobody is paid to liquidate",
       "og": "Nobody is paid to liquidate",
@@ -107,22 +116,31 @@
       "path": "liquidation"
     },
     {
+      "id": "capacity",
+      "n": "12",
+      "kicker": "UNDER THE HOOD",
+      "title": "How much can be borrowed, and where",
+      "og": "Debt has to sit where the pool can sell",
+      "desc": "Borrowing capacity is shaped rung by rung by the depth the curve will actually offer there. This is the arithmetic that lets a mid-cap be lent against at all.",
+      "path": "capacity"
+    },
+    {
+      "id": "recap",
+      "n": "13",
+      "kicker": "PUTTING IT TOGETHER",
+      "title": "One day, one pool, six people",
+      "og": "One day, one pool, six people",
+      "desc": "Everything the guide explained one profile at a time, happening to the same reserve on the same day. Bob swaps, Alice is filled, David is liquidated, and Farid pays.",
+      "path": "one-day"
+    },
+    {
       "id": "quiz",
-      "n": "11",
+      "n": "14",
       "kicker": "TEST YOURSELF",
       "title": "Six tests, one badge",
       "og": "Think you followed all that?",
       "desc": "Six tests, forty-nine questions. Pass every one at 75 % and the badge unlocks, signed to your address.",
       "path": "tests"
-    },
-    {
-      "id": "which",
-      "n": "",
-      "kicker": "30 SECONDS",
-      "title": "Which of the six are you?",
-      "og": "Which of the six are you?",
-      "desc": "Four questions, no wallet, thirty seconds. Find out whether you are Bob, Alice, Nadia, David, Elena or Farid, and read the view that is about you.",
-      "path": "which"
     }
   ]
 }

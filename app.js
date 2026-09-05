@@ -173,6 +173,11 @@ const ROUTES = {
       "title": "Where the price comes from"
     },
     {
+      "id": "which",
+      "path": "which",
+      "title": "Which of the six are you?"
+    },
+    {
       "id": "trader",
       "path": "taker",
       "title": "A swap does not go to the curve first"
@@ -213,14 +218,19 @@ const ROUTES = {
       "title": "Nobody is paid to liquidate"
     },
     {
+      "id": "capacity",
+      "path": "capacity",
+      "title": "How much can be borrowed, and where"
+    },
+    {
+      "id": "recap",
+      "path": "one-day",
+      "title": "One day, one pool, six people"
+    },
+    {
       "id": "quiz",
       "path": "tests",
       "title": "Six tests, one badge"
-    },
-    {
-      "id": "which",
-      "path": "which",
-      "title": "Which of the six are you?"
     }
   ]
 };
@@ -2975,6 +2985,267 @@ V.push({
   }
 });
 
+/* ══════════════ HOW MUCH CAN BE BORROWED, AND WHERE ══════════════
+   The arithmetic behind the whole long-tail claim: borrowing capacity is
+   shaped, rung by rung, by the depth the curve will actually offer there. */
+
+V.push({
+  id: 'capacity',
+  eyebrow: ['Mechanics', 'Mécanique'],
+  title: ['How much can be borrowed, and where', "Combien on peut emprunter, et où"],
+  sub: ['This is the arithmetic that turns the guide\'s opening promise into something real. Debt is allowed to pile up where the curve is deep enough to absorb its own liquidation, and is forced to thin out where it is not.',
+        "C'est l'arithmétique qui transforme la promesse d'ouverture du guide en quelque chose de réel. La dette peut s'accumuler là où la courbe est assez profonde pour absorber sa propre liquidation, et doit s'amincir là où elle ne l'est pas."],
+  id_card: [
+    [['Shaped by', 'Façonnée par'], ['the curve itself', 'la courbe elle-même'], 'b'],
+    [['Model', 'Modèle'], ['pluggable', 'pluggable'], 'n'],
+    [['Can it mint capacity', 'Peut-il créer de la capacité'], ['never', 'jamais'], 'g'],
+    [['Consulted on exit', 'Consulté à la sortie'], ['never', 'jamais'], 'g']],
+  stage: {
+    title: ['Depth below, allowed debt above', 'La profondeur en bas, la dette permise en haut'],
+    tag: '§6.2 eq. (12) · §6.5 eq. (17)',
+    vb: '0 0 900 470',
+    svg: () => MK('cp') + `
+      <line x1="90" y1="300" x2="840" y2="300" stroke="var(--border)" stroke-width="1.3"/>
+      <text class="cap" x="46" y="220" text-anchor="middle" transform="rotate(-90 46 220)">${T(['ALLOWED DEBT','DETTE PERMISE'])}</text>
+      <text class="cap" x="46" y="380" text-anchor="middle" transform="rotate(-90 46 380)">${T(['CURVE DEPTH','PROFONDEUR'])}</text>
+      <text class="cap" x="840" y="452" text-anchor="end">${T(['PRICE, RUNG BY RUNG →','PRIX, BARREAU PAR BARREAU →'])}</text>
+
+      <g id="cp-depth" class="anim">
+        <path d="M 110,300 L 110,352 C 300,372 470,392 700,420 L 820,432 L 820,300 Z" fill="var(--accent-line)" opacity=".2"/>
+        <path d="M 110,352 C 300,372 470,392 700,420 L 820,432" fill="none" stroke="var(--accent-line)" stroke-width="2"/>
+        <text class="sm" x="120" y="382" fill="var(--accent-text)">${T(['what the curve would really absorb here',"ce que la courbe absorberait réellement ici"])}</text></g>
+
+      ${[[0,110,150],[1,160,146],[2,210,140],[3,260,132],[4,310,122],[5,360,110],
+         [6,410,96],[7,460,82],[8,510,70],[9,560,60],[10,610,50],[11,660,42],
+         [12,710,34],[13,760,28],[14,810,22]]
+        .map(([i,x,h])=>`<rect id="cp-b${i}" class="anim barY" x="${x-19}" y="${300-h}" width="38" height="${h}" rx="3"
+          fill="var(--accent-soft)" stroke="var(--accent-line)" stroke-width="1"/>`).join('')}
+
+      <g id="cp-spot" class="anim">
+        <line x1="560" y1="30" x2="560" y2="312" stroke="var(--primary)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <rect x="516" y="8" width="88" height="20" rx="5" fill="var(--primary)"/>
+        <text class="cap" x="560" y="22" text-anchor="middle" fill="var(--canvas)">${T(['CURRENT PRICE','PRIX ACTUEL'])}</text></g>
+      <g id="cp-cut" class="anim">
+        <rect x="580" y="30" width="255" height="272" rx="6" fill="var(--bad)" opacity=".13"/>
+        <text class="sm" x="708" y="180" text-anchor="middle" fill="var(--bad-text)">${T(['truncated at the current price','tronqué au prix courant'])}</text></g>
+
+      <g id="cp-range" class="anim">
+        <path d="M 92,326 H 588" fill="none" stroke="var(--warn)" stroke-width="2"/>
+        <path d="M 92,320 V 332 M 588,320 V 332" stroke="var(--warn)" stroke-width="2"/>
+        <text class="sm" x="340" y="344" text-anchor="middle" fill="var(--warn-text)">${T(['and a whole range of ten rungs is capped harder than any single rung',
+          "et un range entier de dix barreaux est plafonné plus durement qu'un seul barreau"])}</text></g>
+
+      ${CALL('cp-env', 90, 8, 240, 80, ['THE GLOBAL ENVELOPE',"L'ENVELOPPE GLOBALE"], [
+        ['C = β_R·R + β_E·E', 'C = β_R·R + β_E·E'],
+        ['the reserve plus admitted lent escrow,', 'la réserve plus l\'escrow prêté admis,'],
+        ['each cut by its own haircut', 'chacun réduit par son haircut']], 'b')}
+      ${CALL('cp-model', 346, 8, 240, 80, ['THE SHAPE', 'LA FORME'], [
+        ['a pluggable model', 'un modèle pluggable'],
+        ['one static call at borrow time, returning', 'un appel statique à l\'emprunt, qui rend'],
+        ['gross per-tick and per-range capacity', 'la capacité brute par tick et par range']], 'n')}
+      ${CALL('cp-trust', 602, 8, 238, 80, ['ITS TRUST ENVELOPE', 'SON ENVELOPPE DE CONFIANCE'], [
+        ['it can only ever shape', 'il ne peut que façonner'],
+        ['never mint capacity, never trap a user,', 'jamais créer de capacité, jamais piéger,'],
+        ['and no exit path consults it', 'et aucune sortie ne le consulte']], 'g')}`,
+    base: {'#cp-depth':{o:0},'#cp-spot':{o:0},'#cp-cut':{o:0},'#cp-range':{o:0},
+      '#cp-env':{o:0},'#cp-model':{o:0},'#cp-trust':{o:0},
+      ...Object.fromEntries(Array.from({length:15},(_,i)=>['#cp-b'+i,{o:0,sc:[1,1]}]))},
+    steps: (() => {
+      const bars = (from, to, o, sy) => Object.fromEntries(
+        Array.from({length:15},(_,i)=>i).filter(i=>i>=from&&i<=to).map(i=>['#cp-b'+i,{o,sc:[1,sy===undefined?1:sy]}]));
+      const allBars = bars(0,14,1);
+      return [
+      {t: ['Start with a ceiling on the whole book', "D'abord un plafond sur tout le carnet"],
+       plain: ['Before anything else there is one hard limit on how much the pair will lend at all. It is the reserve, plus whatever waiting money opted in to be lent, each cut by its own haircut. What those haircuts leave behind is not safety theatre: it is a physical floor of tokens that borrowing can never touch but swaps can always spend, so the pool can keep trading even when the credit book is stretched to its limit.',
+               "Avant tout, il y a une limite dure à ce que la paire prêtera. C'est la réserve, plus l'argent en attente qui a accepté d'être prêté, chacun réduit par son haircut. Ce que ces haircuts laissent n'est pas de la sécurité décorative : c'est un plancher physique de tokens que l'emprunt ne peut jamais toucher mais que les swaps peuvent toujours dépenser, pour que la réserve continue d'échanger même quand le carnet de crédit est tendu à fond."],
+       d: ['<code>C = β<sub>R</sub>·R + β<sub>E</sub>·E</code>. The complements of the haircuts are swap floors. Note that <code>B ≤ C</code> is <b>not</b> an invariant: swaps may draw the reserve down until utilisation exceeds one, and the system resolves that through the rate rather than forbidding it.',
+           "<code>C = β<sub>R</sub>·R + β<sub>E</sub>·E</code>. Les compléments des haircuts sont des planchers de swap. À noter : <code>B ≤ C</code> <b>n'est pas</b> un invariant. Les swaps peuvent tirer la réserve jusqu'à ce que l'utilisation dépasse un, et le système résout ce régime par le taux plutôt qu'en l'interdisant."],
+       set: {'#cp-env':{o:1}}},
+      {t: ['But a ceiling says nothing about where', 'Mais un plafond ne dit rien du où'],
+       plain: ['Knowing the pair will lend a million says nothing about whether that million should sit at a price two percent away or forty. And that is the question that decides whether the loan survives: a liquidation has to be sold somewhere, and the only place it can be sold is this pool\'s own curve.',
+               "Savoir que la paire prêtera un million ne dit rien sur le fait que ce million doive se loger à deux pour cent du prix ou à quarante. Or c'est cette question qui décide si le prêt survit : une liquidation doit être revendue quelque part, et le seul endroit possible est la courbe de cette réserve."],
+       d: ['This is the gap every monolithic money market has to fill with an assumption about a third-party venue. Here it is filled with a measurement.',
+           "C'est l'écart que tout money market monolithique doit combler par une hypothèse sur un venue tiers. Ici, il est comblé par une mesure."],
+       set: {'#cp-env':{o:1}}},
+      {t: ['So measure the depth, rung by rung', 'Alors on mesure la profondeur, barreau par barreau'],
+       plain: ['The pool asks its own curve a simple question at every price on the ladder: if I had to sell collateral here, how much could I actually shift before the price fell away? Near the current price the answer is a lot, because that is where the liquidity is piled. Far away it is very little.',
+               "La réserve pose à sa propre courbe une question simple à chaque prix de l'échelle : si je devais vendre du collateral ici, combien pourrais-je réellement écouler avant que le prix ne s'effondre ? Près du prix courant, la réponse est beaucoup, puisque c'est là que la liquidité est empilée. Loin, c'est très peu."],
+       d: ['A pure, stateless plugin contract, selected per pair and consulted by one static call at borrow time. Several exist: a curve-exact CryptoSwap model that reads the invariant\'s true depth, a conservative constant-product model, and an inverse model. The launch default is the curve-exact one, because constant product deliberately under-states the real depth near the peg.',
+           "Un contrat plugin pur et sans état, choisi par paire et consulté par un seul appel statique à l'emprunt. Plusieurs existent : un modèle CryptoSwap exact qui lit la vraie profondeur de l'invariant, un modèle à produit constant conservateur, et un modèle inverse. Le défaut au lancement est le modèle exact, parce que le produit constant sous-estime délibérément la profondeur réelle près du peg."],
+       set: {'#cp-env':{o:1},'#cp-model':{o:1},'#cp-depth':{o:1}}},
+      {t: ['And let the debt follow that shape', 'Et on laisse la dette suivre cette forme'],
+       plain: ['The allowed debt at each rung is a fraction of the depth measured underneath it. Close to the price, where the pool could sell a lot, a lot may be borrowed. Out at the edges, where it could barely sell anything, almost nothing may be borrowed. The credit book ends up as a mirror image of the curve.',
+               "La dette permise à chaque barreau est une fraction de la profondeur mesurée en dessous. Près du prix, là où la réserve pourrait beaucoup vendre, on peut beaucoup emprunter. Sur les bords, où elle ne vendrait presque rien, on ne peut presque rien emprunter. Le carnet de crédit finit en image miroir de la courbe."],
+       d: ['For the constant-product model, the simplest to state: <code>cap<sub>i</sub> = (1 − 1/√1.01)·δ(A<sub>i</sub>)·m<sub>tick</sub></code>, with <code>δ(p) = √(k/p)</code>. The pair nets existing debt itself; the model only ever returns gross capacity.',
+           "Pour le modèle à produit constant, le plus simple à énoncer : <code>cap<sub>i</sub> = (1 − 1/√1,01)·δ(A<sub>i</sub>)·m<sub>tick</sub></code>, avec <code>δ(p) = √(k/p)</code>. La paire nette elle-même la dette existante ; le modèle ne rend jamais que de la capacité brute."],
+       set: {'#cp-env':{o:1},'#cp-model':{o:1},'#cp-depth':{o:1},...allBars}},
+      {t: ['Nothing above the price counts', 'Rien au-dessus du prix ne compte'],
+       plain: ['Capacity is truncated at the current price. Rungs above it are not places a loan can die, so they contribute nothing. Only the depth genuinely underneath the market, the part a falling price would actually travel through, is allowed to back anything.',
+               "La capacité est tronquée au prix courant. Les barreaux au-dessus ne sont pas des endroits où un prêt peut mourir, donc ils ne comptent pour rien. Seule la profondeur réellement sous le marché, celle qu'un prix en baisse traverserait vraiment, a le droit d'adosser quoi que ce soit."],
+       d: ['The per-range cap telescopes the depth across each ten-tick group, truncated at the current price. Per-tick capacity reads the live curve by design, strictly below the global envelope the pair enforces on its own.',
+           "Le plafond par range télescope la profondeur sur chaque groupe de dix ticks, tronqué au prix courant. La capacité par tick lit la courbe live par conception, strictement sous l'enveloppe globale que la paire fait respecter elle-même."],
+       tone: 'alert',
+       set: {'#cp-env':{o:1},'#cp-model':{o:1},'#cp-depth':{o:1},...allBars,
+             ...bars(10,14,.18),'#cp-spot':{o:1},'#cp-cut':{o:1}}},
+      {t: ['One rung may lean hard. Ten may not.', 'Un barreau peut s\'appuyer fort. Dix, non.'],
+       plain: ['There is a second limit on top, and it is the clever one. A single rung is allowed to lean quite far on the depth beneath it, but a whole range of ten rungs together is capped much harder. Without that, borrowers would simply spread the same enormous position across ten adjacent rungs and rebuild the wall the per-rung limit was meant to prevent.',
+               "Il y a une seconde limite par-dessus, et c'est la maligne. Un barreau seul peut s'appuyer assez loin sur la profondeur en dessous, mais tout un range de dix barreaux ensemble est plafonné bien plus durement. Sans ça, les emprunteurs étaleraient simplement la même position énorme sur dix barreaux voisins et reconstruiraient le mur que la limite par barreau devait empêcher."],
+       d: ['The tick and range multipliers are asymmetric on purpose, so debt cannot form a uniform wall of adjacent maxed ticks.',
+           "Les multiplicateurs de tick et de range sont asymétriques exprès, pour que la dette ne puisse pas former un mur uniforme de ticks voisins tous au maximum."],
+       set: {'#cp-env':{o:1},'#cp-model':{o:1},'#cp-depth':{o:1},...allBars,
+             ...bars(10,14,.18),'#cp-spot':{o:1},'#cp-cut':{o:1},'#cp-range':{o:1}}},
+      {t: ['A broken model can stall lending. It cannot lose your money.', 'Un modèle cassé peut bloquer les prêts. Il ne peut pas perdre votre argent.'],
+       plain: ['This part is swappable by governance, which would normally be alarming. It is not, because of where it sits: it can only ever choose a distribution underneath a ceiling the pair enforces by itself, it is never asked anything when somebody wants their money out, and it holds no state. The worst a broken or hostile model can do is refuse new borrowing.',
+               "Cette pièce est remplaçable par la gouvernance, ce qui devrait normalement inquiéter. Ce n'est pas le cas, à cause de sa place : il ne peut que choisir une répartition sous un plafond que la paire fait respecter seule, on ne lui demande jamais rien quand quelqu'un veut récupérer son argent, et il ne détient aucun état. Le pire qu'un modèle cassé ou hostile puisse faire, c'est refuser les nouveaux emprunts."],
+       d: ['Governance-swappable atomically for both the borrow and the order domain, and inside a strict trust envelope: it can shape distribution only below the global envelope, and <b>no exit path ever consults it</b>, so it can neither mint capacity nor trap a single user.',
+           "Remplaçable atomiquement par la gouvernance pour les domaines borrow et order, et dans une enveloppe de confiance stricte : il ne peut façonner la distribution que sous l'enveloppe globale, et <b>aucun chemin de sortie ne le consulte</b>, donc il ne peut ni créer de capacité ni piéger un seul utilisateur."],
+       tone: 'good',
+       set: {'#cp-env':{o:1},'#cp-model':{o:1},'#cp-depth':{o:1},...allBars,
+             ...bars(10,14,.18),'#cp-spot':{o:1},'#cp-cut':{o:1},'#cp-range':{o:1},'#cp-trust':{o:1}}}
+    ]; })()
+  },
+  pnl: null,
+  extra: () => `<div class="note">${T(
+    ['<b>This is the sentence the whole protocol is built to earn.</b> A monolithic money market cannot list a mid-cap because its liquidations would have to cross a venue whose depth it can neither observe nor control. Here the venue is the pool itself, so the question "how much can this token safely borrow" stops being a judgement call and becomes a measurement taken from the curve that will do the selling. That is what the opening comparison meant: the counter setting the rate is the counter holding the pawn.',
+     "<b>C'est la phrase que tout le protocole est construit pour mériter.</b> Un money market monolithique ne peut pas lister un mid-cap parce que ses liquidations devraient traverser un venue dont il ne peut ni observer ni contrôler la profondeur. Ici le venue est la réserve elle-même, donc la question « combien ce token peut-il emprunter en sécurité » cesse d'être un jugement et devient une mesure prise sur la courbe qui fera la vente. C'est ce que voulait dire la comparaison d'ouverture : le comptoir qui fixe le taux est celui qui détient le gage."])}</div>`
+});
+
+/* ══════════════ ONE DAY, ONE POOL, SIX PEOPLE ══════════════
+   The closing view. Everything the guide taught separately, happening to the
+   same reserve on the same day, in order. */
+
+const RL = [
+  { id: 'lp',     y: 168, k: 'F' },
+  { id: 'maker',  y: 210, k: 'A' },
+  { id: 'lent',   y: 252, k: 'N' },
+  { id: 'borrow', y: 294, k: 'D' },
+  { id: 'lev',    y: 336, k: 'E' },
+  { id: 'trader', y: 378, k: 'B' }
+];
+
+const ev = (id, x, w, lane, txt, kind) => {
+  const c = { b: ['var(--accent-soft)', 'var(--accent-line)', 'var(--accent-text)'],
+              g: ['var(--ok-bg)', 'var(--ok-line)', 'var(--ok-text)'],
+              r: ['var(--bad-bg)', 'var(--bad-line)', 'var(--bad-text)'],
+              w: ['var(--warn-bg)', 'var(--warn-line)', 'var(--warn-text)'] }[kind];
+  const y = RL.find(l => l.id === lane).y;
+  return `<g id="${id}" class="anim">
+    <rect x="${x}" y="${y - 13}" width="${w}" height="26" rx="6" fill="${c[0]}" stroke="${c[1]}" stroke-width="1.1"/>
+    <text class="sm" x="${x + 9}" y="${y + 4}" fill="${c[2]}">${T(txt)}</text></g>`;
+};
+
+V.push({
+  id: 'recap',
+  eyebrow: ['Putting it together', 'Tout ensemble'],
+  title: ['One day, one pool, six people', 'Une journée, une réserve, six personnes'],
+  sub: ['Everything the guide explained one profile at a time, happening to the same reserve on the same day. This is the view that makes the rest click.',
+        "Tout ce que le guide a expliqué profil par profil, arrivant à la même réserve le même jour. C'est la vue qui fait cliquer tout le reste."],
+  id_card: [
+    [['People', 'Personnes'], ['6', '6'], 'b'],
+    [['Pool', 'Réserve'], ['1', '1'], 'b'],
+    [['Who pays at the end', 'Qui paie à la fin'], ['Farid', 'Farid'], 'r']],
+  stage: {
+    title: ['A single EV/USDC pair, from morning to liquidation', 'Une seule paire EV/USDC, du matin à la liquidation'],
+    tag: ['every view at once', 'toutes les vues à la fois'],
+    vb: '0 0 900 430',
+    svg: () => MK('rc') + `
+      ${[[52,'1.20'],[100,'1.00'],[126,'0.90']].map(([y,l])=>
+        `<line x1="176" y1="${y}" x2="846" y2="${y}" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 6"/>
+         <text class="num" x="168" y="${+y+4}" text-anchor="end" fill="var(--muted)">${l}</text>`).join('')}
+      <path id="rc-price" class="anim rev" d="M 186,100 L 290,92 L 380,70 L 470,50 L 560,58 L 650,88 L 730,120 L 840,126"
+        fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linejoin="round"/>
+      <text class="cap" x="176" y="30">${T(['THE PRICE OF EV, ALL DAY','LE PRIX DE EV, TOUTE LA JOURNÉE'])}</text>
+
+      ${RL.map(l => `<g>
+        <circle cx="106" cy="${l.y}" r="13" fill="var(--accent-soft)"/>
+        <text class="num" x="106" y="${l.y + 4}" text-anchor="middle" fill="var(--accent-text)">${l.k}</text>
+        <text class="sm" x="126" y="${l.y + 4}">${T(TABLABEL[l.id]).split(' · ')[0]}</text>
+        <line x1="176" y1="${l.y}" x2="846" y2="${l.y}" stroke="var(--hairline)" stroke-width="1"/></g>`).join('')}
+      <text class="cap" x="846" y="410" text-anchor="end">${T(['ONE DAY →','UNE JOURNÉE →'])}</text>
+
+      ${ev('rc-1', 186, 158, 'lp',     ['deposits both tokens', 'dépose les deux tokens'], 'b')}
+      ${ev('rc-2', 262, 150, 'maker',  ['rests 10k at 0.950', 'pose 10k à 0.950'], 'b')}
+      ${ev('rc-3', 262, 186, 'lent',   ['rests 10k, ticks lend', 'pose 10k, coche lend'], 'b')}
+      ${ev('rc-4', 356, 196, 'borrow', ['borrows 6k, tick 0.78', 'emprunte 6k, tick 0.78'], 'b')}
+      ${ev('rc-5', 446, 176, 'lev',    ['levers 3.4x on 5k', 'lève 3,4x sur 5k'], 'b')}
+      ${ev('rc-6', 536, 152, 'trader', ['swaps 50k USDC', 'swappe 50k USDC'], 'g')}
+      ${ev('rc-7', 536, 132, 'maker',  ['+ rebate, 0 fee', '+ rebate, 0 fee'], 'g')}
+      ${ev('rc-8', 536, 148, 'lp',     ['fees + interest', 'fees + intérêts'], 'g')}
+      ${ev('rc-9', 452, 176, 'lent',   ['lent to David, earning', 'prêté à David, rapporte'], 'g')}
+      ${ev('rc-10', 556, 152, 'borrow', ['tick drifts to 0.90', 'le tick dérive à 0.90'], 'w')}
+      ${ev('rc-11', 716, 128, 'borrow', ['liquidated', 'liquidé'], 'r')}
+      ${ev('rc-12', 716, 128, 'lev',    ['stopped out', 'stop-out'], 'r')}
+      ${ev('rc-13', 716, 130, 'lent',   ['exit blocked', 'sortie bloquée'], 'w')}
+      ${ev('rc-14', 716, 130, 'maker',  ['untouched', 'intouchée'], 'g')}
+      ${ev('rc-15', 716, 130, 'lp',     ['pays the gap', 'paie l’écart'], 'r')}
+      <g id="rc-now" class="anim">
+        <line x1="186" y1="36" x2="186" y2="398" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 4"/></g>`,
+    base: {'#rc-price':{o:1,do:1},'#rc-now':{o:1,t:[0,0]},
+      ...Object.fromEntries(Array.from({length:15},(_,i)=>['#rc-'+(i+1),{o:0}]))},
+    steps: (() => {
+      const on = (...n) => Object.fromEntries(n.map(i => ['#rc-' + i, { o: 1 }]));
+      const at = x => ({ '#rc-now': { o: 1, t: [x - 186, 0] } });
+      return [
+      {t: ['Morning. Farid puts up the money.', 'Le matin. Farid met l\'argent.'],
+       plain: ['Nothing else on this page can happen until somebody deposits. Farid puts in both tokens and receives pool shares. From this second his money is quoting prices, sitting in the loan book, and standing last in line if anything goes wrong. He did not choose those three jobs separately: they are the same tokens.',
+               "Rien d'autre sur cette page ne peut arriver tant que quelqu'un n'a pas déposé. Farid met les deux tokens et reçoit des parts. Dès cette seconde, son argent cote des prix, dort dans le carnet de prêts, et se tient en dernier si quelque chose tourne mal. Il n'a pas choisi ces trois métiers séparément : ce sont les mêmes tokens."],
+       d: ['One reserve, three markets, one solvency ledger. Everything after this is a claim on the same balance sheet.',
+           "Une réserve, trois marchés, un ledger de solvabilité. Tout ce qui suit est une créance sur le même bilan."],
+       set: { ...at(220), ...on(1) }},
+      {t: ['Alice and Nadia both want EV cheaper', 'Alice et Nadia veulent toutes deux de l\'EV moins cher'],
+       plain: ['They place the identical order at the identical price, ten thousand each waiting at 0.950. One difference: Nadia ticks the box that lends her money while it waits. That single boolean is the only thing separating them, and by the end of the day it will have decided very different outcomes.',
+               "Elles posent le même ordre au même prix, dix mille chacune en attente à 0.950. Une différence : Nadia coche la case qui prête son argent pendant l'attente. Ce seul booléen est tout ce qui les sépare, et à la fin de la journée il aura décidé de deux sorts très différents."],
+       d: ['Both sit in escrow, held by the pair, never counted as pricing reserve. Nadia\'s additionally joins the borrowable pool, and her flag is frozen for the order\'s life.',
+           "Les deux sont en escrow, détenues par la paire, jamais comptées en pricing reserve. Celle de Nadia rejoint en plus le pool empruntable, et son flag est figé pour la vie de l'ordre."],
+       set: { ...at(320), ...on(1, 2, 3) }},
+      {t: ['David needs cash and refuses to sell', 'David a besoin de liquide et refuse de vendre'],
+       plain: ['He borrows six thousand against his EV, and picks 0.78 as the price at which he accepts to be wiped out. Twenty-two percent of room feels generous. Notice where the money he borrows comes from: partly Farid\'s reserve, partly Nadia\'s waiting order. He will never know that.',
+               "Il emprunte six mille contre son EV, et choisit 0.78 comme prix auquel il accepte d'être liquidé. Vingt-deux pour cent de marge, ça paraît confortable. Remarquez d'où vient l'argent qu'il emprunte : en partie la réserve de Farid, en partie l'ordre en attente de Nadia. Il ne le saura jamais."],
+       d: ['Collateral sized by <code>c = (1+π)·q·A<sub>i</sub></code>, and the amount has to fit the global envelope plus the per-tick and per-range capacity shaped by the curve\'s own depth at 0.78.',
+           "Collateral dimensionné par <code>c = (1+π)·q·A<sub>i</sub></code>, et le montant doit tenir dans l'enveloppe globale plus la capacité par tick et par range façonnée par la profondeur de la courbe à 0.78."],
+       set: { ...at(410), ...on(1, 2, 3, 4, 9) }},
+      {t: ['Elena stacks the same machinery four times', 'Elena empile la même mécanique quatre fois'],
+       plain: ['She does what David did, in a loop, inside one transaction: borrow, swap, post, borrow again. Five thousand of her own becomes seventeen thousand of exposure. No slider set that, and no funding index will charge her for it. The interest rate does that job by itself.',
+               "Elle fait ce que David a fait, en boucle, dans une seule transaction : emprunter, swapper, poster, réemprunter. Cinq mille à elle deviennent dix-sept mille d'exposition. Aucun curseur n'a fixé ça, et aucun index de funding ne le lui facturera. Le taux fait ce travail tout seul."],
+       d: ['Funded by the pair\'s own fee-free flash facility. The geometric series exhausts itself; the bound is the penalty, the buffer and the swap-cost floor.',
+           "Financé par le flash gratuit de la paire elle-même. La série géométrique s'épuise ; la borne est la pénalité, le buffer et le plancher de coût de swap."],
+       set: { ...at(500), ...on(1, 2, 3, 4, 9, 5) }},
+      {t: ['Midday. Bob arrives and moves everything.', 'Midi. Bob arrive et déplace tout.'],
+       plain: ['He presses swap with fifty thousand USDC, knowing none of the above. His order is offered to the resting walls before it ever touches the curve, so Alice is filled at exactly 0.950, with no fee and no slippage, and gets a rebate on top. Farid earns from the same trade. Bob gets a better price than the curve alone would have given him. Nobody negotiated any of this.',
+               "Il appuie sur swap avec cinquante mille USDC, sans rien savoir de tout ça. Son ordre est offert aux walls en attente avant de toucher la courbe, donc Alice est remplie à exactement 0.950, sans fee et sans slippage, avec un rebate en prime. Farid gagne sur le même échange. Bob obtient un meilleur prix que la courbe seule. Personne n'a négocié quoi que ce soit."],
+       d: ['The fee was resolved once on the gross input, before routing, which is precisely why the pool gains nothing by skipping Alice.',
+           "La fee a été résolue une fois sur l'input brut, avant le routage, ce qui est précisément pourquoi la réserve ne gagne rien à sauter Alice."],
+       tone: 'good',
+       set: { ...at(600), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8), '#rc-price': { do: .38 } }},
+      {t: ['Afternoon. The market turns.', 'L\'après-midi. Le marché se retourne.'],
+       plain: ['EV falls back through the day. Nothing dramatic yet, and David is still well above his 0.78. Except his 0.78 is no longer 0.78: interest has been accruing since morning, and the level at which he gets wiped out has been climbing toward the price all along. Nothing told him.',
+               "EV redescend au fil de la journée. Rien de dramatique encore, et David est toujours bien au-dessus de son 0.78. Sauf que son 0.78 n'est plus 0.78 : les intérêts courent depuis le matin, et le niveau auquel il est liquidé grimpe vers le prix depuis le début. Rien ne le lui a dit."],
+       d: ['<code>A<sub>i</sub>(t) = P(i)/M(t)</code>. The drift is what lets a whole rung be liquidated as one object, with no per-loan clock.',
+           "<code>A<sub>i</sub>(t) = P(i)/M(t)</code>. La dérive est ce qui permet de liquider un barreau entier comme un seul objet, sans horloge par prêt."],
+       tone: 'alert',
+       set: { ...at(700), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8, 10), '#rc-price': { do: .16 } }},
+      {t: ['The rung is reached', 'Le barreau est atteint'],
+       plain: ['At 0.90 the lending price touches the level, and David and Elena go together, because they are on the same rung and the pool closes a rung as one object. Both lose everything they posted. The whole thing happens inside somebody else\'s ordinary transaction, because nobody is paid to do it and nobody needs to be.',
+               "À 0.90 le lending price touche le niveau, et David et Elena partent ensemble, parce qu'ils sont sur le même barreau et que la réserve ferme un barreau comme un seul objet. Les deux perdent tout ce qu'ils avaient posé. Tout se produit à l'intérieur de la transaction ordinaire de quelqu'un d'autre, parce que personne n'est payé pour le faire et que personne n'a besoin de l'être."],
+       d: ['Detection is geometric, the close is O(1) in the rung\'s population, and the cascade ran in the preamble of whatever operation happened to come next.',
+           "La détection est géométrique, la fermeture est en O(1) dans la population du barreau, et la cascade a tourné dans le préambule de l'opération qui passait par là."],
+       tone: 'danger',
+       set: { ...at(780), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8, 10, 11, 12), '#rc-price': { do: 0 } }},
+      {t: ['And now look at who pays', 'Et maintenant, regardez qui paie'],
+       plain: ['The seized collateral was marked at the band price, and selling it into a curve that just got hit brings back less. That gap has to land somewhere, and the order is fixed. Alice is untouched, her fill was set aside the second it happened. Nadia loses nothing but cannot withdraw for a while, because her money is out on loan and the pool is stretched. Farid absorbs the difference, and cannot leave while he does. Six people, one pool, one day, and the whole guide in a single picture.',
+               "Le collateral saisi était valorisé au prix du band, et le revendre dans une courbe qui vient d'être frappée rapporte moins. Cet écart doit atterrir quelque part, et l'ordre est fixé. Alice est intouchée, son fill a été mis de côté à la seconde. Nadia ne perd rien mais ne peut pas retirer pendant un moment, parce que son argent est prêté et que la réserve est tendue. Farid absorbe la différence, et ne peut pas partir pendant ce temps. Six personnes, une réserve, une journée, et tout le guide en une image."],
+       d: ['Fill claims, then non-lent escrow, then lent suppliers whose index is never haircut, then the junior LP tranche. A loss either fits that tranche and is written down, or the rung stays pending.',
+           "Fill claims, puis escrow non-lent, puis lent suppliers dont l'index n'est jamais haircut, puis la tranche junior LP. Une perte tient dans cette tranche et elle est écrite, ou bien le barreau reste en attente."],
+       tone: 'danger',
+       set: { ...at(846), ...on(1, 2, 3, 4, 9, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15), '#rc-price': { do: 0 } }}
+    ]; })()
+  },
+  pnl: null,
+  extra: () => `<div class="note">${T(
+    ['<b>The same boolean, two very different days.</b> Alice and Nadia placed the identical order at the identical price. Alice could have walked away at any second and her fill was untouchable the moment it happened. Nadia earned interest all day and then could not leave when she wanted to. Neither lost money to the protocol. That is the trade the lend flag actually is, and it is easier to see here, side by side, than anywhere else in the guide.',
+     "<b>Le même booléen, deux journées très différentes.</b> Alice et Nadia ont posé le même ordre au même prix. Alice pouvait partir à n'importe quelle seconde et son fill était intouchable dès l'instant où il a eu lieu. Nadia a gagné des intérêts toute la journée puis n'a pas pu sortir quand elle le voulait. Aucune des deux n'a perdu d'argent à cause du protocole. C'est ça, le vrai arbitrage du flag lend, et il se voit mieux ici, côte à côte, que partout ailleurs dans le guide."])}</div>`
+});
+
 /* ══════════════ ENGINE ══════════════ */
 const TABLABEL = {
   start:    ['Start here', 'Commencez ici'],
@@ -2989,13 +3260,16 @@ const TABLABEL = {
   band:     ['The band', 'Le band'],
   liq:      ['Liquidation', 'Liquidation'],
   quiz:     ['Take the tests', 'Passez les tests'],
-  which:    ['Which of the six are you?', 'Lequel des six êtes-vous ?']
+  which:    ['Which of the six are you?', 'Lequel des six êtes-vous ?'],
+  capacity: ['How much can be borrowed', "Combien on peut emprunter"],
+  recap:    ['One day, one pool', 'Une journée, une réserve']
 };
 const GROUPS = [
-  { label: [' ', ' '], ids: ['start', 'which'] },
+  { label: [' ', ' '], ids: ['start'] },
   { label: ['Mechanics', 'Mécanique'], ids: ['overview', 'curve'] },
-  { label: ['The six', 'Les six'], ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
-  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] },
+  { label: ['The six', 'Les six'], ids: ['which', 'trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
+  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq', 'capacity'] },
+  { label: ['Putting it together', 'Tout ensemble'], ids: ['recap'] },
   { label: ['Test yourself', 'Testez-vous'], ids: ['quiz'] }
 ];
 const ORDER = GROUPS.flatMap(g => g.ids);

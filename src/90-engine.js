@@ -12,13 +12,16 @@ const TABLABEL = {
   band:     ['The band', 'Le band'],
   liq:      ['Liquidation', 'Liquidation'],
   quiz:     ['Take the tests', 'Passez les tests'],
-  which:    ['Which of the six are you?', 'Lequel des six êtes-vous ?']
+  which:    ['Which of the six are you?', 'Lequel des six êtes-vous ?'],
+  capacity: ['How much can be borrowed', "Combien on peut emprunter"],
+  recap:    ['One day, one pool', 'Une journée, une réserve']
 };
 const GROUPS = [
-  { label: [' ', ' '], ids: ['start', 'which'] },
+  { label: [' ', ' '], ids: ['start'] },
   { label: ['Mechanics', 'Mécanique'], ids: ['overview', 'curve'] },
-  { label: ['The six', 'Les six'], ids: ['trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
-  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq'] },
+  { label: ['The six', 'Les six'], ids: ['which', 'trader', 'maker', 'lent', 'borrow', 'lev', 'lp'] },
+  { label: ['Under the hood', 'Sous le capot'], ids: ['band', 'liq', 'capacity'] },
+  { label: ['Putting it together', 'Tout ensemble'], ids: ['recap'] },
   { label: ['Test yourself', 'Testez-vous'], ids: ['quiz'] }
 ];
 const ORDER = GROUPS.flatMap(g => g.ids);

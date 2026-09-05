@@ -23,6 +23,11 @@ const ROUTES = {
       "title": "Where the price comes from"
     },
     {
+      "id": "which",
+      "path": "which",
+      "title": "Which of the six are you?"
+    },
+    {
       "id": "trader",
       "path": "taker",
       "title": "A swap does not go to the curve first"
@@ -63,14 +68,19 @@ const ROUTES = {
       "title": "Nobody is paid to liquidate"
     },
     {
+      "id": "capacity",
+      "path": "capacity",
+      "title": "How much can be borrowed, and where"
+    },
+    {
+      "id": "recap",
+      "path": "one-day",
+      "title": "One day, one pool, six people"
+    },
+    {
       "id": "quiz",
       "path": "tests",
       "title": "Six tests, one badge"
-    },
-    {
-      "id": "which",
-      "path": "which",
-      "title": "Which of the six are you?"
     }
   ]
 };

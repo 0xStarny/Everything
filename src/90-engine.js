@@ -28,6 +28,16 @@ const ORDER = GROUPS.flatMap(g => g.ids);
 
 const STATE = { tab: 'start', step: {} };
 const CTRL = {};
+/* Whether this reader has ever advanced a step. Until they have, the button
+   that moves the walkthrough on is pulsed, because a diagram that only ever
+   shows its first state reads as a diagram, not as a walkthrough. */
+let NUDGED = (() => { try { return localStorage.getItem('ev-stepped') === '1'; } catch (e) { return true; } })();
+function markNudged() {
+  if (NUDGED) return;
+  NUDGED = true;
+  try { localStorage.setItem('ev-stepped', '1'); } catch (e) {}
+  document.querySelectorAll('.btn.step.nudge').forEach(b => b.classList.remove('nudge'));
+}
 const MAIN = document.getElementById('main');
 const NAV = document.getElementById('nav');
 const SEENKEY = 'ev-seen';
@@ -173,9 +183,11 @@ function renderView(v) {
         </div>
         <div class="ctrl">
           <button class="btn" data-prev type="button">${T(UI.prev)}</button>
-          <button class="btn primary" data-play type="button">${T(UI.play)}</button>
-          <button class="btn" data-next type="button">${T(UI.next)}</button>
           <div class="dots" data-dots></div>
+          <span class="stepof mono" data-count></span>
+          <span class="keyhint">${T(UI.keyHint)}</span>
+          <button class="btn primary step" data-next type="button">
+            <span data-nextlabel>${T(UI.nextStep)}</span></button>
         </div>
       </div>
     </div>
@@ -223,14 +235,15 @@ function wire(p, v) {
   });
   const dots  = p.querySelector('[data-dots]');
   const cap   = p.querySelector('[data-cap]');
-  const bPrev = p.querySelector('[data-prev]');
-  const bNext = p.querySelector('[data-next]');
-  const bPlay = p.querySelector('[data-play]');
+  const bPrev  = p.querySelector('[data-prev]');
+  const bNext  = p.querySelector('[data-next]');
+  const bCount = p.querySelector('[data-count]');
+  const bLabel = p.querySelector('[data-nextlabel]');
 
   dots.innerHTML = steps.map((s, i) =>
     `<button class="dot" type="button" data-i="${i}" aria-label="${T(UI.step)} ${i + 1}/${steps.length}"></button>`).join('');
 
-  let i = 0, timer = null;
+  let i = 0;
   function render(n, silent) {
     i = Math.max(0, Math.min(steps.length - 1, n));
     STATE.step[v.id] = i;
@@ -250,33 +263,27 @@ function wire(p, v) {
       b.classList.toggle('done', k < i);
     });
     bPrev.disabled = i === 0;
-    bNext.disabled = i === steps.length - 1;
+    const last = i === steps.length - 1;
+    bNext.disabled = last;
+    bLabel.innerHTML = T(last ? UI.lastStep : UI.nextStep);
+    bCount.textContent = (i + 1) + ' / ' + steps.length;
+    /* The button is nudged until somebody has advanced a step once, ever.
+       After that the guide assumes they know how it works. */
+    bNext.classList.toggle('nudge', !last && !NUDGED);
     if (!silent && STATE.tab === v.id) writePath(false);
   }
-  function stop() { if (timer) { clearTimeout(timer); timer = null; bPlay.innerHTML = T(UI.play); } }
-  function play() {
-    if (timer) { stop(); return; }
-    if (i === steps.length - 1) render(0);
-    bPlay.innerHTML = T(UI.pause);
-    const pace = () => {
-      const words = (cap.textContent || '').trim().split(/\s+/).length;
-      return Math.min(22000, Math.max(5000, words * 300));
-    };
-    const tick = () => {
-      if (i >= steps.length - 1) { stop(); return; }
-      render(i + 1);
-      timer = setTimeout(tick, pace());
-    };
-    timer = setTimeout(tick, pace());
-  }
-  bPrev.addEventListener('click', () => { stop(); render(i - 1); });
-  bNext.addEventListener('click', () => { stop(); render(i + 1); });
-  bPlay.addEventListener('click', play);
-  dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if (b) { stop(); render(+b.dataset.i); } });
+  /* Kept as a no-op: the search palette and the deep-link router both stop a
+     view's controller before scrubbing it to a step. There is nothing left to
+     stop, but there is no reason to make every caller check. */
+  function stop() {}
+  const step = d => { markNudged(); render(i + d); };
+  bPrev.addEventListener('click', () => step(-1));
+  bNext.addEventListener('click', () => step(1));
+  dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if (b) { markNudged(); render(+b.dataset.i); } });
   p.addEventListener('keydown', e => {
     if (e.target.closest('.tabs') || e.target.closest('.gl')) return;
-    if (e.key === 'ArrowRight') { stop(); render(i + 1); }
-    if (e.key === 'ArrowLeft')  { stop(); render(i - 1); }
+    if (e.key === 'ArrowRight') { step(1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { step(-1); e.preventDefault(); }
   });
   render(STATE.step[v.id] || 0, true);
   decorate(p);

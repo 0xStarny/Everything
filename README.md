@@ -22,6 +22,14 @@ Pass all six at 75 % or better and the badge unlocks. The coin lives at `assets/
 
 The mint button is inert until a contract exists. Set `BADGE_CONTRACT` at the top of `src/21-quizui.js` to `{ chain, address }` and wire the call; everything above it is already gated on a real signature from a real address.
 
+## Stepping through
+
+There was a Play button. It computed its own pace from the word count of the caption and waited between five and twenty-two seconds before the first move, which reads exactly like a button that does not work. It is gone.
+
+What replaces it is one obvious forward action: the only accented control in the card, larger than the rest, sitting beside a `n / total` counter so the walkthrough announces its own length, with the arrow-key hint next to it on anything wider than a phone. Until a reader has advanced a step once — ever, remembered in `localStorage` — that button carries a soft pulse, because a diagram that only ever shows its first state reads as a diagram rather than as a walkthrough. On a phone it shares the first row with the counter and the dots drop underneath, which took the control bar from 118 px to 76 px.
+
+The step transitions were also tightened (0.45 s to 0.3 s on opacity, 0.9 s to 0.62 s on the line draws), so clicking through quickly no longer queues up animations behind you.
+
 ## The look
 
 Every view opens on the same block — eyebrow, title, one line of explanation, the id card beneath a hairline, and the view's own figure ghosted into the corner at a size no icon would be used at. Views with nobody in them borrow the mark instead. Arriving anywhere in the guide should feel like arriving at the front of it.

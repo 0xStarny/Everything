@@ -10,10 +10,21 @@
 
    Guarded by STATS_KEY so the numbers are yours, not everyone's. */
 
-import QUESTIONS from './questions.json' with { type: 'json' };
+import { readFileSync } from 'node:fs';
 
-const URL_ = process.env.KV_REST_API_URL;
-const TOKEN = process.env.KV_REST_API_TOKEN;
+/* Read rather than `import ... with { type: 'json' }`, which only parses on
+   Node 22 and up. This works on every runtime Vercel offers. */
+const QUESTIONS = (() => {
+  try { return JSON.parse(readFileSync(new URL('./questions.json', import.meta.url), 'utf8')); }
+  catch (e) { return {}; }
+})();
+
+/* Vercel has injected these under two different names over time: KV_* when
+   the store is created as Vercel KV, UPSTASH_* when it comes through the
+   marketplace integration. Rather than guess which one your project got,
+   take whichever is there. */
+const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL;
+const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN;
 const KEY = process.env.STATS_KEY;
 
 async function redis(cmd) {
@@ -30,7 +41,15 @@ const sortDesc = o => Object.fromEntries(
   Object.entries(o || {}).map(([k, v]) => [k, +v]).sort((a, b) => b[1] - a[1]));
 
 export default async function handler(req, res) {
-  if (!URL_ || !TOKEN) return res.status(503).json({ error: 'collector not configured' });
+  if (!URL_ || !TOKEN) return res.status(503).json({
+    error: 'collector not configured',
+    found: {
+      url: !!URL_, token: !!TOKEN, stats_key: !!KEY,
+      /* the names present in this environment, so you can see what Vercel
+         actually injected without guessing */
+      seen: Object.keys(process.env).filter(k => /KV_|UPSTASH|REDIS|STATS_KEY/.test(k)).sort()
+    }
+  });
   if (!KEY || req.query.key !== KEY) return res.status(401).json({ error: 'bad key' });
 
   const [keys] = await redis([['KEYS', 'ev:*']]);

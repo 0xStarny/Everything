@@ -10,8 +10,12 @@
    Upstash Redis both speak this REST API and both have a free tier; without
    them this returns 204 and the site behaves exactly as it did before. */
 
-const URL_ = process.env.KV_REST_API_URL;
-const TOKEN = process.env.KV_REST_API_TOKEN;
+/* Vercel has injected these under two different names over time: KV_* when
+   the store is created as Vercel KV, UPSTASH_* when it comes through the
+   marketplace integration. Rather than guess which one your project got,
+   take whichever is there. */
+const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL;
+const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN;
 
 const NAMES = new Set([
   'view_open', 'view_depth', 'view_complete', 'view_next_card',

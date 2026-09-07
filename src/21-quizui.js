@@ -255,6 +255,7 @@ V.push({
 
     /* ── playing ─────────────────────────────────────────────── */
     function begin(quiz) {
+      track('quiz_start', { test: quiz.id });
       z = quiz;
       list = shuffle(poolOf(z)).slice(0, drawOf(z)).map(q => { const order = shuffle([0, 1, 2, 3]); return { ...q, order, c2: order.indexOf(q.c) }; });
       idx = 0; right = 0; marks = [];
@@ -275,6 +276,14 @@ V.push({
       const q = list[idx], ok = k === q.c2;
       if (ok) right++;
       marks.push(ok);
+      /* The single most useful number in the whole guide: which question,
+         drawn from which view, people get wrong — and which wrong answer they
+         reached for, because that names the misconception rather than just
+         counting it. */
+      track('quiz_answer', {
+        test: z.id, view: q.v, q: fnv(q.q[0]),
+        correct: ok ? 1 : 0, chose: q.order[k], idx: idx + 1
+      });
       $('[data-qopts]').querySelectorAll('.qopt').forEach((b, i) => {
         b.disabled = true;
         if (i === q.c2) b.classList.add('good'); else if (i === k) b.classList.add('bad');
@@ -315,13 +324,18 @@ V.push({
         <button class="btn primary qstart" type="button" data-dosign>${T(QI.sign)}</button>
         <p class="qerr" data-serr hidden></p>
       </div>`;
+      track('quiz_reached_sign', { test: z.id, score: right, of: list.length });
       const b = signv.querySelector('[data-dosign]');
       b.addEventListener('click', async () => {
         b.disabled = true; b.textContent = T(QI.signing);
         const r = await WALLET.sign(msg);
         b.disabled = false; b.textContent = T(QI.sign);
-        if (!r.ok) { const e = signv.querySelector('[data-serr]'); e.hidden = false; e.textContent = T(QI.signNo); return; }
+        if (!r.ok) { const e = signv.querySelector('[data-serr]'); e.hidden = false; e.textContent = T(QI.signNo);
+          track('quiz_sign_refused', { test: z.id }); return; }
         saveResult(z.id, { s: right, n: list.length, sig: r.sig.slice(0, 18) + '…', at: Date.now() });
+        track('quiz_finish', { test: z.id, score: right, of: list.length,
+          passed: right >= needOf(z) ? 1 : 0 });
+        if (passedAll()) track('badge_unlock', {});
         screenRes();
       });
       only(signv);
@@ -420,7 +434,13 @@ V.push({
     }
 
     /* ── boot and wallet changes ─────────────────────────────── */
-    function route() { if (!WALLET.addr) screenGate(); else screenHome(); }
+    function route() {
+      /* the tests view is wired whenever it is rendered, including on every
+         language switch; only count somebody who is actually looking at it */
+      const here = STATE.tab === 'quiz';
+      if (!WALLET.addr) { if (here) track('quiz_gate', {}); screenGate(); }
+      else { if (here) track('quiz_home', {}); screenHome(); }
+    }
     WALLET.on(() => { if (!document.getElementById('p-quiz')) return; route(); });
     route();
     return { stop() {}, render() {} };

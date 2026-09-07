@@ -547,8 +547,10 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
 .hero .herokick{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
   color:var(--accent-text);margin:0 0 12px}
 .hero .heroact{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
-.hero .facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:24px;padding-top:18px;
-  border-top:1px solid var(--hairline)}
+.hero .facts{position:relative;display:flex;gap:26px;flex-wrap:wrap;margin-top:24px;padding-top:19px}
+.hero .facts::before{content:'';position:absolute;top:0;left:0;height:1px;
+  width:min(56%,330px);
+  background:linear-gradient(90deg,var(--hairline) 0%,var(--hairline) 62%,transparent 100%)}
 .hero .facts div{min-width:90px}
 .hero .facts b{display:block;font:700 20px/1 var(--sans);letter-spacing:-.02em;color:var(--primary)}
 .hero .facts span{display:block;margin-top:5px;font-family:var(--mono);font-size:10px;
@@ -655,14 +657,17 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
 .masthead .lead{max-width:64ch}
 .masthead h2{font-size:clamp(26px,3.1vw,34px);line-height:1.08;margin-bottom:9px;max-width:22ch}
 .masthead .sub{color:var(--secondary);font-size:15px;line-height:1.55;max-width:62ch}
-.masthead .idcard{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:18px;
-  border-top:1px solid var(--hairline)}
-.masthead.bare .idcard{margin-top:16px;padding-top:0;border-top:0}
+.masthead .idcard{position:relative;display:flex;gap:8px;flex-wrap:wrap;
+  margin-top:20px;padding-top:19px}
+.masthead .idcard::before{content:'';position:absolute;top:0;left:0;height:1px;
+  width:min(58%,340px);
+  background:linear-gradient(90deg,var(--hairline) 0%,var(--hairline) 62%,transparent 100%)}
+.masthead.bare .idcard{margin-top:16px;padding-top:0}
+.masthead.bare .idcard::before{display:none}
 /* white at 5 % on a dark ground carries much further than near-black at 5 %
    on a white one, so the ghost is dialled back rather than left to shout */
 :root[data-theme="dark"] .masthead .mh-art{opacity:.032}
 :root[data-theme="dark"] .hero .ghostmark{opacity:.035}
-:root[data-theme="dark"] .hero::before{opacity:.4}
 @media (max-width:640px){
   .masthead{padding:20px 18px 18px;border-radius:var(--r-lg)}
   /* the block is much taller than it is wide here, so a vertically centred
@@ -672,14 +677,7 @@ tr.flashrow > td{background:var(--accent-soft);transition:background .5s}
   .masthead .sub{font-size:14px}
 }
 
-/* the tick grid is the protocol's ruler, so the opening block stands on it */
 .hero{position:relative;isolation:isolate}
-.hero::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:
-    repeating-linear-gradient(180deg,transparent 0 27px,var(--border) 27px 28px),
-    repeating-linear-gradient(180deg,transparent 0 6.75px,var(--hairline) 6.75px 7.75px);
-  -webkit-mask-image:linear-gradient(100deg,transparent 34%,#000 100%);
-  mask-image:linear-gradient(100deg,transparent 34%,#000 100%);opacity:.55}
 .hero .ghostmark{position:absolute;right:-40px;top:-30px;width:260px;opacity:.05;
   pointer-events:none;color:var(--primary);z-index:-1;display:block}
 .hero .ghostmark svg{width:100%;height:auto;display:block}
@@ -844,6 +842,6 @@ body.scrolled .topbar{background:color-mix(in srgb,var(--canvas) 82%,transparent
 </div>
 
 <script defer src="/_vercel/insights/script.js"></script>
-<script src="/app.js?b=588e86d152"></script>
+<script src="/app.js?b=a77fc7550f"></script>
 </body>
 </html>

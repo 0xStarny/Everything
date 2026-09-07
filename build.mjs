@@ -28,6 +28,32 @@ writeFileSync('app.js', out + '\n');
 const stamp = createHash('sha256').update(out).digest('hex').slice(0, 10);
 console.log(`app.js   ${files.length} modules  ${(out.length / 1024).toFixed(1)} kB  build ${stamp}`);
 
+/* ── 1b · the question map ────────────────────────────────────
+   The collector only ever sees a hash of a question, never its text. This is
+   the key that turns "4F2A11BC is answered wrong 72 % of the time" back into
+   a sentence somebody can act on. Generated, never hand-edited. */
+const fnv = str => {
+  let h = 2166136261;
+  for (const ch of str) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(16).toUpperCase().padStart(8, '0');
+};
+{
+  const bankSrc = ['src/20-quiz.js', 'src/20b-quiz-more.js', 'src/20c-quiz-pool.js']
+    .map(f => readFileSync(f, 'utf8')).join(String.fromCharCode(10));
+  const { QBANK } = new Function('const T = x => x[0];' + bankSrc + '; return { QBANK };')();
+  const map = {};
+  for (const q of QBANK) {
+    map[fnv(q.q[0])] = {
+      view: q.v,
+      question: q.q[0],
+      answer: q.o[q.c][0],
+      options: q.o.map(o => o[0])
+    };
+  }
+  writeFileSync('api/questions.json', JSON.stringify(map, null, 1) + String.fromCharCode(10));
+  console.log(`questions ${Object.keys(map).length} hashed for the stats endpoint`);
+}
+
 /* ── 2 · one page per view ────────────────────────────────────── */
 const shell = readFileSync('index.html', 'utf8');
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');

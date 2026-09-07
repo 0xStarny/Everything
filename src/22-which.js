@@ -120,12 +120,14 @@ V.push({
       box.querySelectorAll('.qopt').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k), { once: true }));
     }
     function pick(k) {
+      track('which_answer', { q: i + 1, pick: k });
       const w = WQS[i].a[k].w;
       for (const id in w) score[id] = (score[id] || 0) + w[id];
       if (++i < WQS.length) paint(); else finish();
     }
     function finish() {
       who = CAST.map(c => c.id).sort((a, b) => (score[b] || 0) - (score[a] || 0))[0];
+      track('which_result', { who });
       const c = CAST.find(x => x.id === who), r = WRES[who], w = WHO[who];
       res.innerHTML = `<div class="wres">
         <div class="whead">

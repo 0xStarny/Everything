@@ -1,0 +1,794 @@
+{
+ "51891647": {
+  "view": "lent",
+  "question": "A lent maker asks to withdraw and the call reverts. What has happened?",
+  "answer": "The funds are lent out and capacity is not there to return them right now",
+  "options": [
+   "Their order was already filled",
+   "They are trying to leave before a mandatory lock expires",
+   "The funds are lent out and capacity is not there to return them right now",
+   "A governance pause is in force"
+  ]
+ },
+ "B790047A": {
+  "view": "overview",
+  "question": "What does a single Everything contract hold?",
+  "answer": "One reserve that prices swaps, is lent out, and backs resting orders",
+  "options": [
+   "One reserve that prices swaps, is lent out, and backs resting orders",
+   "Three separate pools, one per market",
+   "A reserve for swaps, and an external money market for credit",
+   "Only the order book, with swaps routed elsewhere"
+  ]
+ },
+ "A9851B90": {
+  "view": "overview",
+  "question": "Why can Everything lend against tokens a normal money market refuses?",
+  "answer": "The pool that sets the price is the pool holding the collateral, so exit liquidity is known",
+  "options": [
+   "It requires more collateral than anyone else",
+   "It uses several oracles instead of one",
+   "The pool that sets the price is the pool holding the collateral, so exit liquidity is known",
+   "It insures every loan with an external fund"
+  ]
+ },
+ "C27F29F6": {
+  "view": "overview",
+  "question": "What are the protocol’s only inputs?",
+  "answer": "Deposits, trades, and the clock",
+  "options": [
+   "An oracle feed and a keeper network",
+   "Deposits, trades, and the clock",
+   "Governance votes and a price committee",
+   "Chainlink plus an emergency multisig"
+  ]
+ },
+ "9FFA7B61": {
+  "view": "curve",
+  "question": "Where does the swap price come from?",
+  "answer": "From how much of each token the pool is holding, through an invariant",
+  "options": [
+   "A price committee sets it per pair",
+   "It is imported from the deepest external venue",
+   "Market makers quote it manually",
+   "From how much of each token the pool is holding, through an invariant"
+  ]
+ },
+ "D3C4FA81": {
+  "view": "curve",
+  "question": "What funds the repeg, when the pool re-centres its liquidity?",
+  "answer": "Retained fees only, never principal",
+  "options": [
+   "Retained fees only, never principal",
+   "A slice of every borrower’s collateral",
+   "The protocol treasury",
+   "Newly minted LP shares"
+  ]
+ },
+ "0A445351": {
+  "view": "curve",
+  "question": "The whitepaper bounds the curve’s amplification parameter A to:",
+  "answer": "0.1 to 1000",
+  "options": [
+   "1 to 100",
+   "It gives no value at all",
+   "0.1 to 1000",
+   "0 to 1"
+  ]
+ },
+ "A7CCDFD8": {
+  "view": "curve",
+  "question": "A trade that pushes the pool further out of balance pays:",
+  "answer": "A higher fee than one that restores the balance",
+  "options": [
+   "The same flat fee as any other",
+   "A higher fee than one that restores the balance",
+   "No fee at all",
+   "A fee set by the maker it fills"
+  ]
+ },
+ "7345AC98": {
+  "view": "curve",
+  "question": "Impermanent loss happens because the pool:",
+  "answer": "Ends up holding more of the token that fell and less of the one that rose",
+  "options": [
+   "Ends up holding more of the token that fell and less of the one that rose",
+   "Charges a fee on withdrawals",
+   "Lends the collateral without permission",
+   "Rounds every division against the user"
+  ]
+ },
+ "4ACE7517": {
+  "view": "trader",
+  "question": "In what order is a swap filled?",
+  "answer": "Stale walls, then in-path walls, then the curve residual",
+  "options": [
+   "The curve first, then any leftover orders",
+   "Stale walls, then in-path walls, then the curve residual",
+   "Oldest resting order first, regardless of price",
+   "Whichever route pays the protocol the most"
+  ]
+ },
+ "2FEBA208": {
+  "view": "trader",
+  "question": "When is the taker’s fee decided?",
+  "answer": "Once up front, on the gross input and the pre-swap state",
+  "options": [
+   "After the routing, on whatever actually touched the curve",
+   "Per wall filled, negotiated with each maker",
+   "Once up front, on the gross input and the pre-swap state",
+   "At the end of the block, on the average price"
+  ]
+ },
+ "C944BDDE": {
+  "view": "trader",
+  "question": "Someone who buys the dip seconds after a crash pays:",
+  "answer": "A premium, because the curve leg executes on the displaced anchor",
+  "options": [
+   "A premium, because the curve leg executes on the displaced anchor",
+   "Nothing extra, the price is the price",
+   "A discount, as a reward for adding liquidity",
+   "A fee paid directly to the liquidated borrower"
+  ]
+ },
+ "8051DCC3": {
+  "view": "maker",
+  "question": "A non-lent maker’s filled order is:",
+  "answer": "Set aside senior-most at fill time, never gated in any state",
+  "options": [
+   "Credited to their balance like any other payout",
+   "Held back until the pool reaches full capacity",
+   "Paid out only after every borrower has repaid",
+   "Set aside senior-most at fill time, never gated in any state"
+  ]
+ },
+ "527C4C51": {
+  "view": "maker",
+  "question": "What can block a non-lent maker from cancelling?",
+  "answer": "Nothing at all, in any pool state",
+  "options": [
+   "High utilisation on the borrowed side",
+   "Nothing at all, in any pool state",
+   "A pending liquidation tick",
+   "A governance timelock"
+  ]
+ },
+ "A3694971": {
+  "view": "maker",
+  "question": "A liquidity order’s return comes from:",
+  "answer": "The rebate on each flip, since the round trip is value-neutral",
+  "options": [
+   "The spread between its two legs",
+   "Interest earned while it waits",
+   "The rebate on each flip, since the round trip is value-neutral",
+   "A share of the liquidation penalty"
+  ]
+ },
+ "3270691E": {
+  "view": "lent",
+  "question": "What does ticking the \"lend\" flag on a resting order cost you?",
+  "answer": "The cancel is no longer free or immediate",
+  "options": [
+   "The cancel is no longer free or immediate",
+   "A slice of the principal, taken up front",
+   "The right to be filled at your exact price",
+   "Nothing, it is pure upside"
+  ]
+ },
+ "733FFF8D": {
+  "view": "lent",
+  "question": "Can the supply index L be cut to absorb bad debt?",
+  "answer": "Never, under any circumstance",
+  "options": [
+   "Yes, pro-rata across all suppliers",
+   "Yes, but only above a governance threshold",
+   "Only during an emergency stop",
+   "Never, under any circumstance"
+  ]
+ },
+ "2F98DDE5": {
+  "view": "lent",
+  "question": "A lent exit that does not fit the capacity envelope results in:",
+  "answer": "The transaction reverting intact, to be retried later",
+  "options": [
+   "A partial payout plus an IOU for the rest",
+   "The transaction reverting intact, to be retried later",
+   "A queue position with a guaranteed date",
+   "An automatic haircut on the amount"
+  ]
+ },
+ "540C6A41": {
+  "view": "lent",
+  "question": "Once an order is placed with the lend flag, the flag is:",
+  "answer": "Frozen for the life of the order",
+  "options": [
+   "Switchable at any time from the interface",
+   "Automatically dropped when utilisation gets high",
+   "Frozen for the life of the order",
+   "Reset at every price crossing"
+  ]
+ },
+ "73AC57A4": {
+  "view": "borrow",
+  "question": "Who chooses the price at which a loan gets liquidated?",
+  "answer": "The borrower, at the open",
+  "options": [
+   "Governance, per pair",
+   "An oracle, from the external market",
+   "The borrower, at the open",
+   "The liquidity providers, by vote"
+  ]
+ },
+ "D18FF343": {
+  "view": "borrow",
+  "question": "What happens to a loan’s liquidation threshold as time passes?",
+  "answer": "It drifts against the borrower as interest compounds",
+  "options": [
+   "It drifts against the borrower as interest compounds",
+   "It stays exactly where it was set",
+   "It drifts in the borrower’s favour",
+   "It resets every thirty days"
+  ]
+ },
+ "06A558EB": {
+  "view": "borrow",
+  "question": "At liquidation, what is handed back to the borrower?",
+  "answer": "Nothing, the whole tick’s collateral is seized",
+  "options": [
+   "Whatever exceeds the debt plus the penalty",
+   "Nothing, the whole tick’s collateral is seized",
+   "Half of the posted collateral",
+   "The collateral, minus a fixed fee"
+  ]
+ },
+ "382903EE": {
+  "view": "borrow",
+  "question": "Does the protocol attach a stop-loss to a loan?",
+  "answer": "No, and no take-profit either",
+  "options": [
+   "Yes, at a configurable level",
+   "Yes, automatically at the tick buffer",
+   "Only for leveraged positions",
+   "No, and no take-profit either"
+  ]
+ },
+ "703A0FA8": {
+  "view": "borrow",
+  "question": "The gate c ≥ swapIn(q) exists so that:",
+  "answer": "Borrowing is never cheaper than simply swapping",
+  "options": [
+   "Borrowing is never cheaper than simply swapping",
+   "The pool always holds more of token 0",
+   "Liquidations always turn a profit",
+   "Makers are filled before borrowers"
+  ]
+ },
+ "1845678F": {
+  "view": "lev",
+  "question": "What plays the role of a funding rate for a leveraged position?",
+  "answer": "The kinked borrow interest rate",
+  "options": [
+   "An eight-hour index, like a perp venue",
+   "The kinked borrow interest rate",
+   "A fee charged on the collateral",
+   "Nothing, leverage is free to hold"
+  ]
+ },
+ "6A8E4A53": {
+  "view": "lev",
+  "question": "Is there a hard maximum leverage?",
+  "answer": "No, the bound emerges from the penalty, the buffer and the swap cost",
+  "options": [
+   "Yes, capped at 10× by governance",
+   "Yes, 5× on every pair",
+   "No, the bound emerges from the penalty, the buffer and the swap cost",
+   "No, and it is genuinely unlimited"
+  ]
+ },
+ "81E02F7D": {
+  "view": "lev",
+  "question": "What does the pair’s own flash loan cost?",
+  "answer": "Nothing, it is fee-free",
+  "options": [
+   "Nothing, it is fee-free",
+   "0.09 %, like Aave",
+   "A share of the profit made with it",
+   "It requires collateral up front"
+  ]
+ },
+ "2193669F": {
+  "view": "lp",
+  "question": "Where does the liquidity provider sit in the loss waterfall?",
+  "answer": "Last, the junior tranche that absorbs losses first",
+  "options": [
+   "First, they are paid before everyone",
+   "Second, just under the fill claims",
+   "Third, level with lent suppliers",
+   "Last, the junior tranche that absorbs losses first"
+  ]
+ },
+ "80C7AC4A": {
+  "view": "lp",
+  "question": "What does one LP position earn that siloed designs force you to choose between?",
+  "answer": "Swap fees and lending interest, both at once",
+  "options": [
+   "Swap fees and lending interest, both at once",
+   "Trading fees and a governance token",
+   "Interest and the liquidation penalty",
+   "Maker rebates and protocol fees"
+  ]
+ },
+ "DCADEE3B": {
+  "view": "lp",
+  "question": "While liquidation ticks are pending, an LP can:",
+  "answer": "Neither enter nor exit, mint and burn revert",
+  "options": [
+   "Withdraw freely, that is the point of being senior",
+   "Neither enter nor exit, mint and burn revert",
+   "Exit but not deposit",
+   "Deposit but not exit"
+  ]
+ },
+ "2F385E52": {
+  "view": "lp",
+  "question": "Seized collateral is valued at:",
+  "answer": "The band price, not the realisable value",
+  "options": [
+   "The price its own sale will actually realise",
+   "The average price over the last hour",
+   "The band price, not the realisable value",
+   "The price at which the loan was opened"
+  ]
+ },
+ "431808E5": {
+  "view": "band",
+  "question": "Within a single block, the price band is:",
+  "answer": "Frozen, using the spot as the block opened",
+  "options": [
+   "Recomputed on every operation",
+   "Frozen, using the spot as the block opened",
+   "Averaged over the block’s trades",
+   "Taken from the last external oracle update"
+  ]
+ },
+ "F21EC3AE": {
+  "view": "band",
+  "question": "An attacker who pushes the spot up and then back down leaves the band:",
+  "answer": "Wider, with every credit decision reading the anchor that moved against them",
+  "options": [
+   "Wider, with every credit decision reading the anchor that moved against them",
+   "Exactly where it started, no harm done",
+   "Narrower, which is what makes the attack work",
+   "Shifted permanently to the new level"
+  ]
+ },
+ "1089162C": {
+  "view": "band",
+  "question": "At rest, with nothing happening, the band costs honest users:",
+  "answer": "Nothing, it collapses to zero width",
+  "options": [
+   "A permanent spread on every credit decision",
+   "A small fee routed to the protocol",
+   "Nothing, it collapses to zero width",
+   "A one-block delay on every action"
+  ]
+ },
+ "87EFCFB5": {
+  "view": "band",
+  "question": "What is the admitted cost of using a band instead of an oracle?",
+  "answer": "Honest liquidations lag the market too",
+  "options": [
+   "A fee charged to borrowers",
+   "Losing same-block protection",
+   "Needing a keeper to advance it",
+   "Honest liquidations lag the market too"
+  ]
+ },
+ "B1DAFDF6": {
+  "view": "liq",
+  "question": "Loans are indexed by:",
+  "answer": "The price at which they get liquidated",
+  "options": [
+   "The borrower’s address",
+   "The date they were opened",
+   "The price at which they get liquidated",
+   "Their health factor"
+  ]
+ },
+ "6ECEFED3": {
+  "view": "liq",
+  "question": "Closing a tick that holds ten thousand loans costs:",
+  "answer": "The same as one holding a single loan",
+  "options": [
+   "The same as one holding a single loan",
+   "Ten thousand times more",
+   "Roughly the square root of the count",
+   "It cannot be done in one transaction"
+  ]
+ },
+ "D9E203AD": {
+  "view": "liq",
+  "question": "If a tick’s write-down exceeds what the junior tranche can absorb:",
+  "answer": "The tick is deferred and never booked at all",
+  "options": [
+   "It is booked as bad debt and spread across depositors",
+   "The tick is deferred and never booked at all",
+   "The pool halts permanently",
+   "Governance covers the difference"
+  ]
+ },
+ "C9059630": {
+  "view": "liq",
+  "question": "Who is paid to run the liquidation cascade?",
+  "answer": "Nobody, it runs inside every book-moving operation",
+  "options": [
+   "A whitelisted keeper network",
+   "The first liquidator to call it, via a bounty",
+   "The protocol treasury, per tick closed",
+   "Nobody, it runs inside every book-moving operation"
+  ]
+ },
+ "87DAB603": {
+  "view": "liq",
+  "question": "While ticks are pending, what keeps working?",
+  "answer": "Swaps, repayments, cancels and fill collection",
+  "options": [
+   "Swaps, repayments, cancels and fill collection",
+   "Nothing, the pair is frozen",
+   "Only withdrawals, to let people escape",
+   "Only new deposits"
+  ]
+ },
+ "6B6DF360": {
+  "view": "overview",
+  "question": "A pair keeps two books. Which two?",
+  "answer": "The pricing reserve, owned by LPs, and escrow, owned by users",
+  "options": [
+   "A hot wallet and a cold wallet",
+   "The pricing reserve, owned by LPs, and escrow, owned by users",
+   "A trading book and a governance book",
+   "One per token, kept entirely separate"
+  ]
+ },
+ "8643CDEA": {
+  "view": "overview",
+  "question": "Two adjacent rungs of the tick grid are apart by:",
+  "answer": "Exactly 1 %",
+  "options": [
+   "0.01 %",
+   "0.1 %",
+   "Exactly 1 %",
+   "5 %"
+  ]
+ },
+ "AE227A68": {
+  "view": "overview",
+  "question": "Before any operation touches the books, the protocol:",
+  "answer": "Accrues interest, advances the band, then runs the liquidation cascade",
+  "options": [
+   "Accrues interest, advances the band, then runs the liquidation cascade",
+   "Checks an oracle and a circuit breaker",
+   "Waits for a keeper to confirm the state",
+   "Does nothing, operations are independent"
+  ]
+ },
+ "4982E61D": {
+  "view": "overview",
+  "question": "How many contracts does one trading pair use?",
+  "answer": "One, which is also the LP token",
+  "options": [
+   "One per market, so three",
+   "Two: a vault and a router",
+   "One per token, so two",
+   "One, which is also the LP token"
+  ]
+ },
+ "28494D28": {
+  "view": "overview",
+  "question": "Which deposit can never be blocked from leaving?",
+  "answer": "Non-lent escrow, because it was never lent to anyone",
+  "options": [
+   "An LP position, because it is the biggest",
+   "A standalone supply, because it is single-asset",
+   "Non-lent escrow, because it was never lent to anyone",
+   "Any deposit, exits are never gated"
+  ]
+ },
+ "B282745C": {
+  "view": "curve",
+  "question": "The \"price scale\" of the curve is:",
+  "answer": "The centre around which the liquidity is concentrated",
+  "options": [
+   "The fee charged per unit of size",
+   "The centre around which the liquidity is concentrated",
+   "The maximum price the pair will ever quote",
+   "The ratio between the two tokens’ decimals"
+  ]
+ },
+ "372FA74A": {
+  "view": "curve",
+  "question": "The utilisation surcharge added to a swap fee is:",
+  "answer": "Zero below a kink, then rising with how hard the credit book leans on that reserve",
+  "options": [
+   "A flat rate set by governance",
+   "Proportional to the trade size",
+   "Charged only to borrowers, never to takers",
+   "Zero below a kink, then rising with how hard the credit book leans on that reserve"
+  ]
+ },
+ "6E843BFF": {
+  "view": "curve",
+  "question": "The spread guard exists to:",
+  "answer": "Revert a trade that carries the price too far from the recent past",
+  "options": [
+   "Revert a trade that carries the price too far from the recent past",
+   "Guarantee a minimum spread to market makers",
+   "Split the fee between LPs and the protocol",
+   "Stop two swaps landing in the same block"
+  ]
+ },
+ "2FC1D339": {
+  "view": "trader",
+  "question": "A \"stale\" wall is one whose limit price:",
+  "answer": "The market has already passed, so it fills off-curve without moving the price",
+  "options": [
+   "Was set more than thirty days ago",
+   "Is too far from the spot to ever be reached",
+   "The market has already passed, so it fills off-curve without moving the price",
+   "Was cancelled but not yet cleared"
+  ]
+ },
+ "4B9F41CF": {
+  "view": "maker",
+  "question": "Why does a maker here never need to find a counterparty?",
+  "answer": "Orders are triggers against the AMM, not a matched book",
+  "options": [
+   "The protocol matches them with another maker",
+   "Orders are triggers against the AMM, not a matched book",
+   "A market maker of last resort always fills them",
+   "Governance guarantees a fill within a day"
+  ]
+ },
+ "4FF78542": {
+  "view": "overview",
+  "question": "At the same instant, what do a taker’s swap and a borrower’s loan use?",
+  "answer": "The same tokens: the pricing reserve is the lending inventory",
+  "options": [
+   "Two separate balances kept in sync by a keeper",
+   "The same balance, but only when the pool is idle",
+   "The same tokens: the pricing reserve is the lending inventory",
+   "A reserve for swaps and a mirrored copy for credit"
+  ]
+ },
+ "DF9BE756": {
+  "view": "overview",
+  "question": "A resting order is escrowed. When does that escrow become borrowable?",
+  "answer": "Only if the maker sets the lend flag on it",
+  "options": [
+   "Only if the maker sets the lend flag on it",
+   "Automatically, as soon as the order is placed",
+   "After the order has waited one day",
+   "Whenever the pool runs short of supply"
+  ]
+ },
+ "2EB6345E": {
+  "view": "overview",
+  "question": "Which of these does the design deliberately do without?",
+  "answer": "An external price oracle and a subsidised keeper network",
+  "options": [
+   "A fee on swaps",
+   "A liquidation mechanism",
+   "An interest rate on loans",
+   "An external price oracle and a subsidised keeper network"
+  ]
+ },
+ "11E5AB1F": {
+  "view": "overview",
+  "question": "Why does the guide call the single ledger the hard part rather than the clever part?",
+  "answer": "Because one reserve must honour a curve, a credit book, an escrow and a claims queue at once",
+  "options": [
+   "Because the maths of the curve is unsolved",
+   "Because one reserve must honour a curve, a credit book, an escrow and a claims queue at once",
+   "Because the contract exceeds the bytecode limit",
+   "Because governance has to arbitrate every conflict"
+  ]
+ },
+ "E2BDDE02": {
+  "view": "curve",
+  "question": "What does the concentration parameter A actually change?",
+  "answer": "How much of the reserve sits close to the peg instead of spread over every price",
+  "options": [
+   "The fee charged on each swap",
+   "How much of the reserve sits close to the peg instead of spread over every price",
+   "The maximum leverage a borrower can take",
+   "How often the pool is allowed to repeg"
+  ]
+ },
+ "01CDC322": {
+  "view": "curve",
+  "question": "A pool may repeg toward a new price only when what is true?",
+  "answer": "A double gate on the virtual price says the accumulated fees can pay for the move",
+  "options": [
+   "A governance vote has approved the move",
+   "The new price has held for a full day",
+   "A double gate on the virtual price says the accumulated fees can pay for the move",
+   "The band has been frozen for at least one block"
+  ]
+ },
+ "FD0A17BC": {
+  "view": "curve",
+  "question": "How quickly can A or γ be moved by whoever administers a pool?",
+  "answer": "At most tenfold, ramped over a window never shorter than a day",
+  "options": [
+   "At most tenfold, ramped over a window never shorter than a day",
+   "Instantly, in a single transaction",
+   "Only once, at deployment, and never again",
+   "Freely, as long as the pool is paused first"
+  ]
+ },
+ "B72E0DA5": {
+  "view": "curve",
+  "question": "The price scale is nudged toward an EMA of post-trade spot prices. What is the <code>2p<sub>s</sub></code> term for?",
+  "answer": "It caps how far one trade can drag the EMA, at twice the current scale",
+  "options": [
+   "It doubles the weight of the most recent trade",
+   "It sets the minimum size of a repeg step",
+   "It converts the EMA into an annualised rate",
+   "It caps how far one trade can drag the EMA, at twice the current scale"
+  ]
+ },
+ "6BFCFC2F": {
+  "view": "trader",
+  "question": "The swap fee is taken once. On what?",
+  "answer": "On the gross input, before any wall or curve is touched",
+  "options": [
+   "On each curve segment the trade crosses, separately",
+   "On the residual only, after the walls are served",
+   "On the gross input, before any wall or curve is touched",
+   "On the output, at the end of the whole route"
+  ]
+ },
+ "EEF6D27A": {
+  "view": "trader",
+  "question": "In what order does a taker’s flow consume liquidity?",
+  "answer": "Stale walls off-curve, then in-path walls in crossing order, then the curve residual",
+  "options": [
+   "Stale walls off-curve, then in-path walls in crossing order, then the curve residual",
+   "The curve first, then whatever walls are left",
+   "Largest wall first, regardless of price",
+   "Oldest order first, regardless of price"
+  ]
+ },
+ "EF02D897": {
+  "view": "maker",
+  "question": "A maker’s order is crossed by the market. What decides the price they get?",
+  "answer": "Exactly the tick they chose, no better and no worse",
+  "options": [
+   "The spot at the moment the sweep ends",
+   "The volume-weighted average of the whole sweep",
+   "Whatever the next taker is willing to pay",
+   "Exactly the tick they chose, no better and no worse"
+  ]
+ },
+ "5B58E2FE": {
+  "view": "maker",
+  "question": "What is a non-lent maker guaranteed that nobody else in this guide is?",
+  "answer": "Immediate, unconditional cancellation in any pool state",
+  "options": [
+   "A rebate on every fill",
+   "Immediate, unconditional cancellation in any pool state",
+   "Priority over the curve at every price",
+   "A fill within a bounded number of blocks"
+  ]
+ },
+ "349C427F": {
+  "view": "lent",
+  "question": "Where does a lent order’s interest accrue?",
+  "answer": "Inside the order itself, compounding, with no claim step",
+  "options": [
+   "Inside the order itself, compounding, with no claim step",
+   "In a separate rewards contract to be claimed weekly",
+   "In the LP tranche, and is shared out at withdrawal",
+   "Nowhere: lent makers earn the rebate instead"
+  ]
+ },
+ "8BD6D132": {
+  "view": "lp",
+  "question": "A default produces a loss. Which class absorbs it, and with what cap?",
+  "answer": "The LP reserve tranche, with no cap at all",
+  "options": [
+   "Lent suppliers, capped at their accrued interest",
+   "Fill claims, capped at the fill amount",
+   "Non-lent escrow, capped at the escrowed balance",
+   "The LP reserve tranche, with no cap at all"
+  ]
+ },
+ "516CD8DE": {
+  "view": "lp",
+  "question": "Beyond swap fees and the LP share of interest, what else feeds an LP?",
+  "answer": "Profitable repegs, forfeited yield on seized lent collateral, and the slow post-default auction",
+  "options": [
+   "A protocol emissions programme",
+   "Profitable repegs, forfeited yield on seized lent collateral, and the slow post-default auction",
+   "A cut of every liquidation penalty, paid instantly",
+   "Interest on the non-lent escrow"
+  ]
+ },
+ "10938CFA": {
+  "view": "borrow",
+  "question": "A borrower picks their own liquidation tick. What does raising it buy them?",
+  "answer": "More borrowed now, and less room before they are closed",
+  "options": [
+   "More borrowed now, and less room before they are closed",
+   "More borrowed now, and more room before they are closed",
+   "A lower interest rate on the same amount",
+   "Priority in the liquidation cascade"
+  ]
+ },
+ "0207873A": {
+  "view": "borrow",
+  "question": "The price rises well above a borrower’s tick. Why is their position not simply safer?",
+  "answer": "The debt keeps accruing, so the threshold it must clear keeps moving",
+  "options": [
+   "The tick is recomputed to the new spot automatically",
+   "Rising prices raise the interest rate",
+   "The debt keeps accruing, so the threshold it must clear keeps moving",
+   "The pool reduces their capacity as the price rises"
+  ]
+ },
+ "EB883D4F": {
+  "view": "lev",
+  "question": "Why does each further turn of the leverage loop return less?",
+  "answer": "Every turn pays the swap cost again and posts collateral worth less than the last",
+  "options": [
+   "The interest rate rises with each turn",
+   "Every turn pays the swap cost again and posts collateral worth less than the last",
+   "The protocol charges an explicit per-turn fee",
+   "Capacity is rationed one turn per block"
+  ]
+ },
+ "51CB85E8": {
+  "view": "lev",
+  "question": "On a looped position, what plays the part that a funding rate plays on a perp?",
+  "answer": "The borrow rate on the debt leg",
+  "options": [
+   "A periodic payment between longs and shorts",
+   "The dynamic swap fee",
+   "The liquidation penalty, amortised",
+   "The borrow rate on the debt leg"
+  ]
+ },
+ "4C91650E": {
+  "view": "band",
+  "question": "Why is the band frozen inside the block in which the spot is pushed?",
+  "answer": "So a price the attacker created in this block cannot be used for credit in the same block",
+  "options": [
+   "To save gas on the write",
+   "Because the band updates only once a day",
+   "So a price the attacker created in this block cannot be used for credit in the same block",
+   "Because a repeg is pending"
+  ]
+ },
+ "C2EBFD4E": {
+  "view": "band",
+  "question": "After an attacker pushes the price and unwinds, what are they left with?",
+  "answer": "Slippage paid on both legs, and a pool that is now more cautious with them",
+  "options": [
+   "Slippage paid on both legs, and a pool that is now more cautious with them",
+   "A profit equal to the width of the band",
+   "A free option on the next block’s price",
+   "Nothing at all: the trades are reverted"
+  ]
+ },
+ "27847DE6": {
+  "view": "liq",
+  "question": "One rung of the cascade would create a loss larger than the junior tranche can absorb. What happens?",
+  "answer": "That rung stays pending, and everything above it still closes",
+  "options": [
+   "The pool halts until governance intervenes",
+   "That rung stays pending, and everything above it still closes",
+   "The loss is socialised across lent suppliers",
+   "The whole cascade reverts and is retried next block"
+  ]
+ }
+}

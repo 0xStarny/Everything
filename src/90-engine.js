@@ -108,6 +108,7 @@ document.addEventListener('click', e => {
   if (!b) { if (!e.target.closest('.glpop')) closePop(); return; }
   closePop();
   const g = GLOSS[+b.dataset.g];
+  track('glossary', { term: T(g.t) });
   POP = document.createElement('div');
   POP.className = 'glpop';
   POP.innerHTML = `<b>${T(g.t)}</b><p>${T(g.d)}</p>`;
@@ -216,6 +217,7 @@ function wireShare(p, v) {
   if (cs) cs.addEventListener('click', async () => {
     try {
       await copyBlob(await svgToPng(p.querySelector('svg.stage'), { footer: T(v.title) }));
+      track('copy_diagram', { view: v.id });
       flash(cs, true);
     } catch (e) { flash(cs, false); }
   });
@@ -270,6 +272,8 @@ function wire(p, v) {
     /* The button is nudged until somebody has advanced a step once, ever.
        After that the guide assumes they know how it works. */
     bNext.classList.toggle('nudge', !last && !NUDGED);
+    depthStep(v.id, i);
+    if (last) track('view_complete', { view: v.id, of: steps.length });
     if (!silent && STATE.tab === v.id) writePath(false);
   }
   /* Kept as a no-op: the search palette and the deep-link router both stop a
@@ -387,6 +391,9 @@ function show(id, keepScroll, fromPop) {
   document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   requestAnimationFrame(paintScroll);
+  const vv = V.find(x => x.id === id);
+  /* only a genuine change of view is an opening */
+  if (depthIn(id, vv && vv.stage ? vv.stage.steps.length : 1)) track('view_open', { view: id });
   const panel = document.getElementById('p-' + id);
   if (panel) { panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter'); }
   writePath(!fromPop);
@@ -447,6 +454,7 @@ function openSearch() {
   const go = i => {
     const r = hits[i];
     if (!r) return;
+    track('search_pick', { q: inp.value.trim().slice(0, 60), kind: r.k, to: r.id || r.t });
     closeSearch();
     if (r.k === 'term') { show('start'); setTimeout(() => {
       const rows = document.querySelectorAll('#p-start tbody tr');
@@ -458,7 +466,17 @@ function openSearch() {
     if (c) { c.stop(); c.render(r.i); }
   };
   inp.value = ''; paint(); inp.focus();
-  inp.oninput = paint;
+  track('search_open', {});
+  let qt = null;
+  inp.oninput = () => {
+    paint();
+    clearTimeout(qt);
+    /* one event per query, once they have stopped typing it */
+    qt = setTimeout(() => {
+      const q = inp.value.trim();
+      if (q.length >= 3) track('search', { q: q.slice(0, 60), hits: hits.length });
+    }, 900);
+  };
   inp.onkeydown = e => {
     if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, hits.length - 1); paint(); e.preventDefault(); }
     if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); paint(); e.preventDefault(); }
@@ -566,6 +584,13 @@ NAV.addEventListener('keydown', e => {
   const cur = items.indexOf(document.activeElement);
   const nxt = (cur + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
   items[nxt].focus();
+});
+document.addEventListener('click', e => {
+  const l = e.target.closest('.seg button[data-lang]');
+  if (l) track('lang', { to: l.dataset.lang });
+  if (e.target.closest('#theme')) track('theme', { to: document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark' });
+  const n = e.target.closest('.navcard');
+  if (n) track('view_next_card', { to: n.dataset.goto, dir: n.classList.contains('next') ? 'next' : 'prev' });
 });
 document.getElementById('search').addEventListener('click', openSearch);
 document.getElementById('menu').addEventListener('click', () => {

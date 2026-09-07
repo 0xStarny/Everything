@@ -849,6 +849,106 @@ function flash(btn, ok) {
   setTimeout(() => { btn.innerHTML = was; }, 2200);
 }
 
+/* ══════════════ WHAT THE GUIDE LEARNS ABOUT ITSELF ══════════════
+
+   Page views tell you a page was opened. They do not tell you that eleven
+   readers in twelve leave the LP view at step 5, or that the question about
+   who absorbs a default is answered wrong two times in three. Those are the
+   only numbers worth having, because they say where the explaining failed.
+
+   This is a fan-out, not a provider. Whatever analytics is present receives
+   the event; if none is, nothing happens and nothing throws. Everything sent
+   is a short label or a number — no address, no wallet, no free text except a
+   search query, truncated. The session id is random per tab and dies with it,
+   so nobody is followed from one visit to the next. */
+
+const TRACK = {
+  /* Set to a path to also POST events to your own collector. api/e.js in this
+     repo is one; it stays dormant until its store is configured. */
+  endpoint: '/api/e',
+  /* Flip to false to disable collection entirely. */
+  on: true
+};
+
+const SESSION = (() => {
+  try {
+    let s = sessionStorage.getItem('ev-s');
+    if (!s) { s = Math.random().toString(36).slice(2, 10); sessionStorage.setItem('ev-s', s); }
+    return s;
+  } catch (e) { return 'anon'; }
+})();
+
+const T0 = Date.now();
+const QUEUE = [];
+
+function track(name, props) {
+  if (!TRACK.on) return;
+  const d = { ...(props || {}), lang: typeof LANG === 'string' ? LANG : 'en' };
+  try {
+    /* Vercel Web Analytics. Custom events need a paid plan; on the free one
+       this call is simply ignored, which is why it is not the only sink. */
+    if (window.va) window.va('event', { name, data: d });
+    /* Plausible, Umami and PostHog all take (name, props) in some shape. */
+    if (window.plausible) window.plausible(name, { props: d });
+    if (window.umami && window.umami.track) window.umami.track(name, d);
+    if (window.posthog && window.posthog.capture) window.posthog.capture(name, d);
+  } catch (e) { /* analytics must never break a page */ }
+  if (TRACK.endpoint) {
+    /* The properties are nested rather than spread. A property called `n` or
+       `t` would otherwise overwrite the event's own name or timestamp, which
+       is exactly what happened the first time this was written. */
+    QUEUE.push({ n: name, t: Date.now() - T0, p: d });
+    if (QUEUE.length >= 12) flush();
+  }
+}
+
+/* Sent with sendBeacon so it survives the tab closing, which is exactly the
+   moment the most interesting event — how far they got — is produced. */
+function flush() {
+  if (!QUEUE.length || !TRACK.endpoint) return;
+  const body = JSON.stringify({ s: SESSION, e: QUEUE.splice(0, QUEUE.length) });
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(TRACK.endpoint, new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch(TRACK.endpoint, { method: 'POST', body, keepalive: true,
+        headers: { 'Content-Type': 'application/json' } });
+    }
+  } catch (e) { /* nothing here is worth an error */ }
+}
+addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { depthOut(); flush(); } });
+addEventListener('pagehide', () => { depthOut(); flush(); });
+
+/* ── how far into a view somebody actually got ──────────────────
+   One event per view, not one per step: the furthest step reached, sent when
+   the reader leaves that view or the tab. That is the drop-off curve. */
+const DEPTH = { id: null, max: 0, of: 0, at: 0 };
+function depthIn(id, of) {
+  /* A language switch re-renders the view in place. That is the same visit,
+     not a new one, so the window is kept and only its length is refreshed —
+     otherwise every toggle would post a one-second visit that reached step 1
+     and the drop-off curve would be mostly noise. */
+  if (DEPTH.id === id) { DEPTH.of = of; return false; }
+  depthOut();
+  DEPTH.id = id; DEPTH.max = 0; DEPTH.of = of; DEPTH.at = Date.now();
+  return true;
+}
+function depthStep(id, i) {
+  if (DEPTH.id === id && i > DEPTH.max) DEPTH.max = i;
+}
+function depthOut() {
+  if (!DEPTH.id || !DEPTH.of) return;
+  track('view_depth', {
+    view: DEPTH.id,
+    step: DEPTH.max + 1,
+    of: DEPTH.of,
+    pct: Math.round(((DEPTH.max + 1) / DEPTH.of) * 100),
+    done: DEPTH.max === DEPTH.of - 1 ? 1 : 0,
+    secs: Math.round((Date.now() - DEPTH.at) / 1000)
+  });
+  DEPTH.id = null;
+}
+
 /* ══════════════ 00 · THE PROTOCOL ══════════════ */
 V.push({
   id: 'overview',
@@ -3073,6 +3173,7 @@ V.push({
 
     /* ── playing ─────────────────────────────────────────────── */
     function begin(quiz) {
+      track('quiz_start', { test: quiz.id });
       z = quiz;
       list = shuffle(poolOf(z)).slice(0, drawOf(z)).map(q => { const order = shuffle([0, 1, 2, 3]); return { ...q, order, c2: order.indexOf(q.c) }; });
       idx = 0; right = 0; marks = [];
@@ -3093,6 +3194,14 @@ V.push({
       const q = list[idx], ok = k === q.c2;
       if (ok) right++;
       marks.push(ok);
+      /* The single most useful number in the whole guide: which question,
+         drawn from which view, people get wrong — and which wrong answer they
+         reached for, because that names the misconception rather than just
+         counting it. */
+      track('quiz_answer', {
+        test: z.id, view: q.v, q: fnv(q.q[0]),
+        correct: ok ? 1 : 0, chose: q.order[k], idx: idx + 1
+      });
       $('[data-qopts]').querySelectorAll('.qopt').forEach((b, i) => {
         b.disabled = true;
         if (i === q.c2) b.classList.add('good'); else if (i === k) b.classList.add('bad');
@@ -3133,13 +3242,18 @@ V.push({
         <button class="btn primary qstart" type="button" data-dosign>${T(QI.sign)}</button>
         <p class="qerr" data-serr hidden></p>
       </div>`;
+      track('quiz_reached_sign', { test: z.id, score: right, of: list.length });
       const b = signv.querySelector('[data-dosign]');
       b.addEventListener('click', async () => {
         b.disabled = true; b.textContent = T(QI.signing);
         const r = await WALLET.sign(msg);
         b.disabled = false; b.textContent = T(QI.sign);
-        if (!r.ok) { const e = signv.querySelector('[data-serr]'); e.hidden = false; e.textContent = T(QI.signNo); return; }
+        if (!r.ok) { const e = signv.querySelector('[data-serr]'); e.hidden = false; e.textContent = T(QI.signNo);
+          track('quiz_sign_refused', { test: z.id }); return; }
         saveResult(z.id, { s: right, n: list.length, sig: r.sig.slice(0, 18) + '…', at: Date.now() });
+        track('quiz_finish', { test: z.id, score: right, of: list.length,
+          passed: right >= needOf(z) ? 1 : 0 });
+        if (passedAll()) track('badge_unlock', {});
         screenRes();
       });
       only(signv);
@@ -3238,7 +3352,13 @@ V.push({
     }
 
     /* ── boot and wallet changes ─────────────────────────────── */
-    function route() { if (!WALLET.addr) screenGate(); else screenHome(); }
+    function route() {
+      /* the tests view is wired whenever it is rendered, including on every
+         language switch; only count somebody who is actually looking at it */
+      const here = STATE.tab === 'quiz';
+      if (!WALLET.addr) { if (here) track('quiz_gate', {}); screenGate(); }
+      else { if (here) track('quiz_home', {}); screenHome(); }
+    }
     WALLET.on(() => { if (!document.getElementById('p-quiz')) return; route(); });
     route();
     return { stop() {}, render() {} };
@@ -3367,12 +3487,14 @@ V.push({
       box.querySelectorAll('.qopt').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k), { once: true }));
     }
     function pick(k) {
+      track('which_answer', { q: i + 1, pick: k });
       const w = WQS[i].a[k].w;
       for (const id in w) score[id] = (score[id] || 0) + w[id];
       if (++i < WQS.length) paint(); else finish();
     }
     function finish() {
       who = CAST.map(c => c.id).sort((a, b) => (score[b] || 0) - (score[a] || 0))[0];
+      track('which_result', { who });
       const c = CAST.find(x => x.id === who), r = WRES[who], w = WHO[who];
       res.innerHTML = `<div class="wres">
         <div class="whead">
@@ -3841,6 +3963,7 @@ document.addEventListener('click', e => {
   if (!b) { if (!e.target.closest('.glpop')) closePop(); return; }
   closePop();
   const g = GLOSS[+b.dataset.g];
+  track('glossary', { term: T(g.t) });
   POP = document.createElement('div');
   POP.className = 'glpop';
   POP.innerHTML = `<b>${T(g.t)}</b><p>${T(g.d)}</p>`;
@@ -3949,6 +4072,7 @@ function wireShare(p, v) {
   if (cs) cs.addEventListener('click', async () => {
     try {
       await copyBlob(await svgToPng(p.querySelector('svg.stage'), { footer: T(v.title) }));
+      track('copy_diagram', { view: v.id });
       flash(cs, true);
     } catch (e) { flash(cs, false); }
   });
@@ -4003,6 +4127,8 @@ function wire(p, v) {
     /* The button is nudged until somebody has advanced a step once, ever.
        After that the guide assumes they know how it works. */
     bNext.classList.toggle('nudge', !last && !NUDGED);
+    depthStep(v.id, i);
+    if (last) track('view_complete', { view: v.id, of: steps.length });
     if (!silent && STATE.tab === v.id) writePath(false);
   }
   /* Kept as a no-op: the search palette and the deep-link router both stop a
@@ -4120,6 +4246,9 @@ function show(id, keepScroll, fromPop) {
   document.getElementById('foot').hidden = (id === 'quiz' || id === 'which');
   if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   requestAnimationFrame(paintScroll);
+  const vv = V.find(x => x.id === id);
+  /* only a genuine change of view is an opening */
+  if (depthIn(id, vv && vv.stage ? vv.stage.steps.length : 1)) track('view_open', { view: id });
   const panel = document.getElementById('p-' + id);
   if (panel) { panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter'); }
   writePath(!fromPop);
@@ -4180,6 +4309,7 @@ function openSearch() {
   const go = i => {
     const r = hits[i];
     if (!r) return;
+    track('search_pick', { q: inp.value.trim().slice(0, 60), kind: r.k, to: r.id || r.t });
     closeSearch();
     if (r.k === 'term') { show('start'); setTimeout(() => {
       const rows = document.querySelectorAll('#p-start tbody tr');
@@ -4191,7 +4321,17 @@ function openSearch() {
     if (c) { c.stop(); c.render(r.i); }
   };
   inp.value = ''; paint(); inp.focus();
-  inp.oninput = paint;
+  track('search_open', {});
+  let qt = null;
+  inp.oninput = () => {
+    paint();
+    clearTimeout(qt);
+    /* one event per query, once they have stopped typing it */
+    qt = setTimeout(() => {
+      const q = inp.value.trim();
+      if (q.length >= 3) track('search', { q: q.slice(0, 60), hits: hits.length });
+    }, 900);
+  };
   inp.onkeydown = e => {
     if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, hits.length - 1); paint(); e.preventDefault(); }
     if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); paint(); e.preventDefault(); }
@@ -4299,6 +4439,13 @@ NAV.addEventListener('keydown', e => {
   const cur = items.indexOf(document.activeElement);
   const nxt = (cur + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
   items[nxt].focus();
+});
+document.addEventListener('click', e => {
+  const l = e.target.closest('.seg button[data-lang]');
+  if (l) track('lang', { to: l.dataset.lang });
+  if (e.target.closest('#theme')) track('theme', { to: document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark' });
+  const n = e.target.closest('.navcard');
+  if (n) track('view_next_card', { to: n.dataset.goto, dir: n.classList.contains('next') ? 'next' : 'prev' });
 });
 document.getElementById('search').addEventListener('click', openSearch);
 document.getElementById('menu').addEventListener('click', () => {

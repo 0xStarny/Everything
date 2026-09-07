@@ -186,8 +186,17 @@ V.push({
       lab0.setAttribute('y', Math.max(46, Y(tick) - 7));
       lab0.textContent = T(['YOUR LIQUIDATION LEVEL', 'VOTRE NIVEAU DE LIQUIDATION']) + ' · ' + dec(tick, 3);
     }
-    tickIn.addEventListener('input', paint);
-    rateIn.addEventListener('input', paint);
+    /* one event per view, however many times the sliders are dragged */
+    let used = false;
+    const touched = () => {
+      if (used) return;
+      used = true;
+      track('lab_use', { view: 'borrow' });
+    };
+    tickIn.addEventListener('input', () => { touched(); paint(); });
+    rateIn.addEventListener('input', () => { touched(); paint(); });
+    tickIn.addEventListener('change', () => track('lab_set', { dial: 'tick', v: dec(Math.pow(1.01, +tickIn.value), 2) }));
+    rateIn.addEventListener('change', () => track('lab_set', { dial: 'rate', v: Math.round(+rateIn.value / 10) + '%' }));
     paint();
   },
   pnl: {

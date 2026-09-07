@@ -111,6 +111,57 @@ export default async function handler(req, res) {
     };
   }).filter(x => x.asked >= 3).sort((a, b) => b.wrong_pct - a.wrong_pct);
 
+  /* Per view: which steps are slow, which are replayed, which are returned
+     to. A step people come BACK to is a step that did not land, and it is the
+     most direct measure of a failed explanation anywhere in the guide. */
+  const stepNum = f => +String(f).replace(/^s/, '');
+  const struggle = {};
+  for (const k of list.filter(x => x.startsWith('ev:dwell:'))) {
+    const view = k.slice('ev:dwell:'.length);
+    const dwell = raw[k] || {}, seen = raw['ev:dwelln:' + view] || {};
+    const replay = raw['ev:replay:' + view] || {}, back = raw['ev:back:' + view] || {};
+    const steps = [...new Set([...Object.keys(dwell), ...Object.keys(replay), ...Object.keys(back)])]
+      .map(f => ({
+        step: stepNum(f),
+        avg_secs: +seen[f] ? Math.round(+dwell[f] / +seen[f]) : null,
+        readers: +seen[f] || 0,
+        replays: +replay[f] || 0,
+        returns: +back[f] || 0
+      }))
+      .sort((a, b) => a.step - b.step);
+    const ch = raw['ev:churn:' + view] || {};
+    const sec = raw['ev:secs:' + view] || {};
+    const hes = raw['ev:hesitate:' + view] || {};
+    struggle[view] = {
+      /* moves spent against moves needed: 1.0 is a straight read-through,
+         anything above it is somebody going round again */
+      churn: +ch.min ? +(+ch.moves / +ch.min).toFixed(2) : null,
+      visits: +ch.n || 0,
+      total_returns: +ch.back || 0,
+      returns_per_visit: +ch.n ? +(+ch.back / +ch.n).toFixed(2) : null,
+      avg_scroll: +sec.n ? Math.round(+sec.scroll / +sec.n) : null,
+      hesitation: +hes.n ? Math.round(+hes.total / +hes.n) : null,
+      steps,
+      slowest: [...steps].filter(x => x.avg_secs != null).sort((a, b) => b.avg_secs - a.avg_secs)[0] || null,
+      most_replayed: [...steps].sort((a, b) => b.replays - a.replays)[0] || null,
+      most_returned: [...steps].sort((a, b) => b.returns - a.returns)[0] || null
+    };
+  }
+
+  /* every passage that lost somebody, across every view, ranked */
+  const passages = [];
+  for (const [view, v] of Object.entries(struggle)) {
+    for (const st of v.steps) {
+      if (!st.returns && st.replays < 2) continue;
+      passages.push({ view, step: st.step, returns: st.returns, replays: st.replays,
+        avg_secs: st.avg_secs, readers: st.readers });
+    }
+  }
+  passages.sort((a, b) => (b.returns * 3 + b.replays) - (a.returns * 3 + a.replays));
+
+  const sess = raw['ev:session'] || {};
+  const bnc = raw['ev:session:bounce'] || {};
+
   res.setHeader('Cache-Control', 'no-store');
   res.status(200).json({
     generated: new Date().toISOString(),
@@ -123,6 +174,56 @@ export default async function handler(req, res) {
       .map(k => [k.slice('ev:test:'.length), sortDesc(raw[k])])),
     scores: Object.fromEntries(list.filter(x => x.startsWith('ev:score:'))
       .map(k => [k.slice('ev:score:'.length), sortDesc(raw[k])])),
+    struggle,
+    passages: passages.slice(0, 30),
+    session: {
+      visits: +sess.visits || 0,
+      avg_views: +sess.visits ? +(+sess.views / +sess.visits).toFixed(1) : null,
+      avg_secs: +sess.visits ? Math.round(+sess.secs / +sess.visits) : null,
+      bounce_pct: (+bnc.yes || 0) + (+bnc.no || 0)
+        ? Math.round(((+bnc.yes || 0) / ((+bnc.yes || 0) + (+bnc.no || 0))) * 100) : null,
+      returning: sortDesc(raw['ev:session:returning'])
+    },
+    entry: sortDesc(raw['ev:entry']),
+    exit: sortDesc(raw['ev:exit']),
+    path: sortDesc(raw['ev:path']),
+    geo: {
+      country: sortDesc(raw['ev:geo:country']),
+      region: sortDesc(raw['ev:geo:region']),
+      city: sortDesc(raw['ev:geo:city']),
+      timezone: sortDesc(raw['ev:geo:tz'])
+    },
+    tech: {
+      device: sortDesc(raw['ev:device']),
+      browser: sortDesc(raw['ev:browser']),
+      os: sortDesc(raw['ev:os']),
+      width: sortDesc(raw['ev:width']),
+      input: sortDesc(raw['ev:input']),
+      prefers: sortDesc(raw['ev:prefers']),
+      wallet_installed: sortDesc(raw['ev:haswallet']),
+      bots: sortDesc(raw['ev:bot'])
+    },
+    acquisition: {
+      referrer: sortDesc(raw['ev:referrer']),
+      source: sortDesc(raw['ev:campaign:source']),
+      campaign: sortDesc(raw['ev:campaign:name']),
+      medium: sortDesc(raw['ev:campaign:medium']),
+      landing: sortDesc(raw['ev:landing'])
+    },
+    when: {
+      day: sortDesc(raw['ev:day']),
+      hour: sortDesc(raw['ev:hour']),
+      weekday: sortDesc(raw['ev:dow'])
+    },
+    arrived_via: Object.fromEntries(list.filter(x => x.startsWith('ev:via:'))
+      .map(k => [k.slice('ev:via:'.length), sortDesc(raw[k])])),
+    abandoned: Object.fromEntries(list.filter(x => x.startsWith('ev:abandon:'))
+      .map(k => [k.slice('ev:abandon:'.length), sortDesc(raw[k])])),
+    lab: {
+      used: +((raw['ev:lab'] || {}).used) || 0,
+      tick: sortDesc(raw['ev:lab:tick']),
+      rate: sortDesc(raw['ev:lab:rate'])
+    },
     which: sortDesc(raw['ev:which']),
     searched: sortDesc(raw['ev:search']),
     looked_up: sortDesc(raw['ev:glossary']),

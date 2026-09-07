@@ -39,6 +39,14 @@ const qsOf = z => poolOf(z);                       // the pool, for counting
 const drawOf = z => Math.min(DRAW, poolOf(z).length);
 const needOf = z => Math.ceil(drawOf(z) * PASS);
 
+/* A test somebody started and walked out of, and the question they walked out
+   on. Emitted when the tab closes, because that is the only moment it is
+   knowable. */
+let RUNNING = null, QAT = 0;
+addEventListener('pagehide', () => {
+  if (RUNNING) { track('quiz_abandon', { test: RUNNING.test, at: RUNNING.at }); RUNNING = null; }
+});
+
 const QI = {
   gateT: ['Connect your wallet to begin', 'Connectez votre wallet pour commencer'],
   gateS: ['Each test is signed with your wallet when you finish it, so a score belongs to an address and not to a browser. Signing costs nothing and sends no transaction.',
@@ -256,12 +264,15 @@ V.push({
     /* ── playing ─────────────────────────────────────────────── */
     function begin(quiz) {
       track('quiz_start', { test: quiz.id });
+      RUNNING = { test: quiz.id, at: 0 };
       z = quiz;
       list = shuffle(poolOf(z)).slice(0, drawOf(z)).map(q => { const order = shuffle([0, 1, 2, 3]); return { ...q, order, c2: order.indexOf(q.c) }; });
       idx = 0; right = 0; marks = [];
       only(play); paint();
     }
     function paint() {
+      QAT = Date.now();
+      if (RUNNING) RUNNING.at = idx + 1;
       const q = list[idx];
       $('[data-qcount]').textContent = `${z.n} · ${T(z.t)} — ${T(QI.q)} ${idx + 1} / ${list.length}`;
       $('[data-qbar]').style.width = ((idx / list.length) * 100) + '%';
@@ -282,7 +293,10 @@ V.push({
          counting it. */
       track('quiz_answer', {
         test: z.id, view: q.v, q: fnv(q.q[0]),
-        correct: ok ? 1 : 0, chose: q.order[k], idx: idx + 1
+        correct: ok ? 1 : 0, chose: q.order[k], idx: idx + 1,
+        /* how long they sat on it: a question people stare at is a question
+           the guide half-answered */
+        secs: Math.min(300, Math.round((Date.now() - QAT) / 1000))
       });
       $('[data-qopts]').querySelectorAll('.qopt').forEach((b, i) => {
         b.disabled = true;
@@ -333,6 +347,7 @@ V.push({
         if (!r.ok) { const e = signv.querySelector('[data-serr]'); e.hidden = false; e.textContent = T(QI.signNo);
           track('quiz_sign_refused', { test: z.id }); return; }
         saveResult(z.id, { s: right, n: list.length, sig: r.sig.slice(0, 18) + '…', at: Date.now() });
+        RUNNING = null;
         track('quiz_finish', { test: z.id, score: right, of: list.length,
           passed: right >= needOf(z) ? 1 : 0 });
         if (passedAll()) track('badge_unlock', {});

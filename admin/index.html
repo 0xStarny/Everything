@@ -111,6 +111,33 @@ p.lead{font-size:13px;color:var(--muted);max-width:74ch;margin-bottom:14px}
 .q .wrong b{color:var(--bad-text)}
 .q .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted);flex:none}
 
+/* the passages that lose people */
+.psg{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,74px);gap:10px;align-items:center;
+  padding:9px 12px;border:1px solid var(--hairline);border-radius:var(--r-md);
+  background:var(--surface);margin-bottom:5px}
+.psg.hot{border-left:3px solid var(--bad)}
+.psg .pw{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.psg .pw em{font-style:normal;color:var(--muted);font-weight:500}
+.psg .pn{font-family:var(--mono);font-size:12px;text-align:right}
+.psg .pn b{font-weight:700}
+.psghead{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,74px);gap:10px;
+  padding:0 12px 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted)}
+.psghead span:not(:first-child){text-align:right}
+
+/* per-step table inside a view card */
+.steps{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.steps th{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);text-align:right;padding:5px 8px;border-bottom:1px solid var(--hairline);font-weight:600}
+.steps th:first-child{text-align:left}
+.steps td{padding:5px 8px;border-bottom:1px solid var(--hairline);text-align:right;
+  font-family:var(--mono);color:var(--secondary)}
+.steps td:first-child{text-align:left;font-family:var(--sans)}
+.steps tr:last-child td{border-bottom:0}
+.steps td.hot{color:var(--bad-text);font-weight:700}
+.steps .bar2{height:7px;border-radius:2px;background:var(--subtle);overflow:hidden;min-width:40px}
+.steps .bar2 i{display:block;height:100%;background:var(--accent);opacity:.8}
+
 /* plain frequency lists */
 .bars{display:flex;flex-direction:column;gap:5px}
 .bar{display:grid;grid-template-columns:minmax(0,1fr) 86px 52px;gap:10px;align-items:center;font-size:13px}
@@ -194,7 +221,10 @@ function render(d) {
   const views = d.dropoff || {};
   const readers = Object.values(views).reduce((a, v) => a + v.readers, 0);
   const finished = Object.values(views).reduce((a, v) => a + v.reached_last, 0);
-  const hard = (d.hardest || []).filter(q => q.wrong_pct >= 25);
+  const S = d.session || {};
+  const str = d.struggle || {};
+
+  const secs = n => n == null ? '—' : n >= 60 ? Math.floor(n / 60) + 'm ' + (n % 60) + 's' : n + 's';
 
   app.innerHTML = `
   <header class="top">
@@ -210,15 +240,26 @@ function render(d) {
   </header>
 
   <div class="kpis">
-    <div class="kpi"><div class="k">View visits</div><div class="v mono">${num(readers)}</div>
-      <div class="s">a visit is one reader on one view</div></div>
+    <div class="kpi"><div class="k">Visits</div><div class="v mono">${num(S.visits)}</div>
+      <div class="s">${S.avg_views != null ? S.avg_views + ' views each' : 'one reader, one session'}</div></div>
+    <div class="kpi"><div class="k">Time per visit</div><div class="v mono">${secs(S.avg_secs)}</div>
+      <div class="s">${S.bounce_pct != null ? S.bounce_pct + ' % bounced' : 'average'}</div></div>
     <div class="kpi"><div class="k">Read to the end</div><div class="v mono">${readers ? Math.round((finished / readers) * 100) : 0} %</div>
-      <div class="s">${num(finished)} reached the last step</div></div>
+      <div class="s">${num(finished)} of ${num(readers)} view visits</div></div>
     <div class="kpi"><div class="k">Questions answered</div><div class="v mono">${num((d.events || {}).quiz_answer)}</div>
-      <div class="s">across all six tests</div></div>
-    <div class="kpi"><div class="k">Badges unlocked</div><div class="v mono">${num((d.events || {}).badge_unlock)}</div>
-      <div class="s">passed all six at 75 %</div></div>
+      <div class="s">${num((d.events || {}).badge_unlock)} badges unlocked</div></div>
   </div>
+
+  <h2 class="sec">The passages that lose people <span>a step somebody went back to is a step that did not land</span></h2>
+  <p class="lead">Going forward is reading. Going <em>backward</em> is a decision that something did not make sense, and the step they land on is the one that failed them. Replays are the same signal one notch softer. Ranked by both.</p>
+  ${(d.passages || []).length ? `
+    <div class="psghead"><span>Step</span><span>Returned to</span><span>Replayed</span><span>Avg time</span></div>
+    ${(d.passages || []).map(p => `<div class="psg${p.returns >= 3 ? ' hot' : ''}">
+      <span class="pw">${esc(p.view)} <em>· step ${p.step}</em></span>
+      <span class="pn"><b>${num(p.returns)}</b></span>
+      <span class="pn">${num(p.replays)}</span>
+      <span class="pn">${p.avg_secs == null ? '—' : p.avg_secs + 's'}</span>
+    </div>`).join('')}` : `<p class="empty">Nobody has stepped backward yet.</p>`}
 
   <h2 class="sec">What people get wrong <span>the questions that name a failed explanation</span></h2>
   <p class="lead">Sorted by how often the answer is missed, with the sentence people reached for instead. A question above 50 % is not a hard question, it is a view that has not landed. Only questions asked at least three times appear.</p>
@@ -233,21 +274,33 @@ function render(d) {
       ${(q.picked_instead || []).map(p => `<div class="row wrong"><b>Picked</b><span>${esc(p.picked)}</span><span class="cnt">${num(p.count)}</span></div>`).join('')}
     </div>`).join('') : `<p class="empty">No test answers recorded yet.</p>`}
 
-  <h2 class="sec">Where they stop <span>one curve per view</span></h2>
-  <p class="lead">Each bar is how many readers got exactly that far before leaving the view. A cliff between two steps is the step that lost them.</p>
+  <h2 class="sec">Every view, step by step</h2>
+  <p class="lead">Readers is how many got exactly that far before leaving — a cliff between two rows is the step that lost them. Time is the average spent on that step. Back is how many came round to it again.</p>
   ${Object.keys(views).length ? Object.entries(views).sort((a, b) => b[1].readers - a[1].readers).map(([id, v]) => {
     const max = Math.max(...v.curve.map(c => c.readers), 1);
+    const st = str[id] || { steps: [] };
+    const byStep = {};
+    (st.steps || []).forEach(x => { byStep[x.step] = x; });
     return `<div class="card">
       <h3>${esc(id)}</h3>
-      <div class="meta">${num(v.readers)} visits · ${v.readers ? Math.round((v.reached_last / v.readers) * 100) : 0} % to the end${v.avg_secs != null ? ` · ${v.avg_secs}s average` : ''}</div>
-      <div class="curve">${v.curve.map((c, i) => {
-        const prev = i ? v.curve[i - 1].readers : c.readers;
-        const cliff = i > 0 && prev > 0 && c.readers < prev * 0.55;
-        return `<div class="crow${cliff ? ' drop' : ''}">
-          <span class="cs">step ${c.step}</span>
-          <span class="cb"><i style="width:${Math.max(2, (c.readers / max) * 100)}%"></i></span>
-          <span class="cn">${num(c.readers)}${cliff ? ' ↓' : ''}</span>
-        </div>`; }).join('')}</div>
+      <div class="meta">${num(v.readers)} visits · ${v.readers ? Math.round((v.reached_last / v.readers) * 100) : 0} % to the end${v.avg_secs != null ? ` · ${secs(v.avg_secs)} average` : ''}${st.churn != null ? ` · churn ${st.churn}×` : ''}${st.avg_scroll != null ? ` · scrolled ${st.avg_scroll} %` : ''}${st.hesitation != null ? ` · ${st.hesitation}s before the first move` : ''}</div>
+      <table class="steps">
+        <thead><tr><th>Step</th><th>Readers</th><th></th><th>Time</th><th>Back</th><th>Replays</th></tr></thead>
+        <tbody>${v.curve.map((c, i) => {
+          const prev = i ? v.curve[i - 1].readers : c.readers;
+          const cliff = i > 0 && prev > 0 && c.readers < prev * 0.55;
+          const x = byStep[c.step] || {};
+          return `<tr>
+            <td>step ${c.step}</td>
+            <td class="${cliff ? 'hot' : ''}">${num(c.readers)}${cliff ? ' ↓' : ''}</td>
+            <td style="width:38%"><span class="bar2"><i style="width:${Math.max(2, (c.readers / max) * 100)}%"></i></span></td>
+            <td>${x.avg_secs == null ? '—' : x.avg_secs + 's'}</td>
+            <td class="${x.returns >= 3 ? 'hot' : ''}">${x.returns ? num(x.returns) : '—'}</td>
+            <td>${x.replays ? num(x.replays) : '—'}</td>
+          </tr>`; }).join('')}</tbody>
+      </table>
+      ${Object.keys((d.arrived_via || {})[id] || {}).length
+        ? `<div class="meta" style="margin:12px 0 0">Arrived via ${Object.entries(d.arrived_via[id]).map(([k, n]) => esc(k) + ' ' + num(n)).join(' · ')}</div>` : ''}
     </div>`; }).join('') : `<p class="empty">No view visits recorded yet.</p>`}
 
   <h2 class="sec">What they went looking for <span>and what they had to look up</span></h2>
@@ -257,25 +310,76 @@ function render(d) {
     <div class="card"><h3>Looked up</h3><div class="meta">glossary terms clicked</div>${freq(d.looked_up, 14)}</div>
   </div>
 
-  <h2 class="sec">The rest</h2>
+  <h2 class="sec">Who is reading <span>from the request, never from the reader</span></h2>
   <div class="grid2">
-    <div class="card"><h3>Views opened</h3><div class="meta">how the reading is distributed</div>${freq(d.views_opened, 16)}</div>
-    <div class="card"><h3>Which of the six</h3><div class="meta">who readers turn out to be</div>${freq(d.which, 8)}</div>
-    <div class="card"><h3>Tests</h3><div class="meta">passed against failed</div>${
+    <div class="card"><h3>Country</h3><div class="meta">&nbsp;</div>${freq((d.geo || {}).country, 14)}</div>
+    <div class="card"><h3>City</h3><div class="meta">rough at low traffic</div>${freq((d.geo || {}).city, 14)}</div>
+    <div class="card"><h3>Region</h3><div class="meta">&nbsp;</div>${freq((d.geo || {}).region, 10)}</div>
+    <div class="card"><h3>Time zone</h3><div class="meta">&nbsp;</div>${freq((d.geo || {}).timezone, 10)}</div>
+  </div>
+
+  <h2 class="sec">How they got here</h2>
+  <div class="grid2">
+    <div class="card"><h3>Referrer</h3><div class="meta">hostname only</div>${freq((d.acquisition || {}).referrer, 12)}</div>
+    <div class="card"><h3>Campaign source</h3><div class="meta">utm_source · ref</div>${freq((d.acquisition || {}).source, 10)}</div>
+    <div class="card"><h3>Landed on</h3><div class="meta">first page of the visit</div>${freq((d.acquisition || {}).landing, 12)}</div>
+    <div class="card"><h3>Left from</h3><div class="meta">last view of the visit</div>${freq(d.exit, 12)}</div>
+  </div>
+
+  <h2 class="sec">The reading path <span>which view leads to which</span></h2>
+  <div class="card">${freq(d.path, 20)}</div>
+
+  <h2 class="sec">On what</h2>
+  <div class="grid2">
+    <div class="card"><h3>Device</h3><div class="meta">&nbsp;</div>${freq((d.tech || {}).device, 5)}</div>
+    <div class="card"><h3>Browser</h3><div class="meta">&nbsp;</div>${freq((d.tech || {}).browser, 8)}</div>
+    <div class="card"><h3>Operating system</h3><div class="meta">&nbsp;</div>${freq((d.tech || {}).os, 8)}</div>
+    <div class="card"><h3>Window width</h3><div class="meta">&nbsp;</div>${freq((d.tech || {}).width, 6)}</div>
+    <div class="card"><h3>Wallet installed</h3><div class="meta">the gate on the tests</div>${freq((d.tech || {}).wallet_installed, 3)}</div>
+    <div class="card"><h3>System preference</h3><div class="meta">dark · reduced motion</div>${freq((d.tech || {}).prefers, 4)}</div>
+  </div>
+
+  <h2 class="sec">The tests</h2>
+  <div class="grid2">
+    <div class="card"><h3>Passed against failed</h3><div class="meta">per test</div>${
       Object.keys(d.tests || {}).length
         ? Object.entries(d.tests).map(([t, o]) => `<div class="bar simple"><span class="lb">${esc(t)}</span><span class="bn">${num(o.passed || 0)} / ${num((+o.passed || 0) + (+o.failed || 0))}</span></div>`).join('')
         : `<p class="empty">Nothing recorded yet.</p>`}</div>
+    <div class="card"><h3>Walked out</h3><div class="meta">the question they quit on</div>${
+      Object.keys(d.abandoned || {}).length
+        ? Object.entries(d.abandoned).map(([t, o]) => `<div class="bar simple"><span class="lb">${esc(t)}</span><span class="bn">${Object.entries(o).map(([q, n]) => q + '×' + n).join(' ')}</span></div>`).join('')
+        : `<p class="empty">Nobody has abandoned a test.</p>`}</div>
+    <div class="card"><h3>Which of the six</h3><div class="meta">who readers turn out to be</div>${freq(d.which, 8)}</div>
     <div class="card"><h3>Diagrams copied</h3><div class="meta">which ones travel</div>${freq(d.copied, 10)}</div>
-    <div class="card"><h3>Language</h3><div class="meta">&nbsp;</div>${freq(d.lang, 4)}</div>
-    <div class="card"><h3>Theme</h3><div class="meta">&nbsp;</div>${freq(d.theme, 4)}</div>
+  </div>
+
+  <h2 class="sec">When</h2>
+  <div class="grid2">
+    <div class="card"><h3>By day</h3><div class="meta">&nbsp;</div>${freq((d.when || {}).day, 14)}</div>
+    <div class="card"><h3>By hour, UTC</h3><div class="meta">&nbsp;</div>${freq((d.when || {}).hour, 24)}</div>
+    <div class="card"><h3>By weekday</h3><div class="meta">&nbsp;</div>${freq((d.when || {}).weekday, 7)}</div>
+    <div class="card"><h3>Language &amp; theme</h3><div class="meta">switches, not defaults</div>${freq({ ...(d.lang || {}), ...(d.theme || {}) }, 6)}</div>
+  </div>
+
+  <h2 class="sec">Odds and ends</h2>
+  <div class="grid2">
+    <div class="card"><h3>The borrow lab</h3><div class="meta">the one interactive block</div>
+      <div class="bar simple"><span class="lb">Sliders touched</span><span class="bn">${num((d.lab || {}).used)}</span></div>
+      ${freq((d.lab || {}).tick, 8)}</div>
+    <div class="card"><h3>Returning</h3><div class="meta">this browser has been here before</div>${freq((d.session || {}).returning, 3)}</div>
+    <div class="card"><h3>Entry view</h3><div class="meta">where visits start</div>${freq(d.entry, 12)}</div>
+    <div class="card"><h3>Bots turned away</h3><div class="meta">not counted anywhere else</div>${freq((d.tech || {}).bots, 6)}</div>
   </div>
 
   <div class="note">
-    <b>What this is not.</b> A key on a query string is not an authentication system.
-    It keeps the page off the open web, and that is all it is asked to do — every
-    number here is an anonymous counter, never a person. Nothing stored can be
-    traced back to a reader: no address, no IP, no identifier that survives the
-    tab. If the key leaks, rotate <code>STATS_KEY</code> and redeploy.
+    <b>What this is not.</b> A key on a query string is not an authentication
+    system. It keeps the page off the open web, and that is all it is asked to
+    do — every number here is an anonymous counter, never a person. Nothing
+    stored can be traced back to a reader: no address, no IP, no identifier
+    that survives the tab. Country and city come from the request headers and
+    are counted once per visit; at low traffic a city is close to naming
+    somebody, so read that card as a rough signal and nothing more. If the key
+    leaks, rotate <code>STATS_KEY</code> and redeploy.
   </div>`;
 
   document.getElementById('reload').onclick = load;

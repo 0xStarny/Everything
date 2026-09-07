@@ -272,7 +272,7 @@ function wire(p, v) {
     /* The button is nudged until somebody has advanced a step once, ever.
        After that the guide assumes they know how it works. */
     bNext.classList.toggle('nudge', !last && !NUDGED);
-    depthStep(v.id, i);
+    viewStep(v.id, i);
     if (last) track('view_complete', { view: v.id, of: steps.length });
     if (!silent && STATE.tab === v.id) writePath(false);
   }
@@ -321,7 +321,15 @@ function buildNav() {
   paintTicks();
 }
 
-function seen() { try { return JSON.parse(localStorage.getItem(SEENKEY) || '[]'); } catch (e) { return []; } }
+/* Anything but an array here is treated as nothing. A build briefly wrote a
+   string to this key, and a browser that still holds it would otherwise throw
+   on every navigation rather than simply forget which views it had read. */
+function seen() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SEENKEY) || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch (e) { return []; }
+}
 function markSeen(id) {
   const a = seen();
   if (a.includes(id)) return;
@@ -393,7 +401,7 @@ function show(id, keepScroll, fromPop) {
   requestAnimationFrame(paintScroll);
   const vv = V.find(x => x.id === id);
   /* only a genuine change of view is an opening */
-  if (depthIn(id, vv && vv.stage ? vv.stage.steps.length : 1)) track('view_open', { view: id });
+  if (viewIn(id, vv && vv.stage ? vv.stage.steps.length : 1)) track('view_open', { view: id });
   const panel = document.getElementById('p-' + id);
   if (panel) { panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter'); }
   writePath(!fromPop);
@@ -455,6 +463,7 @@ function openSearch() {
     const r = hits[i];
     if (!r) return;
     track('search_pick', { q: inp.value.trim().slice(0, 60), kind: r.k, to: r.id || r.t });
+    via('search');
     closeSearch();
     if (r.k === 'term') { show('start'); setTimeout(() => {
       const rows = document.querySelectorAll('#p-start tbody tr');
@@ -586,6 +595,13 @@ NAV.addEventListener('keydown', e => {
   items[nxt].focus();
 });
 document.addEventListener('click', e => {
+  /* record how the next view is about to be reached, before it is */
+  if (e.target.closest('.navitem')) via('sidebar');
+  else if (e.target.closest('.navcard')) via('next-card');
+  else if (e.target.closest('.castcard')) via('cast');
+  else if (e.target.closest('.hero .btn')) via('hero');
+  else if (e.target.closest('[data-qgoto]')) via('quiz-miss');
+  else if (e.target.closest('[data-goto]')) via('link');
   const l = e.target.closest('.seg button[data-lang]');
   if (l) track('lang', { to: l.dataset.lang });
   if (e.target.closest('#theme')) track('theme', { to: document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark' });
